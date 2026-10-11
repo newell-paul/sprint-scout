@@ -27,6 +27,22 @@ export function readRiderInput(raw: string | null): RiderInput | null {
     return null;
   }
 }
+export function riderStorageValue(
+  previous: string | null,
+  input: RiderInput,
+): string {
+  let stored: unknown = null;
+  try {
+    stored = previous === null ? null : JSON.parse(previous);
+  } catch {
+    /* Unreadable: nothing to keep. */
+  }
+  const kept =
+    stored && typeof stored === "object" && !Array.isArray(stored)
+      ? stored
+      : {};
+  return JSON.stringify({ ...kept, ...input });
+}
 export function resolveRider(input: RiderInput | null): Rider {
   return input ? riderFromPower(input) : referenceRider;
 }

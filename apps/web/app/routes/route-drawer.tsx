@@ -21,7 +21,12 @@ import type { RouteWindHour } from "@scout/application/route-wind";
 import type { RiderInput } from "@scout/analysis";
 import type { SpeedUnit } from "../components/speed";
 import OpportunityBoard from "./opportunity-board";
-import { readRiderInput, resolveRider, riderStorageKey } from "./rider";
+import {
+  readRiderInput,
+  resolveRider,
+  riderStorageKey,
+  riderStorageValue,
+} from "./rider";
 
 function bearingDegrees(a: Point, b: Point) {
   const toRad = Math.PI / 180;
@@ -88,7 +93,11 @@ export default function Routes() {
   const changeRider = useCallback((input: RiderInput | null) => {
     setRiderInput(input);
     try {
-      if (input) localStorage.setItem(riderStorageKey, JSON.stringify(input));
+      if (input)
+        localStorage.setItem(
+          riderStorageKey,
+          riderStorageValue(localStorage.getItem(riderStorageKey), input),
+        );
       else localStorage.removeItem(riderStorageKey);
     } catch {
       /* Keep the in-memory rider for this session. */

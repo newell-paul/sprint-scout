@@ -25,6 +25,15 @@ describe("saved library migrations", () => {
     const [route] = readLibrary(storageFixtures.efforts);
     expect(route?.efforts?.map((e) => e.id)).toEqual(["e-1"]);
   });
+  it("keeps unknown route fields on the first read", () => {
+    for (const raw of Object.values(storageFixtures)) {
+      const routes = (JSON.parse(raw) as Record<string, unknown>[]).map(
+        (route) => ({ ...route, future: { kept: true } }),
+      );
+      for (const route of readLibrary(JSON.stringify(routes)))
+        expect(route).toHaveProperty("future", { kept: true });
+    }
+  });
   it("round-trips each fixture unchanged on a second read", () => {
     for (const raw of Object.values(storageFixtures)) {
       const once = readLibrary(raw);
