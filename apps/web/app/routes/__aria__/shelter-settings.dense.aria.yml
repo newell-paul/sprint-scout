@@ -1,0 +1,14 @@
+- region "Manual wind shelter":
+  - heading "Assumed shelter" [level=3]
+  - group "Shelter level":
+    - button "Exposed 0% wind reduction":
+      - strong: Exposed
+      - text: 0% wind reduction
+    - button "Sheltered 35% wind reduction":
+      - strong: Sheltered
+      - text: 35% wind reduction
+    - button "Dense 65% wind reduction" [pressed]:
+      - strong: Dense
+      - text: 65% wind reduction
+  - paragraph: Manual what-if setting for the whole segment, saved in this browser. Reduces both headwind penalty and tailwind benefit. These percentages are assumptions—not measured tree protection.
+  - text: Forecast wind and gusts stay unchanged. The time range includes the exposed scenario, not validated shelter confidence. Gaps, wind direction, foliage and turbulence are not modelled.

@@ -1,0 +1,13 @@
+{
+  "name": "@scout/providers",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@scout/contracts": "workspace:*",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@scout/testing": "workspace:*"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@scout/testing",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./open-meteo": "./src/open-meteo.ts",
+    "./msw": "./src/msw.ts",
+    "./playwright": "./src/playwright.ts",
+    "./storage": "./src/storage.ts",
+    "./msw-browser": "./src/msw-browser.ts",
+    "./vitest-commands": "./src/vitest-commands.ts"
+  },
+  "dependencies": {
+    "@scout/contracts": "workspace:*",
+    "msw": "^2.15.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@vitest/browser-playwright": "4.1.11",
+    "vitest": "4.1.11"
+  }
+}

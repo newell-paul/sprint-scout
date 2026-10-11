@@ -1,0 +1,24 @@
+title = "SprintScout secret scanning"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "strava-client-secret"
+description = "Strava OAuth client secret or token assigned in source"
+regex = '''(?i)strava[_-]?(client[_-]?secret|access[_-]?token|refresh[_-]?token)\s*[:=]\s*["']?[a-f0-9]{20,}'''
+tags = ["strava", "oauth"]
+
+[[rules]]
+id = "open-meteo-api-key"
+description = "Open-Meteo commercial API key assigned in source"
+regex = '''(?i)(open[_-]?meteo[_-]?api[_-]?key|apikey=)\s*[:=]?\s*["']?[A-Za-z0-9_-]{16,}'''
+tags = ["weather"]
+
+[allowlist]
+description = "Fixtures and lockfiles"
+paths = [
+  '''pnpm-lock\.yaml''',
+  '''packages/testing/fixtures/.*''',
+  '''.*\.snap$''',
+]

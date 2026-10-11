@@ -1,0 +1,33 @@
+- region "Opportunity board":
+  - heading "Opportunity board" [level=3]
+  - text: /Every saved segment at its own best hour in the next \d+ hours · any hour/
+  - button "Refresh"
+  - region "Opportunity board table":
+    - table "Segments ranked by time gained at their best hour":
+      - caption: Segments ranked by time gained at their best hour
+      - rowgroup:
+        - row /# Segment Best hour Vs still air \d+ hours Open/:
+          - columnheader "#"
+          - columnheader "Segment"
+          - columnheader "Best hour"
+          - columnheader "Vs still air"
+          - columnheader /\d+ hours/
+          - columnheader "Open"
+      - rowgroup:
+        - row /1 Northbound Flat-road model Thu \d+:\d+ PM −\d+[hmsp]+ Open/:
+          - cell "1"
+          - rowheader "Northbound Flat-road model"
+          - cell /Thu \d+:\d+ PM/
+          - cell /−\d+[hmsp]+/
+          - cell
+          - cell "Open":
+            - button "Open"
+        - row /2 Southbound Flat-road model Thu \d+:\d+ PM \+\d+[hmsp]+ Open/:
+          - cell "2"
+          - rowheader "Southbound Flat-road model"
+          - cell /Thu \d+:\d+ PM/
+          - cell /\+\d+[hmsp]+/
+          - cell
+          - cell "Open":
+            - button "Open"
+  - status: Same rider, model and forecast source as the cockpit. Open jumps to that segment’s best hour.

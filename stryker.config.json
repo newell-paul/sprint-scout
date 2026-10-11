@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "vitest": {
+    "configFile": "vitest.config.ts"
+  },
+  "mutate": [
+    "packages/analysis/src/**/*.ts",
+    "packages/application/src/**/*.ts",
+    "!**/*.test.ts",
+    "!**/*.benchmark.ts",
+    "!**/*.smoke.ts",
+    "!packages/application/src/weather-demo.ts"
+  ],
+  "ignoreStatic": true,
+  "ignorePatterns": [
+    "apps",
+    "e2e",
+    "docs",
+    "coverage",
+    "reports",
+    "**/.next",
+    "**/dist",
+    "apps/web/out"
+  ],
+  "reporters": ["clear-text", "progress", "html", "json"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "thresholds": {
+    "high": 90,
+    "low": 85,
+    "break": 80
+  },
+  "concurrency": 4,
+  "timeoutMS": 20000,
+  "tempDirName": ".stryker-tmp",
+  "incremental": true,
+  "incrementalFile": "reports/mutation/incremental.json"
+}

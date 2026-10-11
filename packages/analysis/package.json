@@ -1,0 +1,15 @@
+{
+  "name": "@scout/analysis",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./effort-match": "./src/effort-match.ts"
+  },
+  "dependencies": {
+    "@scout/contracts": "workspace:*",
+    "@turf/bearing": "7.3.4",
+    "@turf/destination": "7.3.4",
+    "@turf/distance": "7.3.4"
+  }
+}

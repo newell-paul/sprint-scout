@@ -1,0 +1,106 @@
+name: Evals
+# Tier 0 is free and runs on every pull request that touches the agent
+# configuration. Tier 1 calls a model and runs only when the repository
+# variable EVALS_ENABLED is "true" or the workflow is dispatched by hand.
+# No schedule, by policy.
+on:
+  pull_request:
+    paths:
+      - AGENTS.md
+      - REVIEW.md
+      - .claude/**
+      - evals/**
+      - intent/README.md
+      - scripts/run-evals.mjs
+      - .github/workflows/evals.yml
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Model to run the tasks on
+        type: string
+        default: claude-haiku-5-5
+permissions:
+  contents: read
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  harness:
+    name: Harness (free)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Hook and structure checks
+        run: pnpm exec vitest run --project unit packages/testing/src/harness.test.ts
+      - name: Every check can fail
+        run: pnpm evals --dry-run
+      - name: Summary
+        if: always()
+        run: cat reports/evals/summary.md >> "$GITHUB_STEP_SUMMARY"
+  agent:
+    name: Agent tasks (paid)
+    needs: harness
+    # Fork pull requests never carry the secret, so they are skipped rather
+    # than left as a failed run.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (vars.EVALS_ENABLED == 'true' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    env:
+      EVALS_MODEL: ${{ inputs.model || vars.EVALS_MODEL || 'claude-haiku-5-5' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install --global @anthropic-ai/claude-code
+      - name: Reuse results for an unchanged configuration
+        uses: actions/cache@v4
+        with:
+          path: reports/evals/cache
+          key: evals-${{ env.EVALS_MODEL }}-${{ hashFiles('AGENTS.md', 'REVIEW.md', '.claude/**', 'evals/**', 'intent/README.md', 'scripts/run-evals.mjs') }}
+      - name: Run tasks
+        run: pnpm evals --model "$EVALS_MODEL"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Summary
+        if: always()
+        run: cat reports/evals/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evals-report
+          path: reports/evals
+          retention-days: 90
+  disabled:
+    name: Agent tasks (off)
+    needs: harness
+    if: >-
+      github.event_name != 'workflow_dispatch' &&
+      !(vars.EVALS_ENABLED == 'true' &&
+        github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          ENABLED: ${{ vars.EVALS_ENABLED }}
+        run: |
+          {
+            echo "## Evals"
+            echo
+            if [ "$ENABLED" != "true" ]; then
+              echo "Paid agent tasks are switched off (repository variable \`EVALS_ENABLED\` is not \`true\`)."
+            else
+              echo "Pull request from a fork: the paid tasks need the repository secret and do not run."
+            fi
+            echo "Run the Evals workflow by hand to execute them on a chosen model."
+          } >> "$GITHUB_STEP_SUMMARY"

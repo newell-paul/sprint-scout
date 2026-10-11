@@ -1,0 +1,2 @@
+- group "Segments":
+  - 'button "Segment 1: empty, draw a segment" [pressed]': 1 Add segment

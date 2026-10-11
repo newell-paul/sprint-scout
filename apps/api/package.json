@@ -1,0 +1,14 @@
+{
+  "name": "@scout/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --noEmit",
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.7.4",
+    "@scout/application": "workspace:*"
+  }
+}

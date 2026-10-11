@@ -1,0 +1,24 @@
+[
+  {
+    "id": "queens-road",
+    "name": "Queens Road",
+    "slot": 0,
+    "points": [
+      [-0.12, 51.5],
+      [-0.12, 51.512]
+    ],
+    "confirmed": true,
+    "createdAt": "2026-09-10T00:00:00Z",
+    "targetTimeS": 90,
+    "terrainMode": "terrain",
+    "terrainAuto": true,
+    "shelter": "sheltered",
+    "terrain": {
+      "version": "glo90-profile-v1",
+      "geometryKey": "[[-0.12,51.5],[-0.12,51.51]]",
+      "retrievedAt": "2026-09-10T00:00:00Z",
+      "source": "Open-Meteo / Copernicus DEM GLO-90 2021",
+      "elevationsM": [1, 1, 1, 1, 1, 1, 1, 1, 1, 10, 31, 31, 31]
+    }
+  }
+]

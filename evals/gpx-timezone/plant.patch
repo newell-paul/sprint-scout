@@ -1,0 +1,15 @@
+diff --git a/packages/application/src/gpx.ts b/packages/application/src/gpx.ts
+index 24f6330..d9884e6 100644
+--- a/packages/application/src/gpx.ts
++++ b/packages/application/src/gpx.ts
+@@ -31,9 +31,7 @@ export function parseGpx(text: string): GpxTrack {
+     const lat = Number(attribute(attributes, "lat"));
+     const lon = Number(attribute(attributes, "lon"));
+     const time = child(body, "time");
+-    if (time !== undefined && !zoned.test(time)) zoneless++;
+-    const at =
+-      time !== undefined && zoned.test(time) ? Date.parse(time) : Number.NaN;
++    const at = time === undefined ? Number.NaN : Date.parse(time);
+     if (
+       !Number.isFinite(lat) ||
+       !Number.isFinite(lon) ||

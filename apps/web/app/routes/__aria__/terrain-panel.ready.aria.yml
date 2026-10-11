@@ -1,0 +1,28 @@
+- region "Segment terrain":
+  - heading "Terrain · Enabled" [level=3]
+  - button "Reload terrain" [disabled]
+  - checkbox "Share sampled coordinates along this segment with Open-Meteo for elevation."
+  - text: Share sampled coordinates along this segment with Open-Meteo for elevation.
+  - checkbox "Reload terrain automatically after this segment is edited." [disabled]
+  - text: Reload terrain automatically after this segment is edited.
+  - group "Estimate model":
+    - button "Flat road"
+    - button "Terrain" [pressed]
+    - button "Remove elevation"
+  - img "Smoothed elevation profile from Start to Finish. Ascent 44 m, descent 0 m."
+  - text: Start 50 m ↑ 44 m · ↓ 0 m Finish 94 m
+  - paragraph: Length 1.11 km · Steepest modelled grade 4.0% · Smoothed, not surveyed road elevation.
+  - group: Elevation samples & source
+  - paragraph: "90 m surface grid: bridges, trees and short hills may be wrong. Steady effort; acceleration, braking and detailed local airflow excluded. Range covers assumed wind errors only, not elevation errors. Not a validated personal prediction."
+  - link "Open-Meteo":
+    - /url: https://open-meteo.com/en/docs/elevation-api
+  - text: /
+  - link "Copernicus DEM GLO-90 (2021)":
+    - /url: https://doi.org/10.5270/ESA-c5d3d65
+  - text: ·
+  - link "CC BY 4.0":
+    - /url: https://creativecommons.org/licenses/by/4.0/
+  - text: · Resampled and smoothed. Requests may be logged for 90 days;
+  - link "terms & privacy":
+    - /url: https://open-meteo.com/en/terms
+  - text: . Elevation © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme do not incur any liability for any use of the Copernicus DEM.

@@ -1,0 +1,25 @@
+{
+  "name": "@scout/application",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./departure": "./src/departure.ts",
+    "./route-wind": "./src/route-wind.ts",
+    "./terrain": "./src/terrain.ts",
+    "./shelter": "./src/shelter.ts",
+    "./gpx": "./src/gpx.ts",
+    "./archive-wind": "./src/archive-wind.ts"
+  },
+  "dependencies": {
+    "@js-temporal/polyfill": "0.5.1",
+    "@scout/analysis": "workspace:*",
+    "@scout/contracts": "workspace:*",
+    "@scout/providers": "workspace:*",
+    "@turf/destination": "7.3.4",
+    "@turf/distance": "7.3.4"
+  },
+  "devDependencies": {
+    "@scout/testing": "workspace:*"
+  }
+}

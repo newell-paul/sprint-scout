@@ -1,0 +1,355 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  static:
+    name: Static gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm lint:md
+      - run: pnpm spell
+      - run: pnpm boundaries
+      - run: pnpm knip
+      - run: pnpm typecheck
+      - name: Type coverage
+        run: |
+          mkdir -p reports
+          pnpm typecheck:coverage
+          pnpm typecheck:coverage --json-output > reports/type-coverage.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: type-coverage
+          path: reports/type-coverage.json
+          retention-days: 14
+      - run: pnpm audit:prod
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+  unit:
+    name: Unit and contract (shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec vitest run --project unit --shard=${{ matrix.shard }}/2 --reporter=blob --coverage --coverage.reporter=json
+        env:
+          COVERAGE_GATE: off
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vitest-blob-${{ matrix.shard }}
+          path: |
+            .vitest-reports
+            coverage
+          include-hidden-files: true
+          retention-days: 1
+  unit-report:
+    name: Coverage gate
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vitest-blob-*
+          merge-multiple: true
+      - run: pnpm exec vitest run --merge-reports --coverage --reporter=default --reporter=json --outputFile=reports/unit/report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-report
+          path: reports/unit
+          retention-days: 14
+  contract-drift:
+    # The only job that talks to the real internet. Advisory: provider drift
+    # is reported on the run, not blamed on the pull request.
+    name: Open-Meteo contract drift (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:contract:drift
+  vulnerabilities:
+    name: OSV scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google/osv-scanner-action/osv-scanner-action@v2
+        with:
+          scan-args: |
+            --lockfile=pnpm-lock.yaml
+  integration:
+    name: Database (testcontainers)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:integration
+  component:
+    name: Components (Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:component --reporter=default --reporter=json --outputFile=reports/component/report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: component-report
+          path: reports/component
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: component-screenshots
+          path: apps/web/app/**/__screenshots__
+          if-no-files-found: ignore
+          retention-days: 7
+  budgets:
+    name: Deploy gate (export smoke, size, Lighthouse, perf)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build:static
+      - run: pnpm test:smoke:static
+      - run: pnpm test:size
+      - run: pnpm exec size-limit --json > reports/size.json
+      - run: pnpm test:lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deploy-gate-report
+          path: |
+            reports/size.json
+            .lighthouseci/manifest.json
+            .lighthouseci/*.report.json
+          include-hidden-files: true
+          retention-days: 14
+      - run: pnpm test:perf
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse
+          path: .lighthouseci
+          retention-days: 14
+  e2e:
+    name: End to end (shard ${{ matrix.shard }})
+    needs: [static, unit, component]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The browser tests run against `next dev` with the in-memory planner;
+      # no database or API build is needed here.
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm exec playwright test --shard=${{ matrix.shard }}/4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: blob-report
+          retention-days: 1
+  e2e-report:
+    name: End to end report
+    needs: e2e
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+      - run: pnpm exec playwright merge-reports --reporter html ./all-blob-reports
+      - run: pnpm exec playwright merge-reports --reporter json ./all-blob-reports
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: reports/e2e/report.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: reports/e2e
+          retention-days: 14
+  dashboard:
+    # Built on main only, so the history is one line per landed commit. The
+    # Pages workflow runs after this workflow and publishes the page beside
+    # the app at /dashboard/.
+    name: Engineering dashboard
+    needs: [static, unit-report, component, budgets, e2e-report]
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: unit-report
+          path: reports/unit
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: component-report
+          path: reports/component
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: e2e-report
+          path: reports/e2e
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: type-coverage
+          path: reports
+        continue-on-error: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: deploy-gate-report
+          path: .
+        continue-on-error: true
+      - name: Fetch the latest mutation and eval reports and the previous history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest() { gh run list --workflow "$1" --status success --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true; }
+          run=$(latest mutation.yml)
+          [ -n "$run" ] && gh run download "$run" --name mutation-report --dir reports/mutation || true
+          run=$(latest evals.yml)
+          [ -n "$run" ] && gh run download "$run" --name evals-report --dir reports/evals || true
+          run=$(gh run list --workflow ci.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId' || true)
+          [ -n "$run" ] && gh run download "$run" --name dashboard --dir previous || true
+          if [ ! -f previous/history.json ]; then
+            # First dashboard build after the rename: carry the test health history over.
+            [ -n "$run" ] && gh run download "$run" --name test-health --dir previous || true
+          fi
+      - name: Read pipeline and delivery data from the GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p reports/github
+          gh run list --workflow ci.yml --branch main --event push --limit 30 \
+            --json conclusion,createdAt,updatedAt,attempt > reports/github/runs.json || true
+          gh pr list --state merged --limit 100 --json createdAt,mergedAt > reports/github/pulls.json || true
+      - name: Collect review tallies and resolved threads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/collect-reviews.mjs || true
+      - id: build
+        run: pnpm dashboard --history previous/history.json --sha "$GITHUB_SHA"
+        continue-on-error: true
+      - name: Summary
+        if: always()
+        run: cat reports/dashboard/bands.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dashboard
+          path: reports/dashboard
+          retention-days: 90
+      - name: Fail on a 3σ band breach
+        # The dashboard and its history are uploaded first, so the breach is
+        # visible on the page as well as on the run. Pages does not publish a
+        # failed run.
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "::error::A dashboard metric left its 3σ band. See the job summary and reports/dashboard/bands.md."
+          exit 1

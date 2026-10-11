@@ -1,0 +1,33 @@
+- region "Opportunity board":
+  - heading "Opportunity board" [level=3]
+  - text: Every saved segment at its own best hour in the next 48 hours · any hour
+  - button "Refresh"
+  - region "Opportunity board table":
+    - table "Segments ranked by time gained at their best hour":
+      - caption: Segments ranked by time gained at their best hour
+      - rowgroup:
+        - row "# Segment Best hour Vs still air 48 hours Open":
+          - columnheader "#"
+          - columnheader "Segment"
+          - columnheader "Best hour"
+          - columnheader "Vs still air"
+          - columnheader "48 hours"
+          - columnheader "Open"
+      - rowgroup:
+        - row "1 Test hill Flat-road model Fri 08:00 −14s Open":
+          - cell "1"
+          - rowheader "Test hill Flat-road model"
+          - cell "Fri 08:00"
+          - cell "−14s"
+          - cell
+          - cell "Open":
+            - button "Open"
+        - row "2 River flat Dense · assumed shelter Flat-road model Estimate 5s outside target Fri 08:00 −5s Open":
+          - cell "2"
+          - rowheader "River flat Dense · assumed shelter Flat-road model Estimate 5s outside target"
+          - cell "Fri 08:00"
+          - cell "−5s"
+          - cell
+          - cell "Open":
+            - button "Open"
+  - status: Same rider, model and forecast source as the cockpit. Open jumps to that segment’s best hour.

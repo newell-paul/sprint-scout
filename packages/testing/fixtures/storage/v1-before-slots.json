@@ -1,0 +1,24 @@
+[
+  {
+    "id": "queens-road",
+    "name": "Queens Road",
+    "points": [
+      [-0.12, 51.5],
+      [-0.12, 51.51]
+    ],
+    "confirmed": true,
+    "createdAt": "2026-09-09T12:00:00Z"
+  },
+  {
+    "id": "bend",
+    "name": "The bend",
+    "points": [
+      [-0.1, 51.5],
+      [-0.1, 51.505],
+      [-0.095, 51.506]
+    ],
+    "confirmed": true,
+    "createdAt": "2026-09-09T12:05:00Z",
+    "slot": 3
+  }
+]

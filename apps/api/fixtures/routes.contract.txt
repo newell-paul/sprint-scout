@@ -1,0 +1,5 @@
+├── /health/live (GET, HEAD)
+├── /health/ready (GET, HEAD)
+├── /segments (GET, HEAD)
+├── /weather/demo (GET, HEAD)
+└── /planner/demo (POST)

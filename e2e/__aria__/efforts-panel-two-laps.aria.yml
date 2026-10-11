@@ -1,0 +1,41 @@
+- region /Your efforts · Best [\d,.]+[bkmBKM]+ \d+[hmsp]+/:
+  - heading /Your efforts · Best [\d,.]+[bkmBKM]+ \d+[hmsp]+/ [level=3]
+  - text: Import GPX ride
+  - button "Import GPX ride" [disabled]
+  - paragraph: Times come from your own recorded rides, matched against this segment in this browser. Nothing is uploaded.
+  - checkbox "The file I import is my own device recording and I have the right to use it here."
+  - text: The file I import is my own device recording and I have the right to use it here.
+  - checkbox "Share this segment's start coordinate and the dates of these efforts with Open-Meteo for past wind."
+  - text: Share this segment's start coordinate and the dates of these efforts with Open-Meteo for past wind.
+  - button "Load past wind" [disabled]
+  - text: 2 efforts without wind.
+  - region "Efforts table":
+    - table "Matched efforts on this segment":
+      - caption: Matched efforts on this segment
+      - rowgroup:
+        - row "Ride Time Wind that hour Track fit Actions":
+          - columnheader "Ride"
+          - columnheader "Time"
+          - columnheader "Wind that hour"
+          - columnheader "Track fit"
+          - columnheader "Actions"
+      - rowgroup:
+        - row /\d+ Sep \d+ \d+:\d+ northbound-two-laps\.gpx [\d,.]+[bkmBKM]+ \d+[hmsp]+ Not loaded ±0 m Remove effort from \d+ Sep \d+ \d+:\d+/:
+          - rowheader /\d+ Sep \d+ \d+:\d+ northbound-two-laps\.gpx/:
+            - time: /\d+ Sep \d+ \d+:\d+/
+            - text: ""
+          - cell /[\d,.]+[bkmBKM]+ \d+[hmsp]+/
+          - cell "Not loaded"
+          - cell "±0 m"
+          - cell /Remove effort from \d+ Sep \d+ \d+:\d+/:
+            - button /Remove effort from \d+ Sep \d+ \d+:\d+/
+        - row /\d+ Sep \d+ \d+:\d+ northbound-two-laps\.gpx [\d,.]+[bkmBKM]+ \d+[hmsp]+ Not loaded ±0 m Remove effort from \d+ Sep \d+ \d+:\d+/:
+          - rowheader /\d+ Sep \d+ \d+:\d+ northbound-two-laps\.gpx/:
+            - time: /\d+ Sep \d+ \d+:\d+/
+            - text: ""
+          - cell /[\d,.]+[bkmBKM]+ \d+[hmsp]+/
+          - cell "Not loaded"
+          - cell "±0 m"
+          - cell /Remove effort from \d+ Sep \d+ \d+:\d+/:
+            - button /Remove effort from \d+ Sep \d+ \d+:\d+/
+  - status: 2 efforts added from northbound-two-laps.gpx. The file was read in this browser only.

@@ -1,0 +1,301 @@
+{
+  "input": [
+    {
+      "key": "hill@2026-09-10T09:00:00Z",
+      "caution": false,
+      "weatherIndex": 34.1,
+      "meanAbsCrosswindMps": 3.01,
+      "precipitationMm": null
+    },
+    {
+      "key": "hill@2026-09-10T10:00:00Z",
+      "caution": false,
+      "weatherIndex": 10.1,
+      "meanAbsCrosswindMps": 5.17,
+      "precipitationMm": null
+    },
+    {
+      "key": "hill@2026-09-10T11:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 1.94,
+      "precipitationMm": 0.36
+    },
+    {
+      "key": "hill@2026-09-10T12:00:00Z",
+      "caution": false,
+      "weatherIndex": 7.6,
+      "meanAbsCrosswindMps": 1.86,
+      "precipitationMm": null
+    },
+    {
+      "key": "hill@2026-09-10T13:00:00Z",
+      "caution": true,
+      "weatherIndex": 37,
+      "meanAbsCrosswindMps": 1.48,
+      "precipitationMm": 0.82
+    },
+    {
+      "key": "hill@2026-09-10T14:00:00Z",
+      "caution": false,
+      "weatherIndex": 85.1,
+      "meanAbsCrosswindMps": 3.92,
+      "precipitationMm": 2.83
+    },
+    {
+      "key": "hill@2026-09-10T15:00:00Z",
+      "caution": false,
+      "weatherIndex": 78,
+      "meanAbsCrosswindMps": 1.79,
+      "precipitationMm": 2.73
+    },
+    {
+      "key": "hill@2026-09-10T16:00:00Z",
+      "caution": true,
+      "weatherIndex": 100,
+      "meanAbsCrosswindMps": 1.92,
+      "precipitationMm": null
+    },
+    {
+      "key": "bend@2026-09-10T09:00:00Z",
+      "caution": true,
+      "weatherIndex": 69.3,
+      "meanAbsCrosswindMps": 2.52,
+      "precipitationMm": 0.14
+    },
+    {
+      "key": "bend@2026-09-10T10:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 3.42,
+      "precipitationMm": 2.11
+    },
+    {
+      "key": "bend@2026-09-10T11:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 4.9,
+      "precipitationMm": null
+    },
+    {
+      "key": "bend@2026-09-10T12:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 0.74,
+      "precipitationMm": 0.88
+    },
+    {
+      "key": "bend@2026-09-10T13:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 2.17,
+      "precipitationMm": 2.17
+    },
+    {
+      "key": "bend@2026-09-10T14:00:00Z",
+      "caution": false,
+      "weatherIndex": 88.5,
+      "meanAbsCrosswindMps": 5.09,
+      "precipitationMm": null
+    },
+    {
+      "key": "bend@2026-09-10T15:00:00Z",
+      "caution": false,
+      "weatherIndex": 100,
+      "meanAbsCrosswindMps": 0.45,
+      "precipitationMm": 1.57
+    },
+    {
+      "key": "bend@2026-09-10T16:00:00Z",
+      "caution": false,
+      "weatherIndex": 100,
+      "meanAbsCrosswindMps": 3.08,
+      "precipitationMm": null
+    },
+    {
+      "key": "north@2026-09-10T09:00:00Z",
+      "caution": false,
+      "weatherIndex": 71.8,
+      "meanAbsCrosswindMps": 3.88,
+      "precipitationMm": 1.15
+    },
+    {
+      "key": "north@2026-09-10T10:00:00Z",
+      "caution": true,
+      "weatherIndex": 49,
+      "meanAbsCrosswindMps": 3.61,
+      "precipitationMm": 1.46
+    },
+    {
+      "key": "north@2026-09-10T11:00:00Z",
+      "caution": false,
+      "weatherIndex": 60.2,
+      "meanAbsCrosswindMps": 0.25,
+      "precipitationMm": 2.86
+    },
+    {
+      "key": "north@2026-09-10T12:00:00Z",
+      "caution": false,
+      "weatherIndex": 100,
+      "meanAbsCrosswindMps": 1.13,
+      "precipitationMm": 0.59
+    },
+    {
+      "key": "north@2026-09-10T13:00:00Z",
+      "caution": false,
+      "weatherIndex": 40.7,
+      "meanAbsCrosswindMps": 0.89,
+      "precipitationMm": 2.05
+    },
+    {
+      "key": "north@2026-09-10T14:00:00Z",
+      "caution": false,
+      "weatherIndex": 86.6,
+      "meanAbsCrosswindMps": 5.28,
+      "precipitationMm": 0.42
+    },
+    {
+      "key": "north@2026-09-10T15:00:00Z",
+      "caution": true,
+      "weatherIndex": 10.5,
+      "meanAbsCrosswindMps": 3.05,
+      "precipitationMm": null
+    },
+    {
+      "key": "north@2026-09-10T16:00:00Z",
+      "caution": false,
+      "weatherIndex": 100,
+      "meanAbsCrosswindMps": 4.9,
+      "precipitationMm": 2.28
+    },
+    {
+      "key": "quay@2026-09-10T09:00:00Z",
+      "caution": false,
+      "weatherIndex": 56.1,
+      "meanAbsCrosswindMps": 0.58,
+      "precipitationMm": 1.78
+    },
+    {
+      "key": "quay@2026-09-10T10:00:00Z",
+      "caution": false,
+      "weatherIndex": 77.1,
+      "meanAbsCrosswindMps": 4.4,
+      "precipitationMm": null
+    },
+    {
+      "key": "quay@2026-09-10T11:00:00Z",
+      "caution": false,
+      "weatherIndex": 16.5,
+      "meanAbsCrosswindMps": 0.98,
+      "precipitationMm": 1.35
+    },
+    {
+      "key": "quay@2026-09-10T12:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 0.58,
+      "precipitationMm": null
+    },
+    {
+      "key": "quay@2026-09-10T13:00:00Z",
+      "caution": true,
+      "weatherIndex": 35.7,
+      "meanAbsCrosswindMps": 0.9,
+      "precipitationMm": 2.49
+    },
+    {
+      "key": "quay@2026-09-10T14:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 1.67,
+      "precipitationMm": 2.08
+    },
+    {
+      "key": "quay@2026-09-10T15:00:00Z",
+      "caution": false,
+      "weatherIndex": 85.6,
+      "meanAbsCrosswindMps": 3.89,
+      "precipitationMm": null
+    },
+    {
+      "key": "quay@2026-09-10T16:00:00Z",
+      "caution": false,
+      "weatherIndex": 13.7,
+      "meanAbsCrosswindMps": 4.95,
+      "precipitationMm": null
+    },
+    {
+      "key": "loop@2026-09-10T09:00:00Z",
+      "caution": false,
+      "weatherIndex": 58.8,
+      "meanAbsCrosswindMps": 2.69,
+      "precipitationMm": 0.75
+    },
+    {
+      "key": "loop@2026-09-10T10:00:00Z",
+      "caution": true,
+      "weatherIndex": 39.4,
+      "meanAbsCrosswindMps": 4.54,
+      "precipitationMm": 0.05
+    },
+    {
+      "key": "loop@2026-09-10T11:00:00Z",
+      "caution": true,
+      "weatherIndex": 100,
+      "meanAbsCrosswindMps": 3.72,
+      "precipitationMm": null
+    },
+    {
+      "key": "loop@2026-09-10T12:00:00Z",
+      "caution": false,
+      "weatherIndex": 99.5,
+      "meanAbsCrosswindMps": 5.72,
+      "precipitationMm": 2.38
+    },
+    {
+      "key": "loop@2026-09-10T13:00:00Z",
+      "caution": false,
+      "weatherIndex": 0,
+      "meanAbsCrosswindMps": 4.08,
+      "precipitationMm": 0.86
+    },
+    {
+      "key": "loop@2026-09-10T14:00:00Z",
+      "caution": false,
+      "weatherIndex": 12.4,
+      "meanAbsCrosswindMps": 3.57,
+      "precipitationMm": null
+    },
+    {
+      "key": "loop@2026-09-10T15:00:00Z",
+      "caution": false,
+      "weatherIndex": 100,
+      "meanAbsCrosswindMps": 4.88,
+      "precipitationMm": 1.37
+    },
+    {
+      "key": "loop@2026-09-10T16:00:00Z",
+      "caution": false,
+      "weatherIndex": 51.1,
+      "meanAbsCrosswindMps": 3.94,
+      "precipitationMm": 0.25
+    }
+  ],
+  "expected": {
+    "limit 1": [
+      "bend@2026-09-10T15:00:00Z"
+    ],
+    "limit 3": [
+      "bend@2026-09-10T15:00:00Z",
+      "north@2026-09-10T12:00:00Z",
+      "loop@2026-09-10T15:00:00Z"
+    ],
+    "limit 5": [
+      "bend@2026-09-10T15:00:00Z",
+      "north@2026-09-10T12:00:00Z",
+      "loop@2026-09-10T15:00:00Z",
+      "quay@2026-09-10T15:00:00Z",
+      "hill@2026-09-10T14:00:00Z"
+    ]
+  }
+}

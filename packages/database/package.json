@@ -1,0 +1,16 @@
+{
+  "name": "@scout/database",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@scout/application": "workspace:*",
+    "@scout/contracts": "workspace:*",
+    "@scout/providers": "workspace:*",
+    "drizzle-orm": "^0.45.1",
+    "postgres": "^3.4.8"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "^12.1.0"
+  }
+}

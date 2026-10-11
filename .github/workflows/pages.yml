@@ -1,0 +1,72 @@
+name: Publish segment planner to GitHub Pages
+# Runs once Checks has passed on main, so a failing pull-request gate is never
+# published and the dashboard it built is fresh.
+on:
+  workflow_run:
+    workflows: [Checks]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Resolve base path
+        # A user/organisation site (<user>.github.io) is served from the root;
+        # a project site is served from /<repository name>.
+        run: |
+          if [[ "${{ github.event.repository.name }}" == *.github.io ]]; then
+            echo "NEXT_PUBLIC_BASE_PATH=" >> "$GITHUB_ENV"
+          else
+            echo "NEXT_PUBLIC_BASE_PATH=/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
+          fi
+      - run: pnpm --filter @scout/web build:static
+      - run: pnpm exec playwright install --with-deps chromium
+      # Deploy gate: the export must pass the smoke journeys, the size ceiling
+      # and the Lighthouse budgets before it is uploaded.
+      - run: pnpm test:smoke:static
+      - run: pnpm test:size
+      - run: pnpm test:lighthouse
+      # The dashboard from the Checks run that triggered this deploy is
+      # published beside the app; a missing artifact is not a deploy failure.
+      - name: Add the latest engineering dashboard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run="${{ github.event.workflow_run.id }}"
+          if [ -z "$run" ]; then
+            run=$(gh run list --workflow ci.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId' || true)
+          fi
+          if [ -n "$run" ]; then
+            gh run download "$run" --name dashboard --dir apps/web/out/dashboard || true
+          fi
+      - run: touch apps/web/out/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/out
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

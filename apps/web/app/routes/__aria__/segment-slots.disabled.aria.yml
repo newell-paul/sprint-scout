@@ -1,0 +1,4 @@
+- group "Segments":
+  - 'button "Segment 1: Test hill" [disabled] [pressed]': 1 Test hill
+  - 'button "Segment 2: empty, draw a segment" [disabled]': 2 Add segment
+  - 'button "Segment 3: River flat" [disabled]': 3 River flat

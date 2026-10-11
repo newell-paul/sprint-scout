@@ -1,0 +1,15 @@
+- region "Ride instruments":
+  - text: Modelled average speed
+  - strong: /\d+\.\d+ km\/h/
+  - text: /○ Still-air baseline \d+\.\d+ km\/h Estimated segment time/
+  - strong: /[\d,.]+[bkmBKM]+ \d+[hmsp]+/
+  - text: /\d+[hmsp]+ quicker than still air/
+  - term: Still air
+  - definition: /[\d,.]+[bkmBKM]+ \d+[hmsp]+/
+  - term: Estimated range
+  - definition: /[\d,.]+[bkmBKM]+ \d+[hmsp]+–[\d,.]+[bkmBKM]+ \d+[hmsp]+/
+  - term: Segment distance
+  - definition: /\d+\.\d+ km/
+  - text: Modelled at constant effort · Flat road · Terrain not modelled Wind · north up
+  - strong: /\d+\.\d+ km\/h/
+  - text: Towards north Tailwind

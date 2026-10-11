@@ -1,0 +1,92 @@
+- region "Route wind forecast":
+  - strong: Fri 11 Sept, 08:00 BST
+  - text: Wind unavailable for this hour. Hour 1 of 48
+  - group "Forecast navigation":
+    - button "Previous hour" [disabled]: ←
+    - button "Today" [pressed]
+    - button "Tomorrow"
+    - button "Best hour"
+    - checkbox "Dry daylight only"
+    - text: Dry daylight only
+    - button "Next hour": →
+  - heading "Find your window" [level=3]
+  - text: 48-hour segment time · Lower is quicker Selected · Fri 08:00
+  - strong: Unavailable
+  - slider "Forecast hour": "0"
+  - text: – – Still air 1m 40s ○ Best hour × Unavailable Night Rain or snow Drag or use arrow keys
+  - group: Hourly times
+  - region "Segment target time":
+    - heading "Segment target · Not set" [level=3]
+    - text: Target time (minutes:seconds)
+    - textbox "Target time (minutes:seconds)":
+      - /placeholder: 1:30
+    - button "Save target"
+    - button "Remove target" [disabled]
+    - text: A goal, not a verified personal best or prediction of success.
+  - region "Ride instruments":
+    - text: Modelled average speed
+    - strong: Unavailable
+    - text: ○ Still-air baseline 40.0 km/h Estimated segment time
+    - strong: Unavailable
+    - paragraph: Wind data is missing for this hour.
+    - text: Modelled at constant effort · Flat road · Terrain not modelled Wind · north up
+    - strong: Unavailable
+    - text: No wind direction Wind unavailable
+  - region "Attempt conditions":
+    - term: Sustained wind
+    - definition: Unavailable
+    - term: Gusts
+    - definition: Unavailable
+    - term: Mean crosswind
+    - definition: Unavailable
+    - term: Precipitation
+    - definition: 0.0 mm · 20% chance
+    - text: Near-start forecast · Wind at 10 m; crosswind averaged along segment direction. Gusts and precipitation cover the preceding hour. Not a road-safety assessment.
+  - group: Rider Reference rider · 40.0 km/h in still air
+  - button "Wind particles on" [pressed]
+  - text: Arrow points where wind blows.
+  - group: About this estimate & best hour
+  - region "Manual wind shelter":
+    - heading "Assumed shelter" [level=3]
+    - group "Shelter level":
+      - button "Exposed 0% wind reduction" [pressed]:
+        - strong: Exposed
+        - text: 0% wind reduction
+      - button "Sheltered 35% wind reduction":
+        - strong: Sheltered
+        - text: 35% wind reduction
+      - button "Dense 65% wind reduction":
+        - strong: Dense
+        - text: 65% wind reduction
+    - paragraph: Manual what-if setting for the whole segment, saved in this browser. Reduces both headwind penalty and tailwind benefit. These percentages are assumptions—not measured tree protection.
+    - text: Forecast wind and gusts stay unchanged. The time range includes the exposed scenario, not validated shelter confidence. Gaps, wind direction, foliage and turbulence are not modelled.
+  - region "Segment terrain":
+    - heading "Terrain · Flat-road mode" [level=3]
+    - button "Load terrain" [disabled]
+    - checkbox "Share sampled coordinates along this segment with Open-Meteo for elevation."
+    - text: Share sampled coordinates along this segment with Open-Meteo for elevation.
+    - checkbox "Reload terrain automatically after this segment is edited." [disabled]
+    - text: Reload terrain automatically after this segment is edited.
+    - paragraph: No usable elevation loaded. Current estimates assume flat road; unknown elevation is not evidence of a flat segment.
+    - paragraph: "90 m surface grid: bridges, trees and short hills may be wrong. Steady effort; acceleration, braking and detailed local airflow excluded. Range covers assumed wind errors only, not elevation errors. Not a validated personal prediction."
+    - link "Open-Meteo":
+      - /url: https://open-meteo.com/en/docs/elevation-api
+    - text: /
+    - link "Copernicus DEM GLO-90 (2021)":
+      - /url: https://doi.org/10.5270/ESA-c5d3d65
+    - text: ·
+    - link "CC BY 4.0":
+      - /url: https://creativecommons.org/licenses/by/4.0/
+    - text: · Resampled and smoothed. Requests may be logged for 90 days;
+    - link "terms & privacy":
+      - /url: https://open-meteo.com/en/terms
+    - text: . Elevation © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA; all rights reserved. The organisations in charge of the Copernicus programme do not incur any liability for any use of the Copernicus DEM.
+  - region "Your efforts":
+    - heading "Your efforts" [level=3]
+    - text: Import GPX ride
+    - button "Import GPX ride" [disabled]
+    - paragraph: Times come from your own recorded rides, matched against this segment in this browser. Nothing is uploaded.
+    - checkbox "The file I import is my own device recording and I have the right to use it here."
+    - text: The file I import is my own device recording and I have the right to use it here.
+  - status: Forecast near segment start · Updates automatically
+  - group: Weather source

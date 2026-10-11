@@ -1,0 +1,23 @@
+- paragraph: Save or cancel your drawing before switching segments.
+- paragraph: /2 \/ \d+ points · Ride from Start to Finish along the arrows\./
+- button "Undo point"
+- button "Clear drawing"
+- button "Reverse direction"
+- group:
+  - text: Enter coordinates instead
+  - group "Coordinates / keyboard drawing":
+    - text: Coordinates / keyboard drawing Latitude
+    - textbox "Latitude": /\d+\.\d+/
+    - text: Longitude
+    - textbox "Longitude": /-\d+\.\d+/
+    - button "Add point and centre map"
+- group: Ordered route points
+- paragraph:
+  - text: Route name
+  - textbox "Route name": Independent ride
+- paragraph:
+  - checkbox "I created this route independently of Strava or other restricted data, permit local storage and deterministic route analysis, and agree that its start coordinate is sent to Open-Meteo for wind forecasts." [checked]
+  - text: I created this route independently of Strava or other restricted data, permit local storage and deterministic route analysis, and agree that its start coordinate is sent to Open-Meteo for wind forecasts.
+- button "Save route"
+- button "Cancel drawing"
+- paragraph: Ready to save in this browser.

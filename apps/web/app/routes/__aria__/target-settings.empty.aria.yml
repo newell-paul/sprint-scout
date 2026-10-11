@@ -1,0 +1,8 @@
+- region "Segment target time":
+  - heading "Segment target · Not set" [level=3]
+  - text: Target time (minutes:seconds)
+  - textbox "Target time (minutes:seconds)":
+    - /placeholder: 1:30
+  - button "Save target"
+  - button "Remove target" [disabled]
+  - text: A goal, not a verified personal best or prediction of success.

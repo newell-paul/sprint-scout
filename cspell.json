@@ -1,0 +1,55 @@
+{
+  "version": "0.2",
+  "language": "en-GB",
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "html",
+    "css",
+    "softwareTerms",
+    "sprint-scout"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "sprint-scout",
+      "path": "./.cspell/project-words.txt",
+      "addWords": true
+    }
+  ],
+  "files": ["**/*.{ts,tsx,md,mjs,cjs,json,yml,yaml,css}"],
+  "ignorePaths": [
+    "**/*.snap",
+    "**/*.tsbuildinfo",
+    "**/.next",
+    "**/__aria__/**",
+    "**/__screenshots__/**",
+    "**/dist",
+    "**/fixtures/**",
+    "**/package.json",
+    ".cspell/**",
+    ".stryker-tmp",
+    "apps/web/out",
+    "apps/web/public/maplibre/**",
+    "apps/web/test/public/**",
+    "blob-report",
+    "coverage",
+    "e2e/__aria__/**",
+    "e2e/__screenshots__/**",
+    "e2e/data/*.gpx",
+    "node_modules",
+    "package.json",
+    "playwright-report",
+    "pnpm-lock.yaml",
+    "reports",
+    "test-results"
+  ],
+  "ignoreRegExpList": [
+    "/data:[^\\s\"']+/",
+    "/#[0-9a-fA-F]{3,8}\\b/",
+    "/\\b[0-9a-f]{32,}\\b/",
+    "/https?:\\/\\/\\S+/"
+  ],
+  "allowCompoundWords": true,
+  "words": ["testcontainers"]
+}

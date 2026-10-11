@@ -1,0 +1,5 @@
+- region "Opportunity board":
+  - heading "Opportunity board" [level=3]
+  - text: Every saved segment at its own best hour in the next 48 hours · any hour
+  - button "Rank my segments"
+  - paragraph: Shares each saved segment’s start location with Open-Meteo, one request per segment.

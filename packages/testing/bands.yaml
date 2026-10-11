@@ -1,0 +1,77 @@
+# Deterministic bands over the dashboard history (docs/sdlc.md, step 9).
+#
+# Each run on main is compared with the previous runs in its window: the
+# distance from their mean, in standard deviations and in the worse
+# direction, sets the level. 1σ is logged in the job summary, 2σ annotates
+# the dashboard, 3σ fails the dashboard job. minSigma stops a flat baseline
+# from alarming on noise and is the smallest change worth a look.
+#
+#   path      dotted path into a dashboard snapshot (packages/testing/src/dashboard.ts);
+#             `evals.rate` is the pass rate in percent
+#   worse     which direction is a regression
+#   window    previous runs in the baseline (default 20)
+#   minRuns   runs needed before the band is live (default 5)
+bands:
+  - id: e2e-duration
+    label: End-to-end duration
+    path: e2e.durationMs
+    worse: higher
+    unit: ms
+    minSigma: 5000
+  - id: e2e-count
+    label: End-to-end tests
+    path: e2e.tests
+    worse: lower
+    minSigma: 1
+  - id: unit-count
+    label: Unit tests
+    path: unit.tests
+    worse: lower
+    minSigma: 1
+  - id: line-coverage
+    label: Line coverage
+    path: coverage.lines
+    worse: lower
+    unit: "%"
+    minSigma: 0.5
+  - id: branch-coverage
+    label: Branch coverage
+    path: coverage.branches
+    worse: lower
+    unit: "%"
+    minSigma: 0.5
+  - id: mutation
+    label: Mutation score
+    path: mutationScore
+    worse: lower
+    unit: "%"
+    minSigma: 1
+  - id: lighthouse-performance
+    label: Lighthouse performance
+    path: lighthouse.performance
+    worse: lower
+    minSigma: 2
+  - id: lcp
+    label: Largest contentful paint
+    path: lighthouse.lcpMs
+    worse: higher
+    unit: ms
+    minSigma: 200
+  - id: bundle
+    label: Client JavaScript size
+    path: bundle.0.bytes
+    worse: higher
+    unit: B
+    minSigma: 10000
+  - id: eval-pass-rate
+    label: Eval pass rate
+    path: evals.rate
+    worse: lower
+    unit: "%"
+    minSigma: 10
+  - id: checks-duration
+    label: Checks duration
+    path: pipeline.durationMs
+    worse: higher
+    unit: ms
+    minSigma: 120000

@@ -1,0 +1,1 @@
+Saving a segment on a phone that opens the dev server over plain HTTP fails with "crypto.randomUUID is not a function". Fix `newId` in `apps/web/app/routes/library.ts` so it still returns a valid v4 UUID when `randomUUID` is missing, and make the unit tests in `apps/web/app/routes/library.test.ts` pass without editing the tests. Run only that test file.

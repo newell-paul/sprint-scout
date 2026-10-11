@@ -1,0 +1,92 @@
+- region "Segment terrain":
+  - heading "Terrain · Enabled" [level=3]
+  - button "Reload terrain"
+  - checkbox "Share sampled coordinates along this segment with Open-Meteo for elevation." [checked]
+  - text: Share sampled coordinates along this segment with Open-Meteo for elevation.
+  - checkbox "Reload terrain automatically after this segment is edited."
+  - text: Reload terrain automatically after this segment is edited.
+  - group "Estimate model":
+    - button "Flat road"
+    - button "Terrain" [pressed]
+    - button "Remove elevation"
+  - img /Smoothed elevation profile from Start to Finish\. Ascent \d+ m, descent 0 m\./
+  - text: /Start \d+ m ↑ \d+ m · ↓ 0 m Finish \d+ m/
+  - paragraph: /Length \d+\.\d+ km · Steepest modelled grade 4\.0% · Smoothed, not surveyed road elevation\./
+  - group:
+    - text: Elevation samples & source
+    - region "Elevation samples table":
+      - table "Directed samples · distance from Start · raw and smoothed elevation":
+        - caption: Directed samples · distance from Start · raw and smoothed elevation
+        - rowgroup:
+          - row "Distance Raw elevation Model elevation":
+            - columnheader "Distance"
+            - columnheader "Raw elevation"
+            - columnheader "Model elevation"
+        - rowgroup:
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+          - row /\d+\.\d+ km \d+ m \d+ m/:
+            - cell /\d+\.\d+ km/
+            - cell /\d+ m/
+            - cell /\d+ m/
+    - paragraph: /Retrieved 9\/\d+\/\d+, 8:\d+:\d+ AM\. Stored with this segment until removed\. Editing geometry invalidates elevation\./
+  - paragraph: "/\\d+ m surface grid: bridges, trees and short hills may be wrong\\. Steady effort; acceleration, braking and detailed local airflow excluded\\. Range covers assumed wind errors only, not elevation errors\\. Not a validated personal prediction\\./"
+  - link "Open-Meteo":
+    - /url: https://open-meteo.com/en/docs/elevation-api
+  - text: /
+  - link /Copernicus DEM GLO-\d+ \(\d+\)/:
+    - /url: https://doi.org/10.5270/ESA-c5d3d65
+  - text: ·
+  - link "CC BY 4.0":
+    - /url: https://creativecommons.org/licenses/by/4.0/
+  - text: /· Resampled and smoothed\. Requests may be logged for \d+ days;/
+  - link "terms & privacy":
+    - /url: https://open-meteo.com/en/terms
+  - text: /\. Elevation © DLR e\.V\. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA; all rights reserved\. The organisations in charge of the Copernicus programme do not incur any liability for any use of the Copernicus DEM\./
+  - status: Terrain loaded and saved in this browser.

@@ -1,0 +1,1 @@
+Start a new piece of work: show a wind rose for the selected hour on the segment screen. Write only the intent file for it, following this repository's intent process, and stop before any spec, plan or code. Use the folder name `wind-rose`.
