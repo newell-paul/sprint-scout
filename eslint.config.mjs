@@ -87,13 +87,27 @@ export default ts.config(
     },
   },
   {
+    // randomUUID is missing over plain HTTP on a LAN address; newId() falls back.
+    files: ["apps/web/app/**/*.{ts,tsx}"],
+    ignores: ["apps/web/app/routes/library.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "MemberExpression[property.name='randomUUID']",
+          message: "Use newId() from routes/library.ts.",
+        },
+      ],
+    },
+  },
+  {
     files: testFiles,
     plugins: { vitest },
     rules: {
       ...vitest.configs.recommended.rules,
       "vitest/expect-expect": [
         "error",
-        { assertFunctionNames: ["expect", "fc.assert"] },
+        { assertFunctionNames: ["expect*", "fc.assert"] },
       ],
       "vitest/no-disabled-tests": "error",
       "vitest/no-focused-tests": "error",

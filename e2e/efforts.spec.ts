@@ -5,7 +5,12 @@ const panel = (page: import("@playwright/test").Page) =>
 const fixture = (name: string) => `e2e/data/${name}.gpx`;
 
 async function importGpx(page: import("@playwright/test").Page, name: string) {
-  await panel(page).getByLabel("Import GPX ride").setInputFiles(fixture(name));
+  await panel(page)
+    .getByRole("checkbox", { name: /my own device recording/ })
+    .check();
+  const input = panel(page).getByLabel("Import GPX ride");
+  await expect(input).toBeEnabled();
+  await input.setInputFiles(fixture(name));
 }
 
 test(

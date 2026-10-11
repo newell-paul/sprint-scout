@@ -110,8 +110,26 @@ test("the hourly times table is reachable and scrollable by keyboard @keyboard @
   const table = page.getByRole("region", { name: "Hourly times table" });
   await table.focus();
   await expect(table).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await page.locator(".hourly-time-table tbody button").first().focus();
-  await page.keyboard.press("Enter");
+  // Hour 0 is already selected, so only a later row proves Enter selects.
   await expect(slider(page)).toHaveValue("0");
+  await page.locator(".hourly-time-table tbody button").nth(5).focus();
+  await page.keyboard.press("Enter");
+  await expect(slider(page)).toHaveValue("5");
+});
+
+// Untagged so only Chromium runs it: Playwright's WebKit does not scroll a
+// focused region on ArrowDown.
+test("arrow keys scroll the focused hourly times table", async ({
+  page,
+  seed,
+}) => {
+  await seed(seeded);
+  await page.getByText("Hourly times", { exact: true }).focus();
+  await page.keyboard.press("Enter");
+  const table = page.getByRole("region", { name: "Hourly times table" });
+  await table.focus();
+  const scrolled = () => table.evaluate((element) => element.scrollTop);
+  const before = await scrolled();
+  await page.keyboard.press("ArrowDown");
+  await expect.poll(scrolled).toBeGreaterThan(before);
 });

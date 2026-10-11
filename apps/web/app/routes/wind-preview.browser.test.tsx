@@ -31,7 +31,20 @@ const props = () => ({
 });
 const fresh = () => aRoute({ points: uniquePoints() });
 
-it("loading: a busy placeholder until the forecast lands, then the console", async () => {
+// Ends while still loading, so the teardown axe run checks the busy state.
+it("loading: a busy placeholder while the forecast is outstanding", async () => {
+  openMeteo.faults.weather = "timeout";
+  const screen = await render(<WindPreview route={fresh()} {...props()} />);
+  const region = screen.getByRole("region", console);
+  await expect
+    .element(region.getByTestId("forecast-placeholder"))
+    .toHaveAttribute("aria-busy", "true");
+  await expect
+    .element(region.getByRole("group", { name: "Forecast navigation" }))
+    .not.toBeInTheDocument();
+});
+
+it("ready: the console once the forecast lands", async () => {
   const screen = await render(<WindPreview route={fresh()} {...props()} />);
   const region = screen.getByRole("region", console);
   await expect
@@ -114,7 +127,7 @@ it("wet night: conditions show rain and the dry daylight filter skips it", async
   await aria("wind-preview.wet-night", region);
 });
 
-it("error: an outage shows the reason and try again recovers", async () => {
+it("error: an outage shows the reason and offers try again", async () => {
   openMeteo.faults.weather = "outage";
   const screen = await render(<WindPreview route={fresh()} {...props()} />);
   const region = screen.getByRole("region", console);
@@ -123,6 +136,13 @@ it("error: an outage shows the reason and try again recovers", async () => {
     .element(region.getByRole("group", { name: "Forecast navigation" }))
     .not.toBeInTheDocument();
   await aria("wind-preview.error", region);
+});
+
+it("recovery: try again after an outage brings the console back", async () => {
+  openMeteo.faults.weather = "outage";
+  const screen = await render(<WindPreview route={fresh()} {...props()} />);
+  const region = screen.getByRole("region", console);
+  await expect.element(region.getByRole("alert")).toBeVisible();
   openMeteo.faults.weather = "ok";
   await region.getByRole("button", { name: "Try again" }).click();
   await expect

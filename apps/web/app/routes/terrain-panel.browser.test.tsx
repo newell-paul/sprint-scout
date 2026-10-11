@@ -90,7 +90,30 @@ it("mph: lengths in miles and heights in feet", async () => {
   await expect.element(region.getByText(/^Start \d+ ft$/)).toBeVisible();
 });
 
-it("loading then loaded: consent enables load, the response is saved", async () => {
+// Ends while still loading, so the teardown axe run checks the busy state.
+it("loading: the load button is busy and disabled while elevation is outstanding", async () => {
+  openMeteo.faults.elevation = "timeout";
+  const { onChange, onAutoChange } = handlers();
+  const screen = await render(
+    <TerrainPanel
+      route={aRoute()}
+      unit="km/h"
+      onChange={onChange}
+      onAutoChange={onAutoChange}
+    />,
+  );
+  const region = screen.getByRole("region", panel);
+  await region
+    .getByRole("checkbox", { name: /Share sampled coordinates/ })
+    .click();
+  await region.getByRole("button", { name: "Load terrain" }).click();
+  await expect
+    .element(region.getByRole("button", { name: "Loading elevation…" }))
+    .toBeDisabled();
+  expect(onChange).not.toHaveBeenCalled();
+});
+
+it("loaded: consent enables load, the response is saved", async () => {
   const { onChange, onAutoChange } = handlers();
   const screen = await render(
     <TerrainPanel

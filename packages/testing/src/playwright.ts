@@ -18,7 +18,11 @@ export type OpenMeteo = OpenMeteoConfig & {
   weatherLongitudes: string[];
   /** Hold the next elevation response until `release` is called. */
   holdElevation(): { started: Promise<void>; release: () => void };
+  /** External requests no stub answered; the e2e fixture fails the test on any. */
+  unhandled: string[];
 };
+
+const local = new Set(["127.0.0.1", "localhost"]);
 
 export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
   let hold: { started: () => void; released: Promise<void> } | null = null;
@@ -26,6 +30,7 @@ export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
     ...defaultOpenMeteoConfig(),
     calls: { weather: 0, elevation: 0, archive: 0 },
     weatherLongitudes: [],
+    unhandled: [],
     holdElevation() {
       let started = () => {};
       let release = () => {};
@@ -39,6 +44,14 @@ export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
       return { started: startedPromise, release };
     },
   };
+  // Registered first so it runs last: only requests no stub below matches.
+  await page.route(
+    (url) => url.protocol.startsWith("http") && !local.has(url.hostname),
+    (route) => {
+      meteo.unhandled.push(route.request().url());
+      return route.abort();
+    },
+  );
   await page.route("https://tile.openstreetmap.org/**", (route) =>
     route.abort(),
   );
@@ -71,6 +84,8 @@ export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
       pending.started();
       await pending.released;
     }
+    if (meteo.faults.elevation === "timeout")
+      return new Promise<void>(() => {});
     if (meteo.faults.elevation === "outage")
       return route
         .fulfill({ status: 503, body: "unavailable" })

@@ -101,20 +101,30 @@ test("weather requests carry no referrer and no credentials", async ({
   page,
   seed,
 }) => {
-  const requests: { referer?: string; cookie?: string }[] = [];
+  // A cookie the browser would send if the request ever asked for credentials.
+  await page.context().addCookies([
+    {
+      name: "tracker",
+      value: "1",
+      domain: "api.open-meteo.com",
+      path: "/",
+      // The page is another site, so only a SameSite=None cookie could travel.
+      sameSite: "None",
+      secure: true,
+    },
+  ]);
+  // headers() hides cookie and other security headers; allHeaders() does not.
+  const requests: Promise<Record<string, string>>[] = [];
   page.on("request", (request) => {
     if (request.url().includes("api.open-meteo.com"))
-      requests.push({
-        referer: request.headers()["referer"],
-        cookie: request.headers()["cookie"],
-      });
+      requests.push(request.allHeaders());
   });
   await seed(seeded);
   await expect(page.getByTestId("wind-summary")).toBeVisible();
   expect(requests.length).toBeGreaterThan(0);
-  for (const request of requests) {
-    expect(request.referer ?? "").toBe("");
-    expect(request.cookie ?? "").toBe("");
+  for (const headers of await Promise.all(requests)) {
+    expect(headers["referer"] ?? "").toBe("");
+    expect(headers["cookie"] ?? "").toBe("");
   }
 });
 
@@ -141,4 +151,31 @@ test("a weather request only ever carries the segment start, never the whole lin
   expect(params.get("latitude")).toBe("51.5");
   expect(params.get("longitude")).toBe("-0.12");
   expect(forecast).not.toContain("51.505");
+});
+
+test("a drafted route sends nothing until it is saved, then only its start", async ({
+  page,
+  openMeteo,
+  externalRequests,
+}) => {
+  await page.goto("/");
+  await page.getByText("Enter coordinates instead", { exact: true }).click();
+  for (const [longitude, latitude] of [
+    [-0.31, 51.44],
+    [-0.31, 51.45],
+  ]) {
+    await page.getByLabel("Latitude", { exact: true }).fill(String(latitude));
+    await page.getByLabel("Longitude", { exact: true }).fill(String(longitude));
+    await page
+      .getByRole("button", { name: "Add point and centre map" })
+      .click();
+  }
+  await page.getByLabel("Route name", { exact: true }).fill("Private draft");
+  await page.getByRole("checkbox", { name: /created this route/ }).check();
+  expect(openMeteo.calls).toEqual({ weather: 0, elevation: 0, archive: 0 });
+  expect(externalRequests.filter((url) => url.includes("open-meteo"))).toEqual(
+    [],
+  );
+  await page.getByRole("button", { name: "Save route", exact: true }).click();
+  await expect.poll(() => openMeteo.weatherLongitudes).toEqual(["-0.31"]);
 });

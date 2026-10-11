@@ -1,4 +1,4 @@
-import { aRoute, drawSegment, expect, slider, test } from "./fixtures";
+import { aRoute, expect, northbound, slider, test } from "./fixtures";
 
 const seeded = { routes: [aRoute({ id: "north", name: "Northbound" })] };
 
@@ -25,20 +25,26 @@ test.describe("forecast timeout", () => {
   });
 });
 
-test("a rate-limited forecast says so and does not retry on its own", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
-  openMeteo.faults.weather = "rateLimit";
-  await seed(seeded);
-  await expect(page.locator("p[role=alert]")).toContainText(
-    "Weather service rate limit reached. Try again later.",
-  );
-  await expect(
-    page.getByRole("button", { name: "Try again", exact: true }),
-  ).toBeVisible();
-  expect(openMeteo.calls.weather).toBe(1);
+test.describe("rate limit", () => {
+  test.use({ installClock: true });
+
+  test("a rate-limited forecast says so and does not retry on its own", async ({
+    page,
+    seed,
+    openMeteo,
+  }) => {
+    openMeteo.faults.weather = "rateLimit";
+    await seed(seeded);
+    await expect(page.locator("p[role=alert]")).toContainText(
+      "Weather service rate limit reached. Try again later.",
+    );
+    await expect(
+      page.getByRole("button", { name: "Try again", exact: true }),
+    ).toBeVisible();
+    // Long enough for any backoff a retry would plausibly use.
+    await page.clock.runFor(5 * 60_000);
+    expect(openMeteo.calls.weather).toBe(1);
+  });
 });
 
 test("an empty forecast body is reported as unusable", async ({
@@ -131,7 +137,22 @@ test("unreadable saved routes are preserved rather than replaced", async ({
   await expect(page.locator("p[role=status]")).toHaveText(
     "Cannot read saved routes. Existing data is preserved.",
   );
-  await drawSegment(page, "Fresh segment").catch(() => {});
+  await page.getByText("Enter coordinates instead", { exact: true }).click();
+  for (const [longitude, latitude] of northbound) {
+    await page.getByLabel("Latitude", { exact: true }).fill(String(latitude));
+    await page.getByLabel("Longitude", { exact: true }).fill(String(longitude));
+    await page
+      .getByRole("button", { name: "Add point and centre map" })
+      .click();
+  }
+  await page.getByLabel("Route name", { exact: true }).fill("Fresh segment");
+  await page.getByRole("checkbox", { name: /created this route/ }).check();
+  const save = page.getByRole("button", { name: "Save route", exact: true });
+  await expect(save).toBeEnabled();
+  await save.click();
+  await expect(page.locator("p[role=status]")).toHaveText(
+    "Could not save changes. Storage may be full, unavailable, or invalid; existing routes are preserved.",
+  );
   expect(
     await page.evaluate(() =>
       localStorage.getItem("sprint-scout.drawn-routes.v1"),
