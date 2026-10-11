@@ -173,7 +173,6 @@ export const test = base.extend<Fixtures>({
   },
 });
 
-/** Draw `points` through the coordinate form and save under `name`. */
 export async function drawSegment(
   page: Page,
   name: string,

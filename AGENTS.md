@@ -14,7 +14,7 @@ pnpm check:deploy                 # static export, smoke, size, Lighthouse
 pnpm evals --dry-run              # free check that every eval can fail; pnpm evals runs them on Haiku
 ```
 
-Healthy output ends with lines like `Test Files  44 passed`, `127 passed`, `ESLint: No issues found`, `CSpell: ... Issues found: 0`. Anything else is a failure to report, not to explain away. Delegate suite runs to the `test-runner` agent and the final check to the `verifier` agent.
+Healthy output ends with lines like `Test Files  44 passed`, `127 passed`, `ESLint: No issues found`, `CSpell: ... Issues found: 0`. Anything else is a failure to report, not to explain away. Delegate suite runs to the `test-runner` agent, the final check to the `verifier` agent, and test comment audits to the `comment-checker` agent.
 
 ## Architecture
 

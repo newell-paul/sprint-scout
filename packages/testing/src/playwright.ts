@@ -20,7 +20,6 @@ export type OpenMeteo = OpenMeteoConfig & {
   holdElevation(): { started: Promise<void>; release: () => void };
 };
 
-/** Route Open-Meteo and tile requests on a page, sharing the msw response builders. */
 export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
   let hold: { started: () => void; released: Promise<void> } | null = null;
   const meteo: OpenMeteo = {

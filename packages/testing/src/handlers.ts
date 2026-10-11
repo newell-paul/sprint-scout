@@ -11,7 +11,7 @@ import {
   type OpenMeteoConfig,
 } from "./open-meteo";
 
-/** msw handlers for Vitest (node or browser) sharing the e2e response builders. */
+// Same builders as the e2e routes, so unit, component and e2e tests cannot disagree.
 export function openMeteoHandlers(
   config: OpenMeteoConfig = defaultOpenMeteoConfig(),
 ) {

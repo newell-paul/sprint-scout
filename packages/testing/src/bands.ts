@@ -28,7 +28,6 @@ export type BandResult = {
   reason: string;
 };
 
-// A view of the snapshot with the derived values a band may reference.
 function view(s: Snapshot) {
   return {
     ...s,
