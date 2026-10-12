@@ -2,6 +2,13 @@
 
 One entry per bug that reached `main` or a shipped build, newest first. Each names the test that now catches it. When a class of mistake appears twice, it also becomes a line under "Known mistakes" in `AGENTS.md`.
 
+## 12 October 2026: the fix loop would run fork code with the API key
+
+- What broke: `review.yml`'s `@claude` fix job had no fork check, unlike the review job. A collaborator commenting on a fork pull request would run the fork's install scripts and tests with `ANTHROPIC_API_KEY` and `contents: write`.
+- Found by: the background security review on the first commit.
+- Fix: a `fix-origin` job reads the head repository from the pulls API; the fix job needs it to be this repository.
+- Test: `harness.test.ts`, "runs the @claude fix loop only on pull requests from this repository".
+
 ## 11 October 2026: tests that could not fail
 
 - What broke: nothing shipped broken, but twelve tests could not catch the regression they were named for. The worst: the no-cookie privacy check read `request.headers()`, which never includes cookies; the unreadable-storage test swallowed every error before Save. The rider profile also dropped unknown fields on save, against the storage contract in `docs/test-strategy.md`.

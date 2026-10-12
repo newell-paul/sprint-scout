@@ -1,7 +1,8 @@
 name: Review
 # Applies REVIEW.md to every pull request (docs/sdlc.md, step 11) and runs
 # the @claude fix loop. Paid: the review runs only when the repository
-# variable REVIEW_ENABLED is "true", never on drafts, forks or Dependabot.
+# variable REVIEW_ENABLED is "true", never on drafts, forks or Dependabot,
+# and the fix loop never runs on a fork's code.
 # Findings inform the human decision; nothing here approves, requests
 # changes or merges. No schedule, by policy.
 on:
@@ -116,8 +117,8 @@ jobs:
               echo "Dependabot pull request: not reviewed by the model."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
-  fix:
-    name: Fix loop (@claude)
+  fix-origin:
+    name: Fix loop origin
     # The action also checks that the commenter has write access; the
     # association test here is a second gate against comments from anyone
     # else on a public repository.
@@ -126,6 +127,32 @@ jobs:
       contains(github.event.comment.body, '@claude') &&
       (github.event_name == 'pull_request_review_comment' ||
        (github.event_name == 'issue_comment' && github.event.issue.pull_request))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      same-repo: ${{ steps.origin.outputs.same-repo }}
+    steps:
+      # A comment event does not carry the pull request's head repository, and
+      # the fix job installs and runs that head with the API key, so a fork
+      # pull request stops here.
+      - id: origin
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.issue.number || github.event.pull_request.number }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '.head.repo.full_name // ""')
+          if [ "$head" = "$GITHUB_REPOSITORY" ]; then
+            echo "same-repo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "same-repo=false" >> "$GITHUB_OUTPUT"
+            echo "Pull request from ${head:-a deleted fork}: the fix loop does not run on fork code." >> "$GITHUB_STEP_SUMMARY"
+          fi
+  fix:
+    name: Fix loop (@claude)
+    needs: fix-origin
+    if: needs.fix-origin.outputs.same-repo == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

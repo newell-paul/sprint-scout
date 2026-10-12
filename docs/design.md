@@ -585,3 +585,7 @@ A failed Checks run on a pull request now gets one comment with three lines: the
 ## Rider profile keeps unknown fields — 11 October 2026
 
 Saving the rider profile now merges the edited power, mass and drag area into whatever object is already stored under `sprint-scout.rider.v1`, instead of replacing it. Fields this build does not know survive, so a profile written by a newer build is not cut back when an older tab saves it, as the storage contract in `docs/test-strategy.md` already promised. Reading still returns only the three known fields; unreadable storage is replaced. Resetting to the reference rider still deletes the key. Source: `riderStorageValue` in `apps/web/app/routes/rider.ts`; intent in `intent/test-hardening/`.
+
+## Fix loop refuses fork pull requests — 12 October 2026
+
+The `@claude` fix loop in `review.yml` installs and runs the pull request's code with the API key and write access. Its gate checked who commented but not where the code came from, and a comment event does not carry the head repository. A new `fix-origin` job asks the pulls API for the head repository first; the fix job runs only when it is this repository, so a collaborator's `@claude` on a fork pull request writes a step summary and stops. Guarded by `harness.test.ts`.

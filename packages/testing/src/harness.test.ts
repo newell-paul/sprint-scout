@@ -303,6 +303,25 @@ describe("workflows", () => {
     );
   });
 
+  // A comment event does not say where the pull request came from, so the fix
+  // loop asks the API first; otherwise a collaborator's @claude on a fork pull
+  // request would install and run the fork's code with the API key.
+  it("runs the @claude fix loop only on pull requests from this repository", () => {
+    const doc = parse(read(".github/workflows/review.yml")) as {
+      jobs: Record<
+        string,
+        { needs?: string | string[]; if?: string; steps?: { run?: string }[] }
+      >;
+    };
+    const { fix, "fix-origin": origin } = doc.jobs;
+    expect([fix?.needs].flat()).toContain("fix-origin");
+    expect(fix?.if).toContain("needs.fix-origin.outputs.same-repo == 'true'");
+    const script = origin?.steps?.map((step) => step.run ?? "").join("\n");
+    expect(script).toContain("/pulls/");
+    expect(script).toContain(".head.repo.full_name");
+    expect(script).toContain("GITHUB_REPOSITORY");
+  });
+
   it("triages failed runs read-only, from the default branch, behind its switch", () => {
     const triage = read(".github/workflows/triage.yml");
     expect(triage).toContain("vars.TRIAGE_ENABLED == 'true'");
