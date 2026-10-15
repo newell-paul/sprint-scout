@@ -2,6 +2,15 @@
 
 One entry per bug that reached `main` or a shipped build, newest first. Each names the test that now catches it. When a class of mistake appears twice, it also becomes a line under "Known mistakes" in `AGENTS.md`.
 
+## 15 October 2026: input lost in CI, from a remount and a hydration mismatch
+
+- What broke: three e2e tests failed only on the slower CI runners. A target time typed while the forecast was loading vanished when it arrived, because `TargetSettings` sat in a different place in the tree for each state and remounted. On `/demo`, every planner time hydrated with different text (`08 Sept, 16:00` from Node, `08 Sep at 16:00` from Chromium), so React rebuilt the page and dropped any fill or key press made before that.
+- Found by: the first e2e run on GitHub: `attempt.spec.ts` (saved target), `demo.spec.ts` (DST gap, arrow keys on WebKit).
+- Cause: locale patterns come from each runtime's ICU data, which differs between Node and browsers; React keeps state only for an element at the same position in the tree.
+- Fix: `TargetSettings` keeps one position in `wind-preview.tsx` in both states; the planner formats times with `formatZonedTime` in `components/time.ts`, built from numeric parts and a fixed month table.
+- Tests: `wind-preview.browser.test.tsx`, "target: a time typed before the forecast lands is kept when it arrives"; `time.test.ts`, "formats a zoned time the same way whatever ICU data the runtime has".
+- Rule: text rendered on both server and client never comes from a locale pattern. Second locale-dependent bug after the `localeCompare` sort, so it is now a known mistake in `AGENTS.md`.
+
 ## 15 October 2026: the first CI run failed on gates `pnpm verify` does not run
 
 - What broke: on the first push, Checks failed in four jobs that only exist in CI. The OSV action ref `@v2` does not exist (tags are `v2.x.y`); `size-limit --json > reports/size.json` had no `reports/` directory on a fresh checkout; `pnpm audit --prod` found a critical Next.js advisory and three highs; coverage on `packages/analysis` was 99.68 %, because the zero-power branch of `solveSpeedAtPowerMps` was never run. The e2e report failed only because e2e was skipped behind Static gates.

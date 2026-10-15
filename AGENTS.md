@@ -45,6 +45,7 @@ Add a line whenever the same thing happens twice.
 - `allowedDevOrigins` replaces the defaults; always include `localhost` and `127.0.0.1`.
 - `crypto.randomUUID` is undefined over plain HTTP on a LAN address; use `newId()` from `library.ts`.
 - `localeCompare` ordering differs by locale; sort with code-unit comparison and a stable tie-breaker.
+- `Intl` patterns differ between Node and browser ICU, so server-rendered text hydrates wrong; format with `formatZonedTime` from `components/time.ts`.
 - An emptied library is stored as `[]`; only an absent key counts as a first visit.
 
 ## Docs

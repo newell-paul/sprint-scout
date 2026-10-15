@@ -151,6 +151,21 @@ it("recovery: try again after an outage brings the console back", async () => {
   await expect.element(region.getByRole("alert")).not.toBeInTheDocument();
 });
 
+it("target: a time typed before the forecast lands is kept when it arrives", async () => {
+  openMeteo.faults.weather = "outage";
+  const screen = await render(<WindPreview route={fresh()} {...props()} />);
+  const region = screen.getByRole("region", console);
+  await expect.element(region.getByRole("alert")).toBeVisible();
+  const field = region.getByLabelText("Target time (minutes:seconds)");
+  await field.fill("1:30");
+  openMeteo.faults.weather = "ok";
+  await region.getByRole("button", { name: "Try again" }).click();
+  await expect
+    .element(region.getByRole("group", { name: "Forecast navigation" }))
+    .toBeVisible();
+  await expect.element(field).toHaveValue("1:30");
+});
+
 it("terrain mode without elevation: cockpit unavailable, panel offers fallback", async () => {
   const screen = await render(
     <WindPreview
