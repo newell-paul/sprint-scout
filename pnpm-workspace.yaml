@@ -4,3 +4,7 @@ packages:
 onlyBuiltDependencies:
   - esbuild
   - sharp
+# Transitive pins from Tailwind, Vitest and ESLint plugins hold 1.2.1, which
+# has a high-severity advisory; drop once they ship 1.2.2 themselves.
+overrides:
+  source-map-js: ^1.2.2

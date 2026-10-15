@@ -120,7 +120,7 @@ jobs:
       security-events: write
     steps:
       - uses: actions/checkout@v4
-      - uses: google/osv-scanner-action/osv-scanner-action@v2
+      - uses: google/osv-scanner-action/osv-scanner-action@v2.7.0
         with:
           scan-args: |
             --lockfile=pnpm-lock.yaml
@@ -178,7 +178,7 @@ jobs:
       - run: pnpm build:static
       - run: pnpm test:smoke:static
       - run: pnpm test:size
-      - run: pnpm exec size-limit --json > reports/size.json
+      - run: mkdir -p reports && pnpm exec size-limit --json > reports/size.json
       - run: pnpm test:lighthouse
       - uses: actions/upload-artifact@v4
         if: always()
