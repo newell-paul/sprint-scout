@@ -5,7 +5,6 @@ import { defaultOpenMeteoConfig, type OpenMeteoConfig } from "./open-meteo";
 
 export { openMeteoHandlers };
 export { http, HttpResponse };
-/** A node msw server preloaded with the Open-Meteo handlers for `config`. */
 export function openMeteoServer(
   config: OpenMeteoConfig = defaultOpenMeteoConfig(),
 ) {

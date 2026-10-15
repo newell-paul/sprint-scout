@@ -16,7 +16,7 @@
     "@scout/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.2.0",
     "maplibre-gl": "^6.9.0",
-    "next": "^16.1.6",
+    "next": "^16.4.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.0"

@@ -581,3 +581,15 @@ The test health page at `/test-health/` becomes an engineering dashboard at `/da
 ## Failed-run triage — 10 October 2026
 
 A failed Checks run on a pull request now gets one comment with three lines: the job and step that failed, the probable cause, and the next action. The `Triage` workflow runs on `workflow_run`, which carries the repository secret even for fork pull requests, so it is built as a read-only judgement step: it checks out the default branch only, never the pull request head, downloads the failed job logs through the API, trims them to their tails, and runs `claude -p` with `Read`, `Glob` and `Grep` only. The prompt states that log text is data from untrusted code. The answer is parsed strictly; anything but the three lines becomes a deterministic fallback comment naming the failed step with a link to the run, and the job fails so the gap is visible. The comment carries a hidden marker and is edited rather than repeated on later failures. Failures on `main` are not triaged here; a `main` regression is the band breach path. Source: `.github/workflows/triage.yml`, `packages/testing/src/triage.ts`; plan in `docs/sdlc.md`, step 12.
+
+## Rider profile keeps unknown fields — 11 October 2026
+
+Saving the rider profile now merges the edited power, mass and drag area into whatever object is already stored under `sprint-scout.rider.v1`, instead of replacing it. Fields this build does not know survive, so a profile written by a newer build is not cut back when an older tab saves it, as the storage contract in `docs/test-strategy.md` already promised. Reading still returns only the three known fields; unreadable storage is replaced. Resetting to the reference rider still deletes the key. Source: `riderStorageValue` in `apps/web/app/routes/rider.ts`; intent in `intent/test-hardening/`.
+
+## Fix loop refuses fork pull requests — 12 October 2026
+
+The `@claude` fix loop in `review.yml` installs and runs the pull request's code with the API key and write access. Its gate checked who commented but not where the code came from, and a comment event does not carry the head repository. A new `fix-origin` job asks the pulls API for the head repository first; the fix job runs only when it is this repository, so a collaborator's `@claude` on a fork pull request writes a step summary and stops. Guarded by `harness.test.ts`.
+
+## Checks run once per pull request — 15 October 2026
+
+`ci.yml` ran on every push and every pull request, so each push to a pull request branch ran the full suite twice; the concurrency group never cancelled either, because the branch ref and the merge ref differ. The doubled load slowed the `next dev` e2e server enough that input landed before hydration. Checks now run on pull requests and on pushes to `main` only. The demo planner marks its root `data-hydrated` once React has taken over, and the demo e2e tests wait for it before typing. The static job also grants `pull-requests: read`, which gitleaks needs to list a private repository's pull request commits.

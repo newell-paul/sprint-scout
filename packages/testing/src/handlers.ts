@@ -11,7 +11,7 @@ import {
   type OpenMeteoConfig,
 } from "./open-meteo";
 
-/** msw handlers for Vitest (node or browser) sharing the e2e response builders. */
+// Same builders as the e2e routes, so unit, component and e2e tests cannot disagree.
 export function openMeteoHandlers(
   config: OpenMeteoConfig = defaultOpenMeteoConfig(),
 ) {
@@ -33,11 +33,12 @@ export function openMeteoHandlers(
           );
       }
     }),
-    http.get(openMeteoHosts.elevation, ({ request }) =>
-      config.faults.elevation === "outage"
+    http.get(openMeteoHosts.elevation, async ({ request }) => {
+      if (config.faults.elevation === "timeout") await delay("infinite");
+      return config.faults.elevation === "outage"
         ? new HttpResponse("unavailable", { status: 503 })
-        : HttpResponse.json(elevationBody(config, latitudesFrom(request.url))),
-    ),
+        : HttpResponse.json(elevationBody(config, latitudesFrom(request.url)));
+    }),
     http.get(openMeteoHosts.archive, ({ request }) => {
       switch (config.faults.archive) {
         case "outage":

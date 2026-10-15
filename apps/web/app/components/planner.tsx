@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import {
   plannerResponse,
   type PlannerResponse,
@@ -10,15 +16,16 @@ import { estimateDeparture } from "@scout/application/departure";
 import RouteMap from "./route-map";
 import HourChart from "./hour-chart";
 import RideEffect from "./ride-effect";
-const formatTime = (at: string, zone: string) =>
-  new Intl.DateTimeFormat("en-GB", {
-    timeZone: zone,
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZoneName: "shortOffset",
-  }).format(new Date(at));
+import { formatZonedTime } from "./time";
+// False while the server HTML is showing, true once React has hydrated, so
+// browser tests know their input will not be dropped.
+const noSubscription = () => () => {};
+const useHydrated = () =>
+  useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
 const n = (value: number | null, unit = "m/s") =>
   value === null ? "Unknown" : `${value.toFixed(1)} ${unit}`;
 const warnings: Record<string, string> = {
@@ -68,6 +75,7 @@ function Metrics({ row }: { row: PlannerHour }) {
   );
 }
 export default function Planner({ initial }: { initial: PlannerResponse }) {
+  const hydrated = useHydrated();
   const [data, setData] = useState(initial),
     [draft, setDraft] = useState<PlannerRequest>(initial.request),
     [selectedId, setSelectedId] = useState(initial.best[0]?.segmentId ?? ""),
@@ -171,7 +179,7 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
     }
   }
   return (
-    <div className="planner" data-theme={theme}>
+    <div className="planner" data-theme={theme} data-hydrated={hydrated}>
       <a className="skip-link" href="#results">
         Skip to results
       </a>
@@ -373,8 +381,8 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
               Wind opportunities <span className="count">{best.length}</span>
             </h2>
             <span>
-              {formatTime(data.window.startAt, data.request.timeZone)} –{" "}
-              {formatTime(data.window.endAt, data.request.timeZone)}
+              {formatZonedTime(data.window.startAt, data.request.timeZone)} –{" "}
+              {formatZonedTime(data.window.endAt, data.request.timeZone)}
             </span>
           </div>
           {loading ? (
@@ -468,14 +476,21 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                             <button
                               onClick={() => select(info.id, bestRow.attemptAt)}
                             >
-                              {formatTime(bestRow.attemptAt, bestRow.timeZone)}
+                              {formatZonedTime(
+                                bestRow.attemptAt,
+                                bestRow.timeZone,
+                              )}
                             </button>
                           </div>
                           <div className="card-current">
                             {info.id === selectedId
                               ? "Viewing"
                               : "Best-hour metrics"}{" "}
-                            · {formatTime(current.attemptAt, current.timeZone)}
+                            ·{" "}
+                            {formatZonedTime(
+                              current.attemptAt,
+                              current.timeZone,
+                            )}
                           </div>
                           <Metrics row={current} />
                           <div className="index-line">
@@ -521,7 +536,8 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                         <summary>Directed route · {selected.name}</summary>
                         <div className="map-head">
                           <span>
-                            Viewing {formatTime(row.attemptAt, row.timeZone)}
+                            Viewing{" "}
+                            {formatZonedTime(row.attemptAt, row.timeZone)}
                           </span>
                           <span>{selected.direction}</span>
                         </div>
@@ -550,7 +566,7 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                         <div className="section-title">
                           <h3>Compare the hours</h3>
                           <output data-testid="selected-time">
-                            {formatTime(row.attemptAt, row.timeZone)}
+                            {formatZonedTime(row.attemptAt, row.timeZone)}
                           </output>
                         </div>
                         <label className="sr-only" htmlFor="hour">
@@ -573,7 +589,7 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                               rows[Number(e.target.value)]!.attemptAt,
                             )
                           }
-                          aria-valuetext={formatTime(
+                          aria-valuetext={formatZonedTime(
                             row.attemptAt,
                             row.timeZone,
                           )}
@@ -581,10 +597,13 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                         />
                         <div className="timeline-labels">
                           <span>
-                            {formatTime(rows[0]!.attemptAt, row.timeZone)}
+                            {formatZonedTime(rows[0]!.attemptAt, row.timeZone)}
                           </span>
                           <span>
-                            {formatTime(rows.at(-1)!.attemptAt, row.timeZone)}
+                            {formatZonedTime(
+                              rows.at(-1)!.attemptAt,
+                              row.timeZone,
+                            )}
                           </span>
                         </div>
                         <p className="micro">
@@ -647,7 +666,7 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                                   <button
                                     onClick={() => setAttemptAt(r.attemptAt)}
                                   >
-                                    {formatTime(r.attemptAt, r.timeZone)}
+                                    {formatZonedTime(r.attemptAt, r.timeZone)}
                                     {r.attemptAt === row.attemptAt
                                       ? " · selected"
                                       : ""}
@@ -673,7 +692,9 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                     >
                       <p className="eyebrow">MAKE TIME FOR THE RIDE</p>
                       <h2>When to leave</h2>
-                      <p>Attempt: {formatTime(row.attemptAt, row.timeZone)}</p>
+                      <p>
+                        Attempt: {formatZonedTime(row.attemptAt, row.timeZone)}
+                      </p>
                       <div className="duration-controls">
                         <label>
                           Approach (minutes)
@@ -701,7 +722,10 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                       {departure ? (
                         <>
                           <p className="departure-time" data-testid="departure">
-                            {formatTime(departure.departureAt, row.timeZone)}
+                            {formatZonedTime(
+                              departure.departureAt,
+                              row.timeZone,
+                            )}
                           </p>
                           <p className="micro">{departure.assumption}</p>
                         </>
@@ -748,8 +772,8 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                         <table>
                           <caption>
                             {selected.name} ·{" "}
-                            {formatTime(row.attemptAt, row.timeZone)} · GeoJSON
-                            longitude, latitude
+                            {formatZonedTime(row.attemptAt, row.timeZone)} ·
+                            GeoJSON longitude, latitude
                           </caption>
                           <thead>
                             <tr>
@@ -793,7 +817,7 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
           <p>
             Invented geometry is not a riding recommendation.{" "}
             {data.retrievedAt
-              ? `Fixture retrieval: ${formatTime(data.retrievedAt, "UTC")}. Status: ${data.status} at the fixed demo clock.`
+              ? `Fixture retrieval: ${formatZonedTime(data.retrievedAt, "UTC")}. Status: ${data.status} at the fixed demo clock.`
               : "No forecast retrieved."}
           </p>
           {data.attribution.map((a) => (

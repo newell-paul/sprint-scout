@@ -78,8 +78,7 @@ export function tallyMarkdown(t: ReviewTally) {
   return lines.join("\n");
 }
 
-// One figure for the dashboard: the last `window` reviewed pull requests, the
-// latest tally per pull request, and the share of reviewer threads resolved.
+// Latest tally per pull request only, so a re-review does not count twice.
 export function reviewSummary(
   records: ReviewRecord[],
   window = 20,

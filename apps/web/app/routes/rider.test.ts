@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { riderStorageFixtures } from "@scout/testing/storage";
 import {
   parseRiderField,
   readRiderInput,
   referenceInput,
   resolveRider,
+  riderStorageValue,
 } from "./rider";
 describe("rider profile storage", () => {
   it("reads only complete in-range profiles", () => {
@@ -31,5 +33,38 @@ describe("rider profile storage", () => {
     expect(parseRiderField("massKg", "30")).toBeNull();
     expect(parseRiderField("cdaM2", "0.2849")).toBe(0.285);
     expect(parseRiderField("cdaM2", "0.9")).toBeNull();
+  });
+  it("reads every shipped rider shape", () => {
+    for (const raw of Object.values(riderStorageFixtures))
+      expect(readRiderInput(raw)).not.toBeNull();
+  });
+  // docs/test-strategy.md: unknown fields survive a round-trip, so a newer
+  // version's fields are not lost when an older build saves the profile.
+  it("keeps unknown stored fields when the profile is saved", () => {
+    const stored = JSON.stringify({
+      ...JSON.parse(riderStorageFixtures.v1),
+      future: { kept: true },
+    });
+    const saved = riderStorageValue(stored, {
+      powerW: 300,
+      massKg: 75,
+      cdaM2: 0.28,
+    });
+    expect(JSON.parse(saved)).toEqual({
+      powerW: 300,
+      massKg: 75,
+      cdaM2: 0.28,
+      future: { kept: true },
+    });
+    expect(readRiderInput(saved)).toEqual({
+      powerW: 300,
+      massKg: 75,
+      cdaM2: 0.28,
+    });
+  });
+  it("saves only the profile when nothing readable was stored", () => {
+    const input = { powerW: 300, massKg: 75, cdaM2: 0.28 };
+    for (const previous of [null, "not json", "[1]", "null"])
+      expect(JSON.parse(riderStorageValue(previous, input))).toEqual(input);
   });
 });

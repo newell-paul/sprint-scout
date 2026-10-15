@@ -110,7 +110,11 @@ export const test = base.extend<Fixtures>({
   },
   openMeteo: [
     async ({ page }, use) => {
-      await use(await installOpenMeteo(page));
+      const meteo = await installOpenMeteo(page);
+      await use(meteo);
+      expect(meteo.unhandled, "requests that would reach the internet").toEqual(
+        [],
+      );
     },
     { auto: true },
   ],
@@ -173,7 +177,6 @@ export const test = base.extend<Fixtures>({
   },
 });
 
-/** Draw `points` through the coordinate form and save under `name`. */
 export async function drawSegment(
   page: Page,
   name: string,

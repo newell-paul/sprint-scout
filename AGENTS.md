@@ -14,7 +14,7 @@ pnpm check:deploy                 # static export, smoke, size, Lighthouse
 pnpm evals --dry-run              # free check that every eval can fail; pnpm evals runs them on Haiku
 ```
 
-Healthy output ends with lines like `Test Files  44 passed`, `127 passed`, `ESLint: No issues found`, `CSpell: ... Issues found: 0`. Anything else is a failure to report, not to explain away. Delegate suite runs to the `test-runner` agent and the final check to the `verifier` agent.
+Healthy output ends with lines like `Test Files  44 passed`, `127 passed`, `ESLint: No issues found`, `CSpell: ... Issues found: 0`. Anything else is a failure to report, not to explain away. Delegate suite runs to the `test-runner` agent, the final check to the `verifier` agent, and test comment audits to the `comment-checker` agent.
 
 ## Architecture
 
@@ -45,6 +45,7 @@ Add a line whenever the same thing happens twice.
 - `allowedDevOrigins` replaces the defaults; always include `localhost` and `127.0.0.1`.
 - `crypto.randomUUID` is undefined over plain HTTP on a LAN address; use `newId()` from `library.ts`.
 - `localeCompare` ordering differs by locale; sort with code-unit comparison and a stable tie-breaker.
+- `Intl` patterns differ between Node and browser ICU, so server-rendered text hydrates wrong; format with `formatZonedTime` from `components/time.ts`.
 - An emptied library is stored as `[]`; only an absent key counts as a first visit.
 
 ## Docs

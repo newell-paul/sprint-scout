@@ -291,7 +291,6 @@ export default function WindPreview({
       className="wind-strip forecast-console"
       aria-label="Route wind forecast"
     >
-      {!forecast && targetSettings}
       {forecast && (
         <>
           <div
@@ -385,7 +384,11 @@ export default function WindPreview({
               </p>
             )}
           </div>
-          {targetSettings}
+        </>
+      )}
+      {targetSettings}
+      {forecast && (
+        <>
           <RideCockpit
             effect={rideEffect ?? null}
             hour={forecast.hours[index]!}

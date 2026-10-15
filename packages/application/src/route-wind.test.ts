@@ -207,7 +207,7 @@ describe("independent route wind preview", () => {
     input.hourly.weather_code = [1];
     expect(() => parseRouteWind(input, start)).toThrow();
   });
-  it("rejects unknown units, duplicate times, invalid directions and excessive responses", () => {
+  it("rejects unknown units, duplicate times and invalid directions", () => {
     const units = fixture();
     units.hourly_units.wind_speed_10m = "km/h";
     const times = fixture();
@@ -216,6 +216,41 @@ describe("independent route wind preview", () => {
     direction.hourly.wind_direction_10m[0] = 361;
     for (const input of [units, times, direction])
       expect(() => parseRouteWind(input, start)).toThrow();
+  });
+  it("accepts 48 rows and refuses 49", () => {
+    const rows = (n: number) => {
+      const input = fixture();
+      input.hourly = {
+        time: Array.from({ length: n }, (_, i) => start / 1000 + i * 3600),
+        wind_speed_10m: Array.from({ length: n }, () => 5),
+        wind_direction_10m: Array.from({ length: n }, () => 180),
+      };
+      return input;
+    };
+    expect(parseRouteWind(rows(48), start)).toHaveLength(48);
+    expect(() => parseRouteWind(rows(49), start)).toThrow();
+  });
+  it("reads a body of 100,000 bytes and refuses one byte more", async () => {
+    // Padding sits in an ignored field, so only the size guard can refuse it.
+    const padded = (bytes: number) => {
+      const body = { ...fixture(), padding: "" };
+      const size = new TextEncoder().encode(JSON.stringify(body)).length;
+      body.padding = "x".repeat(bytes - size);
+      return new Response(JSON.stringify(body));
+    };
+    const load = (response: Response) =>
+      loadRouteWind(
+        { point: [0, 51], independentConfirmed: true, weatherConsent: true },
+        new AbortController().signal,
+        vi.fn<typeof fetch>().mockResolvedValue(response),
+        new Date(start),
+      );
+    await expect(load(padded(100_000))).resolves.toMatchObject({
+      point: [0, 51],
+    });
+    await expect(load(padded(100_001))).rejects.toThrow(
+      "Weather response is too large.",
+    );
   });
   it("checks consent and coordinates before network access", async () => {
     const fetcher = vi.fn<typeof fetch>();

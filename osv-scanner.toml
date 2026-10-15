@@ -1,0 +1,48 @@
+# Advisories with no fix in the same major, all in dev-only tooling that never
+# ships in the static export: Lighthouse CI (@lhci/cli) and markdownlint-cli2.
+# They lapse on the date below so the scan fails again and gets a fresh look.
+
+[[IgnoredVulns]]
+id = "GHSA-c475-qrg2-pj4r"
+ignoreUntil = 2027-01-15
+reason = "basic-ftp 5 via @lhci/cli proxy-agent; fixed only in 6, Lighthouse CI never opens ftp URLs"
+
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2027-01-15
+reason = "braces 3.0.3 via micromatch in lint tooling; no fixed release yet, globs are repository-authored"
+
+[[IgnoredVulns]]
+id = "GHSA-7pqw-9j4j-h8q3"
+ignoreUntil = 2027-01-15
+reason = "extract-zip 2.0.1 via puppeteer in @lhci/cli; no fixed release yet, only unpacks the pinned Chrome download"
+
+[[IgnoredVulns]]
+id = "GHSA-jmr9-qjv8-65gv"
+ignoreUntil = 2027-01-15
+reason = "extract-zip 2.0.1 via puppeteer in @lhci/cli; no fixed release yet, only unpacks the pinned Chrome download"
+
+[[IgnoredVulns]]
+id = "GHSA-238p-pmpm-9mq7"
+ignoreUntil = 2027-01-15
+reason = "katex 0.16 via markdownlint math extension; fixed only in 0.18, repository docs are trusted input"
+
+[[IgnoredVulns]]
+id = "GHSA-hp3w-g68c-fv3c"
+ignoreUntil = 2027-01-15
+reason = "sprintf-js 1.0.3 via js-yaml 3 in @lhci/utils; no fixed release yet, formats only local config"
+
+[[IgnoredVulns]]
+id = "GHSA-52f5-9888-hmc6"
+ignoreUntil = 2027-01-15
+reason = "tmp 0.0.33 and 0.1.0 pinned by @lhci/cli and inquirer 6; fixed only in 0.2, runs on throwaway CI runners"
+
+[[IgnoredVulns]]
+id = "GHSA-ph9p-34f9-6g65"
+ignoreUntil = 2027-01-15
+reason = "tmp 0.0.33 and 0.1.0 pinned by @lhci/cli and inquirer 6; fixed only in 0.2, runs on throwaway CI runners"
+
+[[IgnoredVulns]]
+id = "GHSA-w5hq-g745-h8pq"
+ignoreUntil = 2027-01-15
+reason = "uuid 8 pinned by @lhci/cli; fixed only in 11, used for local build ids"

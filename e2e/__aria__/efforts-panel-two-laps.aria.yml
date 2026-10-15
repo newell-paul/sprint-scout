@@ -1,9 +1,9 @@
 - region /Your efforts · Best [\d,.]+[bkmBKM]+ \d+[hmsp]+/:
   - heading /Your efforts · Best [\d,.]+[bkmBKM]+ \d+[hmsp]+/ [level=3]
   - text: Import GPX ride
-  - button "Import GPX ride" [disabled]
+  - button "Import GPX ride"
   - paragraph: Times come from your own recorded rides, matched against this segment in this browser. Nothing is uploaded.
-  - checkbox "The file I import is my own device recording and I have the right to use it here."
+  - checkbox "The file I import is my own device recording and I have the right to use it here." [checked]
   - text: The file I import is my own device recording and I have the right to use it here.
   - checkbox "Share this segment's start coordinate and the dates of these efforts with Open-Meteo for past wind."
   - text: Share this segment's start coordinate and the dates of these efforts with Open-Meteo for past wind.

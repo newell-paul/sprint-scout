@@ -31,6 +31,14 @@ describe("ride effect", () => {
     expect(power(at50)).toBeCloseTo(50, 6);
     expect(power(at100)).toBeCloseTo(100, 6);
   });
+  it("coasts at the free-rolling speed when no power is applied", () => {
+    expect(solveSpeedAtPowerMps(0, 0)).toBe(0);
+    // A strong tailwind alone moves the rider until drag balances rolling resistance.
+    const free = solveSpeedAtPowerMps(0, 20);
+    const k = 0.5 * referenceRider.airDensity * referenceRider.cdaM2;
+    const c = referenceRider.crr * referenceRider.massKg * 9.80665;
+    expect(free).toBeCloseTo(20 - Math.sqrt(c / k), 9);
+  });
   it("is zero with no wind", () => {
     const effect = estimateRideEffect([{ distanceM: 1000, tailwindMps: 0 }]);
     expect(effect.speedDeltaMps).toBe(0);

@@ -4,6 +4,7 @@
 import beforeSlots from "../fixtures/storage/v1-before-slots.json" with { type: "json" };
 import terrainMismatch from "../fixtures/storage/v1-terrain-mismatch.json" with { type: "json" };
 import efforts from "../fixtures/storage/v1-efforts.json" with { type: "json" };
+import riderV1 from "../fixtures/storage/rider-v1.json" with { type: "json" };
 
 export const storageFixtures = {
   /** Routes saved before slots existed; one already has a slot. */
@@ -12,4 +13,9 @@ export const storageFixtures = {
   terrainMismatch: JSON.stringify(terrainMismatch),
   /** Efforts, one of them matched to a previous geometry. */
   efforts: JSON.stringify(efforts),
+} as const;
+
+export const riderStorageFixtures = {
+  /** The only rider shape shipped so far: power, mass and drag area. */
+  v1: JSON.stringify(riderV1),
 } as const;
