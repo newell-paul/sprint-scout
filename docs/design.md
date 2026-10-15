@@ -593,3 +593,7 @@ The `@claude` fix loop in `review.yml` installs and runs the pull request's code
 ## Checks run once per pull request — 15 October 2026
 
 `ci.yml` ran on every push and every pull request, so each push to a pull request branch ran the full suite twice; the concurrency group never cancelled either, because the branch ref and the merge ref differ. The doubled load slowed the `next dev` e2e server enough that input landed before hydration. Checks now run on pull requests and on pushes to `main` only. The demo planner marks its root `data-hydrated` once React has taken over, and the demo e2e tests wait for it before typing. The static job also grants `pull-requests: read`, which gitleaks needs to list a private repository's pull request commits.
+
+## Agents may merge green pull requests — 15 October 2026
+
+Agents could not merge or trigger a deploy, so every landing waited for the owner to type `gh pr merge`. The owner now lets an agent merge a pull request, or re-run the Pages workflow, when asked and only with Checks green. Direct pushes and force pushes to `main` stay blocked by the `guard` hook, so everything still lands through a pull request and the same gates; branch protection on `main` backs this up on GitHub. The harness test moves the Pages dispatch to the allowed list and adds `gh pr merge`.

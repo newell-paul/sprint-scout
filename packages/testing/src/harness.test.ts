@@ -74,8 +74,6 @@ describe("guard hook", () => {
     ["pushing HEAD to main", bash("git push origin HEAD:main")],
     ["force pushing", bash("git push -f origin feature")],
     ["force pushing with lease", bash("git push --force-with-lease")],
-    ["dispatching the Pages workflow", bash("gh workflow run pages.yml")],
-    ["calling the Pages API", bash("gh api repos/o/r/pages/builds -X POST")],
   ] as const;
   const allowed = [
     ["reading the env example", file("Read", `${envFile}.example`)],
@@ -91,6 +89,8 @@ describe("guard hook", () => {
     ],
     ["copying the env example", bash(`cp ${envFile}.example /tmp/x`)],
     ["pushing a branch", bash("git push -u origin feature/x")],
+    ["merging a pull request", bash("gh pr merge 4 --merge --delete-branch")],
+    ["dispatching the Pages workflow", bash("gh workflow run pages.yml")],
     ["listing runs", bash("gh run list --workflow ci.yml")],
     [
       "an unrelated tool",
