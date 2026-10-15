@@ -8,7 +8,7 @@
     "start": "tsx src/server.ts"
   },
   "dependencies": {
-    "fastify": "^5.7.4",
-    "@scout/application": "workspace:*"
+    "@scout/application": "workspace:*",
+    "fastify": "^5.12.7"
   }
 }

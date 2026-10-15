@@ -38,6 +38,7 @@
     "e2e/__screenshots__/**",
     "e2e/data/*.gpx",
     "node_modules",
+    "osv-scanner.toml",
     "package.json",
     "playwright-report",
     "pnpm-lock.yaml",

@@ -33,6 +33,7 @@ OpenRouter
 postgis
 Roehampton
 SDLC
+smol
 strava
 Strava
 trkpt
