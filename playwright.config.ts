@@ -8,7 +8,8 @@ export default defineConfig({
   testDir: ".",
   testMatch: ["e2e/*.spec.ts"],
   fullyParallel: true,
-  workers: ci ? 4 : "100%",
+  // One worker per core: private repositories get 2-vCPU runners, public ones 4.
+  workers: "100%",
   retries: ci ? 1 : 0,
   forbidOnly: ci,
   reporter: ci
