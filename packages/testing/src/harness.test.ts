@@ -322,6 +322,17 @@ describe("workflows", () => {
     expect(script).toContain("GITHUB_REPOSITORY");
   });
 
+  // `pnpm <script>` prints a "> package@ script" banner first, so its output
+  // is not JSON unless the banner is silenced or the binary is run with exec.
+  it("writes JSON reports in workflows without the pnpm script banner", () => {
+    const redirects = readdirSync(at(".github/workflows"))
+      .flatMap((file) => read(".github/workflows", file).split("\n"))
+      .filter((line) => /\bpnpm\b.*>\s*\S+\.json/.test(line));
+    expect(redirects.length).toBeGreaterThan(0);
+    for (const line of redirects)
+      expect(line).toMatch(/\bpnpm (--silent|-s|exec) /);
+  });
+
   it("triages failed runs read-only, from the default branch, behind its switch", () => {
     const triage = read(".github/workflows/triage.yml");
     expect(triage).toContain("vars.TRIAGE_ENABLED == 'true'");

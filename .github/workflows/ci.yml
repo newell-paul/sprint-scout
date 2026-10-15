@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir -p reports
           pnpm typecheck:coverage
-          pnpm typecheck:coverage --json-output > reports/type-coverage.json
+          pnpm --silent typecheck:coverage --json-output > reports/type-coverage.json
       - uses: actions/upload-artifact@v4
         with:
           name: type-coverage
