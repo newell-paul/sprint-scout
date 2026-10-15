@@ -1,5 +1,9 @@
 name: Checks
-on: [push, pull_request]
+# Pull requests run on their merge ref; a branch push would only repeat that.
+on:
+  push:
+    branches: [main]
+  pull_request:
 permissions:
   contents: read
 concurrency:
@@ -9,6 +13,10 @@ jobs:
   static:
     name: Static gates
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # gitleaks lists the pull request's commits through the API.
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:

@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import {
   plannerResponse,
   type PlannerResponse,
@@ -11,6 +17,15 @@ import RouteMap from "./route-map";
 import HourChart from "./hour-chart";
 import RideEffect from "./ride-effect";
 import { formatZonedTime } from "./time";
+// False while the server HTML is showing, true once React has hydrated, so
+// browser tests know their input will not be dropped.
+const noSubscription = () => () => {};
+const useHydrated = () =>
+  useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
 const n = (value: number | null, unit = "m/s") =>
   value === null ? "Unknown" : `${value.toFixed(1)} ${unit}`;
 const warnings: Record<string, string> = {
@@ -60,6 +75,7 @@ function Metrics({ row }: { row: PlannerHour }) {
   );
 }
 export default function Planner({ initial }: { initial: PlannerResponse }) {
+  const hydrated = useHydrated();
   const [data, setData] = useState(initial),
     [draft, setDraft] = useState<PlannerRequest>(initial.request),
     [selectedId, setSelectedId] = useState(initial.best[0]?.segmentId ?? ""),
@@ -163,7 +179,7 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
     }
   }
   return (
-    <div className="planner" data-theme={theme}>
+    <div className="planner" data-theme={theme} data-hydrated={hydrated}>
       <a className="skip-link" href="#results">
         Skip to results
       </a>

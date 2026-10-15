@@ -10,6 +10,14 @@ const applied = async (page: import("@playwright/test").Page) => {
     page.getByRole("button", { name: "Compare windows →" }),
   ).toBeEnabled();
 };
+// The demo is server-rendered; input made before hydration is dropped.
+const openDemo = async (page: import("@playwright/test").Page) => {
+  await page.goto("/demo");
+  await expect(page.locator(".planner")).toHaveAttribute(
+    "data-hydrated",
+    "true",
+  );
+};
 const attemptHour = (page: import("@playwright/test").Page) =>
   page.getByRole("slider", { name: "Attempt hour" });
 
@@ -20,7 +28,7 @@ test("the demo opens with the banner, a ready map and one selected hour everywhe
   page.on("request", (r) => {
     if (r.url().includes("/api/planner")) calls.push(r.url());
   });
-  await page.goto("/demo");
+  await openDemo(page);
   await expect(
     page.getByRole("heading", { name: "Find your tailwind." }),
   ).toBeVisible();
@@ -50,7 +58,7 @@ test("departure follows the approach time without a new request", async ({
   page.on("request", (r) => {
     if (r.url().includes("/api/planner")) calls.push(r.url());
   });
-  await page.goto("/demo");
+  await openDemo(page);
   await attemptHour(page).focus();
   await attemptHour(page).press("Home");
   await expect(page.getByTestId("departure")).toContainText("15:30");
@@ -67,7 +75,7 @@ test("departure follows the approach time without a new request", async ({
 test("the selected segment survives hour and window changes; chart and table agree", async ({
   page,
 }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page
     .getByTestId("card-demo-bend")
     .getByRole("button", { name: /Synthetic Bend/ })
@@ -92,7 +100,7 @@ test("the selected segment survives hour and window changes; chart and table agr
 });
 
 test("deselecting every route asks for one to compare", async ({ page }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page.getByLabel("Synthetic North", { exact: true }).uncheck();
   await page.getByLabel("Synthetic Bend", { exact: true }).uncheck();
   await applied(page);
@@ -104,7 +112,7 @@ test("deselecting every route asks for one to compare", async ({ page }) => {
 test("incomplete weather marks unknown fields on the card", async ({
   page,
 }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page
     .getByText("Demo conditions & clock changes", { exact: true })
     .click();
@@ -119,7 +127,7 @@ test("incomplete weather marks unknown fields on the card", async ({
 test("a partial failure keeps the good route and names the missing one", async ({
   page,
 }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page
     .getByText("Demo conditions & clock changes", { exact: true })
     .click();
@@ -135,7 +143,7 @@ test("a partial failure keeps the good route and names the missing one", async (
 });
 
 test("a stale forecast hides the map and says so", async ({ page }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page
     .getByText("Demo conditions & clock changes", { exact: true })
     .click();
@@ -148,7 +156,7 @@ test("a stale forecast hides the map and says so", async ({ page }) => {
 });
 
 test("a forecast outage offers a retry", async ({ page }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page
     .getByText("Demo conditions & clock changes", { exact: true })
     .click();
@@ -165,7 +173,7 @@ test("a forecast outage offers a retry", async ({ page }) => {
 test("a network failure keeps the last results and retry shows loading", async ({
   page,
 }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page.route("**/api/planner?**", (route) => route.abort());
   await applied(page);
   await expect(page.locator("main [role=alert]")).toContainText(
@@ -208,7 +216,7 @@ test("without WebGL the map steps aside for the table @mobile", async ({
       return Reflect.apply(original, this, [contextId, ...args]);
     } as typeof original;
   });
-  await page.goto("/demo");
+  await openDemo(page);
   await expect(
     page.getByText("Map unavailable", { exact: true }),
   ).toBeVisible();
@@ -224,7 +232,7 @@ test("without WebGL the map steps aside for the table @mobile", async ({
 
 test("the dark theme keeps its contrast @a11y", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/demo");
+  await openDemo(page);
   await page.getByRole("button", { name: "Dark theme" }).click();
   await expect(page.locator(".planner")).toHaveAttribute("data-theme", "dark");
   await expect(page.getByRole("button", { name: "Light theme" })).toBeVisible();
@@ -233,7 +241,7 @@ test("the dark theme keeps its contrast @a11y", async ({ page }) => {
 test("the attempt hour moves with the arrow keys @keyboard", async ({
   page,
 }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await attemptHour(page).focus();
   await page.keyboard.press("Home");
   await expect(attemptHour(page)).toHaveValue("0");
@@ -244,7 +252,7 @@ test("the attempt hour moves with the arrow keys @keyboard", async ({
 });
 
 test("a ride time inside the DST gap is rejected", async ({ page }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   await page.getByLabel("Ride date").fill("2026-03-29");
   await page.getByLabel("From", { exact: true }).fill("01:30");
   await applied(page);
@@ -254,7 +262,7 @@ test("a ride time inside the DST gap is rejected", async ({ page }) => {
 });
 
 test("the directed map paints the selected route", async ({ page }) => {
-  await page.goto("/demo");
+  await openDemo(page);
   const map = page.getByTestId("route-map");
   await expect(map).toHaveAttribute("data-map-ready", "true");
   await expect

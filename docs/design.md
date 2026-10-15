@@ -589,3 +589,7 @@ Saving the rider profile now merges the edited power, mass and drag area into wh
 ## Fix loop refuses fork pull requests — 12 October 2026
 
 The `@claude` fix loop in `review.yml` installs and runs the pull request's code with the API key and write access. Its gate checked who commented but not where the code came from, and a comment event does not carry the head repository. A new `fix-origin` job asks the pulls API for the head repository first; the fix job runs only when it is this repository, so a collaborator's `@claude` on a fork pull request writes a step summary and stops. Guarded by `harness.test.ts`.
+
+## Checks run once per pull request — 15 October 2026
+
+`ci.yml` ran on every push and every pull request, so each push to a pull request branch ran the full suite twice; the concurrency group never cancelled either, because the branch ref and the merge ref differ. The doubled load slowed the `next dev` e2e server enough that input landed before hydration. Checks now run on pull requests and on pushes to `main` only. The demo planner marks its root `data-hydrated` once React has taken over, and the demo e2e tests wait for it before typing. The static job also grants `pull-requests: read`, which gitleaks needs to list a private repository's pull request commits.
