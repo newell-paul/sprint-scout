@@ -13,11 +13,11 @@
   },
   "dependencies": {
     "@scout/contracts": "workspace:*",
-    "msw": "^2.15.0"
+    "msw": "^3.0.3"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
-    "@vitest/browser-playwright": "4.1.11",
-    "vitest": "4.1.11"
+    "@playwright/test": "^1.64.0",
+    "@vitest/browser-playwright": "5.0.3",
+    "vitest": "5.0.3"
   }
 }

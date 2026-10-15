@@ -7,10 +7,10 @@
     "@scout/application": "workspace:*",
     "@scout/contracts": "workspace:*",
     "@scout/providers": "workspace:*",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.4",
     "postgres": "^3.4.8"
   },
   "devDependencies": {
-    "@testcontainers/postgresql": "^12.1.0"
+    "@testcontainers/postgresql": "^12.2.0"
   }
 }

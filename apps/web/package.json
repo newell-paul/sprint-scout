@@ -15,10 +15,10 @@
     "@scout/contracts": "workspace:*",
     "@scout/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.2.0",
-    "maplibre-gl": "^6.9.0",
-    "next": "^16.1.6",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "maplibre-gl": "^6.14.0",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "tailwindcss": "^4.2.0"
   },
   "devDependencies": {
