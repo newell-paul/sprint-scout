@@ -597,3 +597,7 @@ The `@claude` fix loop in `review.yml` installs and runs the pull request's code
 ## Agents may merge green pull requests — 15 October 2026
 
 Agents could not merge or trigger a deploy, so every landing waited for the owner to type `gh pr merge`. The owner now lets an agent merge a pull request, or re-run the Pages workflow, when asked and only with Checks green. Direct pushes and force pushes to `main` stay blocked by the `guard` hook, so everything still lands through a pull request and the same gates; branch protection on `main` backs this up on GitHub. The harness test moves the Pages dispatch to the allowed list and adds `gh pr merge`.
+
+## Coverage measures behaviour, not wiring — 16 October 2026
+
+The published line coverage was 82 % while every core package sat at or near 100 %. Most of the gap was code no unit test runs: CLI entry points, the API server start-up, the live contract drift script and the Playwright and Vitest browser fixtures. Those files are now excluded from the report; the logic they call is tested where it lives. The one real gap, the per-tab forecast cache, gained unit tests for sharing, expiry, failure, force and timeout. Line coverage is now 93 %. The global 80 % gate is unchanged until the new figure has held for a few runs ([intent](../intent/coverage-scope/intent.md)).
