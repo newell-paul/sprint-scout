@@ -2,6 +2,14 @@
 
 One entry per bug that reached `main` or a shipped build, newest first. Each names the test that now catches it. When a class of mistake appears twice, it also becomes a line under "Known mistakes" in `AGENTS.md`.
 
+## 15 October 2026: the engineering dashboard could not read the type coverage report
+
+- What broke: the first Checks run on `main` failed the Engineering dashboard job with `Unexpected token '>'`. `ci.yml` wrote `pnpm typecheck:coverage --json-output > reports/type-coverage.json`, and `pnpm run` prints a `> sprint-scout@ typecheck:coverage` banner before the script's output.
+- Found by: the owner, after merging the test-hardening pull request.
+- Cause: the dashboard job runs only on pushes to `main`, so no pull request run had ever read that file.
+- Fix: `pnpm --silent typecheck:coverage`.
+- Test: `harness.test.ts`, "writes JSON reports in workflows without the pnpm script banner".
+
 ## 15 October 2026: input lost in CI, from a remount and a hydration mismatch
 
 - What broke: three e2e tests failed only on the slower CI runners. A target time typed while the forecast was loading vanished when it arrived, because `TargetSettings` sat in a different place in the tree for each state and remounted. On `/demo`, every planner time hydrated with different text (`08 Sept, 16:00` from Node, `08 Sep at 16:00` from Chromium), so React rebuilt the page and dropped any fill or key press made before that.

@@ -5,7 +5,7 @@ description: Publish or roll back the planner on GitHub Pages. Use when the owne
 
 # Release and rollback
 
-The owner pushes; agents do not. A hook blocks `git push` to `main` and any Pages trigger from an agent. Prepare everything, then hand the owner the exact command to run with the `!` prefix.
+Everything reaches `main` by pull request. When the owner asks, an agent merges a pull request whose Checks are green, or re-runs the Pages workflow. A hook still blocks `git push` to `main` and force pushes.
 
 ## First publish
 

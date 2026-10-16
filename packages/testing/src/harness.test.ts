@@ -74,8 +74,6 @@ describe("guard hook", () => {
     ["pushing HEAD to main", bash("git push origin HEAD:main")],
     ["force pushing", bash("git push -f origin feature")],
     ["force pushing with lease", bash("git push --force-with-lease")],
-    ["dispatching the Pages workflow", bash("gh workflow run pages.yml")],
-    ["calling the Pages API", bash("gh api repos/o/r/pages/builds -X POST")],
   ] as const;
   const allowed = [
     ["reading the env example", file("Read", `${envFile}.example`)],
@@ -91,6 +89,8 @@ describe("guard hook", () => {
     ],
     ["copying the env example", bash(`cp ${envFile}.example /tmp/x`)],
     ["pushing a branch", bash("git push -u origin feature/x")],
+    ["merging a pull request", bash("gh pr merge 4 --merge --delete-branch")],
+    ["dispatching the Pages workflow", bash("gh workflow run pages.yml")],
     ["listing runs", bash("gh run list --workflow ci.yml")],
     [
       "an unrelated tool",
@@ -320,6 +320,17 @@ describe("workflows", () => {
     expect(script).toContain("/pulls/");
     expect(script).toContain(".head.repo.full_name");
     expect(script).toContain("GITHUB_REPOSITORY");
+  });
+
+  // `pnpm <script>` prints a "> package@ script" banner first, so its output
+  // is not JSON unless the banner is silenced or the binary is run with exec.
+  it("writes JSON reports in workflows without the pnpm script banner", () => {
+    const redirects = readdirSync(at(".github/workflows"))
+      .flatMap((file) => read(".github/workflows", file).split("\n"))
+      .filter((line) => /\bpnpm\b.*>\s*\S+\.json/.test(line));
+    expect(redirects.length).toBeGreaterThan(0);
+    for (const line of redirects)
+      expect(line).toMatch(/\bpnpm (--silent|-s|exec) /);
   });
 
   it("triages failed runs read-only, from the default branch, behind its switch", () => {

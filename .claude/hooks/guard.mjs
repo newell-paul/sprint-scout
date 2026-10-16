@@ -50,11 +50,9 @@ if (tool === "Bash") {
   if (
     /\bgit\s+push\b[^|;&]*(\bmain\b|--force|\s-f\b|--force-with-lease)/.test(
       cmd,
-    ) ||
-    /\bgh\s+workflow\s+run\s+pages/.test(cmd) ||
-    /\bgh\s+api\b[^|;&]*\/pages\b/.test(cmd)
+    )
   )
     block(
-      "Blocked: agents do not push to main, force-push or trigger a deploy. Open a pull request, or let the owner run the command with the ! prefix.",
+      "Blocked: agents do not push to main or force-push. Open a pull request and merge it once Checks are green.",
     );
 }
