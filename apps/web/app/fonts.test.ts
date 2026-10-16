@@ -22,10 +22,10 @@ describe("fonts", () => {
   it("ships every font file it declares", () => {
     const declared = [
       ...readFileSync(path.join(app, "fonts.ts"), "utf8").matchAll(
-        /path: "(\.\/fonts\/[^"]+\.woff2)"/g,
+        /"(\.\/fonts\/[^"]+\.woff2)"/g,
       ),
     ].map((match) => match[1]!);
-    expect(declared).toHaveLength(5);
+    expect(declared).toHaveLength(2);
     expect(
       declared.filter((file) => !existsSync(path.join(app, file))),
     ).toEqual([]);

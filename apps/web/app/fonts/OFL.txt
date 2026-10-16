@@ -1,7 +1,7 @@
 DM Sans: Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
 Outfit: Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts)
 
-Latin subsets as published by Fontsource 5.2.5.
+Latin variable files as served by Google Fonts (DM Sans v17, Outfit v15).
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

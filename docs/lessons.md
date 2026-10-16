@@ -7,7 +7,7 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - What broke: three e2e runs on 16 October failed every test in a shard with `Can't resolve '@vercel/turbopack-next/internal/font/google/font'`. Re-running sometimes passed.
 - Found by: Checks on the README and coverage pull requests.
 - Cause: `next/font/google` downloads DM Sans and Outfit whenever the dev server compiles; when the runner's request to Google failed, no page compiled.
-- Fix: the five latin font files are committed under `apps/web/app/fonts/` with their OFL licence and loaded with `next/font/local` from `fonts.ts`.
+- Fix: the two latin variable font files Google serves are committed under `apps/web/app/fonts/` with their OFL licence and loaded with `next/font/local` from `fonts.ts`.
 - Test: `fonts.test.ts`, "never loads fonts from Google at build time" and "ships every font file it declares".
 - Rule: a build or test step never depends on a third-party download. It failed three runs in one morning, so it is now a known mistake in `AGENTS.md`.
 
