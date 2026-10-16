@@ -333,6 +333,21 @@ describe("workflows", () => {
       expect(line).toMatch(/\bpnpm (--silent|-s|exec) /);
   });
 
+  // Most evals runs are free and upload nothing, and mutation is manual, so
+  // "latest successful run" usually has no report; look the artifact up instead.
+  it("feeds the dashboard the newest mutation and evals reports, not the newest run", () => {
+    const ci = read(".github/workflows/ci.yml");
+    expect(ci).not.toMatch(/latest (mutation|evals)\.yml/);
+    expect(ci).toContain("actions/artifacts?name=");
+    // Only main in this repository: a branch or fork run could upload a report.
+    expect(ci).toContain('.workflow_run.head_branch == "main"');
+    expect(ci).toContain(
+      ".workflow_run.head_repository_id == .workflow_run.repository_id",
+    );
+    for (const name of ["mutation-report", "evals-report"])
+      expect(ci).toMatch(new RegExp(`newest ${name}\\)`));
+  });
+
   it("triages failed runs read-only, from the default branch, behind its switch", () => {
     const triage = read(".github/workflows/triage.yml");
     expect(triage).toContain("vars.TRIAGE_ENABLED == 'true'");

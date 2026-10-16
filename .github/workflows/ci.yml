@@ -318,10 +318,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          latest() { gh run list --workflow "$1" --status success --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true; }
-          run=$(latest mutation.yml)
+          newest() { gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$1" --jq '[.artifacts[] | select((.expired | not) and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)][0].workflow_run.id // empty' 2>/dev/null || true; }
+          run=$(newest mutation-report)
           [ -n "$run" ] && gh run download "$run" --name mutation-report --dir reports/mutation || true
-          run=$(latest evals.yml)
+          run=$(newest evals-report)
           [ -n "$run" ] && gh run download "$run" --name evals-report --dir reports/evals || true
           run=$(gh run list --workflow ci.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId' || true)
           [ -n "$run" ] && gh run download "$run" --name dashboard --dir previous || true

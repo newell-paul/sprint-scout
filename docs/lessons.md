@@ -2,6 +2,14 @@
 
 One entry per bug that reached `main` or a shipped build, newest first. Each names the test that now catches it. When a class of mistake appears twice, it also becomes a line under "Known mistakes" in `AGENTS.md`.
 
+## 16 October 2026: the dashboard showed a green run as red, and mutation and evals as n/a
+
+- What broke: the first published dashboard gave e2e "133/134 pass" in red although Checks passed. One WebKit test had failed once and passed on retry, and `summarise` counted any failed attempt as a failure. Mutation and evals read "n/a": the job took the newest successful run of each workflow, and free evals runs upload no report.
+- Found by: the owner, looking at the README badges.
+- Cause: the fixture had no retried test, and the report lookup assumed every successful run uploads one.
+- Fix: a test fails only on its last attempt; a passed retry counts as flaky, which turns the badge yellow and breaks the flake-free streak. The job looks up the newest unexpired `mutation-report` and `evals-report` artifacts from a run on `main` in this repository, so a branch or fork run cannot supply them.
+- Tests: `dashboard.test.ts`, "counts a test that passed on retry as flaky, not failed" and "passes the e2e badge with a flaky note when a retry passed"; `harness.test.ts`, "feeds the dashboard the newest mutation and evals reports, not the newest run".
+
 ## 15 October 2026: the engineering dashboard could not read the type coverage report
 
 - What broke: the first Checks run on `main` failed the Engineering dashboard job with `Unexpected token '>'`. `ci.yml` wrote `pnpm typecheck:coverage --json-output > reports/type-coverage.json`, and `pnpm run` prints a `> sprint-scout@ typecheck:coverage` banner before the script's output.

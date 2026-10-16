@@ -72,6 +72,7 @@ export type Snapshot = {
   sha?: string;
   e2e:
     | (Counts & {
+        flaky?: number;
         slowest: { title: string; project: string; durationMs: number }[];
       })
     | null;
@@ -136,13 +137,17 @@ export function summarise(report: PlaywrightReport) {
     spec.tests.map((test) => ({
       title: spec.title,
       project: test.projectName,
-      failed: test.results.some((r) => !passed(r.status)),
+      failed: !passed(test.results.at(-1)?.status ?? "passed"),
+      flaky:
+        passed(test.results.at(-1)?.status ?? "passed") &&
+        test.results.some((r) => !passed(r.status)),
       durationMs: Math.max(0, ...test.results.map((r) => r.duration)),
     })),
   );
   return {
     tests: tests.length,
     failed: tests.filter((t) => t.failed).length,
+    flaky: tests.filter((t) => t.flaky).length,
     durationMs: report.stats?.duration ?? 0,
     slowest: tests
       .map(({ title, project, durationMs }) => ({ title, project, durationMs }))
@@ -312,7 +317,7 @@ export function flakeFreeStreak(history: Snapshot[]) {
   let streak = 0;
   for (let i = history.length - 1; i >= 0; i--) {
     const e2e = history[i]!.e2e;
-    if (!e2e || e2e.failed > 0) break;
+    if (!e2e || e2e.failed > 0 || (e2e.flaky ?? 0) > 0) break;
     streak++;
   }
   return streak;
@@ -389,8 +394,11 @@ export function badges(latest: Snapshot | undefined): Record<string, Badge> {
       ? {
           schemaVersion: 1,
           label: "e2e",
-          message: `${latest.e2e.tests - latest.e2e.failed}/${latest.e2e.tests} pass`,
-          color: tone(latest.e2e.failed === 0, false),
+          message: `${latest.e2e.tests - latest.e2e.failed}/${latest.e2e.tests} pass${latest.e2e.flaky ? ` · ${latest.e2e.flaky} flaky` : ""}`,
+          color: tone(
+            latest.e2e.failed === 0 && !latest.e2e.flaky,
+            latest.e2e.failed === 0,
+          ),
         }
       : na("e2e"),
   };
