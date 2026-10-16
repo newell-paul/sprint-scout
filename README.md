@@ -12,6 +12,8 @@ Segments stay in local storage. No accounts, API keys or server. Wind, elevation
 
 ## Try it
 
+Live at <https://newell-paul.github.io/sprint-scout/>, or run it locally:
+
 ```sh
 pnpm install --frozen-lockfile
 pnpm --filter @scout/web dev
