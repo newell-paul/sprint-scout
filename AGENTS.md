@@ -47,6 +47,7 @@ Add a line whenever the same thing happens twice.
 - `localeCompare` ordering differs by locale; sort with code-unit comparison and a stable tie-breaker.
 - `Intl` patterns differ between Node and browser ICU, so server-rendered text hydrates wrong; format with `formatZonedTime` from `components/time.ts`.
 - An emptied library is stored as `[]`; only an absent key counts as a first visit.
+- `next/font/google` fetches at compile time and fails whole e2e shards when Google blips; fonts come from `apps/web/app/fonts.ts` (`next/font/local`).
 
 ## Docs
 
