@@ -2,6 +2,15 @@
 
 One entry per bug that reached `main` or a shipped build, newest first. Each names the test that now catches it. When a class of mistake appears twice, it also becomes a line under "Known mistakes" in `AGENTS.md`.
 
+## 16 October 2026: a Google Fonts blip failed whole e2e shards
+
+- What broke: three e2e runs on 16 October failed every test in a shard with `Can't resolve '@vercel/turbopack-next/internal/font/google/font'`. Re-running sometimes passed.
+- Found by: Checks on the README and coverage pull requests.
+- Cause: `next/font/google` downloads DM Sans and Outfit whenever the dev server compiles; when the runner's request to Google failed, no page compiled.
+- Fix: the five latin font files are committed under `apps/web/app/fonts/` with their OFL licence and loaded with `next/font/local` from `fonts.ts`.
+- Test: `fonts.test.ts`, "never loads fonts from Google at build time" and "ships every font file it declares".
+- Rule: a build or test step never depends on a third-party download. It failed three runs in one morning, so it is now a known mistake in `AGENTS.md`.
+
 ## 16 October 2026: the dashboard showed a green run as red, and mutation and evals as n/a
 
 - What broke: the first published dashboard gave e2e "133/134 pass" in red although Checks passed. One WebKit test had failed once and passed on retry, and `summarise` counted any failed attempt as a failure. Mutation and evals read "n/a": the job took the newest successful run of each workflow, and free evals runs upload no report.
