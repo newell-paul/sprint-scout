@@ -180,12 +180,48 @@ const everything = {
   now: "2026-10-10T12:00:00Z",
 };
 
+const retried = {
+  ...playwright,
+  suites: [
+    {
+      ...playwright.suites[0]!,
+      specs: [
+        {
+          title: "a saved segment opens at the first hour",
+          file: "e2e/forecast.spec.ts",
+          tests: [
+            {
+              projectName: "webkit-a11y",
+              results: [
+                { status: "failed", duration: 9000 },
+                { status: "passed", duration: 1200 },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
 describe("snapshot", () => {
+  // Checks pass when a retry passes, so the dashboard must not call it red.
+  it("counts a test that passed on retry as flaky, not failed", () => {
+    expect(
+      snapshot({ date: "2026-10-16", playwright: retried }).e2e,
+    ).toMatchObject({
+      tests: 1,
+      failed: 0,
+      flaky: 1,
+    });
+  });
+
   it("summarises every report", () => {
     const result = snapshot(everything);
     expect(result.e2e).toEqual({
       tests: 2,
       failed: 1,
+      flaky: 0,
       durationMs: 41_000,
       slowest: [
         {
@@ -332,6 +368,12 @@ describe("history", () => {
       flakeFreeStreak([red, green, { ...green, date: "2026-10-03" }]),
     ).toBe(2);
     expect(flakeFreeStreak([green, red])).toBe(0);
+    expect(
+      flakeFreeStreak([
+        green,
+        snapshot({ date: "2026-10-04", playwright: retried }),
+      ]),
+    ).toBe(0);
     expect(flakeFreeStreak([])).toBe(0);
   });
 });
@@ -363,6 +405,12 @@ describe("badges", () => {
     expect(result.coverage?.message).toBe("91 % lines");
     expect(result.lighthouse?.message).toBe("97 · 100 · 100");
     expect(result.e2e?.color).toBe("red");
+  });
+
+  it("passes the e2e badge with a flaky note when a retry passed", () => {
+    expect(
+      badges(snapshot({ date: "2026-10-16", playwright: retried })).e2e,
+    ).toMatchObject({ message: "1/1 pass · 1 flaky", color: "yellow" });
   });
 
   it("falls back to grey n/a badges", () => {
