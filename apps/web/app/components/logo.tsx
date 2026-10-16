@@ -1,5 +1,4 @@
-import { Outfit } from "next/font/google";
-const outfit = Outfit({ subsets: ["latin"], weight: "800", display: "swap" });
+import { display } from "../fonts";
 function LogoMark({ size = 48 }: { size?: number }) {
   return (
     <svg
@@ -28,7 +27,7 @@ function LogoMark({ size = 48 }: { size?: number }) {
 export default function Logo({ className }: { className?: string }) {
   return (
     <span
-      className={`logo ${outfit.className}${className ? ` ${className}` : ""}`}
+      className={`logo ${display.className}${className ? ` ${className}` : ""}`}
     >
       <LogoMark />
       <span className="logo-word">
