@@ -85,6 +85,13 @@ export default defineConfig({
         "**/*-fixtures.ts",
         "**/fixtures/**",
         "**/main.ts",
+        // Entry points and fixtures that run outside the unit project; the
+        // logic they wire up is tested where it lives.
+        "**/*.cli.ts",
+        "packages/testing/src/playwright.ts",
+        "packages/testing/src/vitest-commands.ts",
+        "packages/testing/src/drift.ts",
+        "apps/api/src/server.ts",
         "packages/database/**",
         "apps/worker/**",
         "apps/web/app/**/*.server.ts",

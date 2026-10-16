@@ -39,7 +39,7 @@ Status: delivered; T1 to T8 done by 14 September 2026, figures refreshed 9 Octob
 
 ### L1 · Unit (Vitest, all packages)
 
-- **Coverage gates** with `@vitest/coverage-v8`: `packages/analysis` 100 % branches, `packages/application` 95 %, everything else 80 %, ratcheted upward only.
+- **Coverage gates** with `@vitest/coverage-v8`: `packages/analysis` 100 % branches, `packages/application` 95 %, everything else 80 %, ratcheted upward only. The report leaves out entry points and fixtures that run outside the unit project (`*.cli.ts`, `apps/api/src/server.ts`, the drift script, the Playwright and Vitest browser fixtures in `packages/testing`), so the figure measures behaviour; see `vitest.config.ts`.
 - **Property-based tests** with `fast-check` for the deterministic core:
   - `projectWind`: `tailwind² + crosswind² = speed²`; reversing the leg negates tailwind; rotating wind and leg together is invariant.
   - `estimateRouteRideEffect`: more tailwind never increases time; shelter factors are monotonic; the estimated range always contains the point estimate.
