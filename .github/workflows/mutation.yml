@@ -11,22 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # Incremental: only mutants whose source or tests changed since the last
       # run are re-tested; the previous result file is restored from the cache.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: reports/mutation/incremental.json
           key: stryker-incremental-${{ github.sha }}
           restore-keys: stryker-incremental-
       - run: pnpm test:mutation
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: mutation-report

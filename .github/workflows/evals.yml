@@ -29,9 +29,9 @@ jobs:
     name: Harness (free)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 26
           cache: pnpm
@@ -56,16 +56,16 @@ jobs:
     env:
       EVALS_MODEL: ${{ inputs.model || vars.EVALS_MODEL || 'claude-haiku-5-5' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: npm install --global @anthropic-ai/claude-code
       - name: Reuse results for an unchanged configuration
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: reports/evals/cache
           key: evals-${{ env.EVALS_MODEL }}-${{ hashFiles('AGENTS.md', 'REVIEW.md', '.claude/**', 'evals/**', 'intent/README.md', 'scripts/run-evals.mjs') }}
@@ -76,7 +76,7 @@ jobs:
       - name: Summary
         if: always()
         run: cat reports/evals/summary.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: evals-report
