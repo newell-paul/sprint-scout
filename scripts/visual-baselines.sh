@@ -18,6 +18,7 @@ docker run --rm -v "$work:/src" -e CI=1 -e VISUAL=1 \
   mkdir -p /work && cp -a /src/. /work/ && cd /work
   corepack enable && corepack prepare pnpm@10.30.3 --activate
   pnpm install --frozen-lockfile
+  pnpm --filter @scout/web build
   pnpm exec playwright test --grep @visual --update-snapshots --workers 2
   rm -rf /src/e2e/__screenshots__ && cp -R e2e/__screenshots__ /src/e2e/'
 rm -rf e2e/__screenshots__

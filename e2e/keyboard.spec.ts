@@ -1,135 +1,169 @@
-import {
-  aRoute,
-  expect,
-  segmentTime,
-  slider,
-  terrainPanel,
-  test,
-} from "./fixtures";
+import { aRoute, expect, northbound, test } from "./fixtures";
 
 // Keyboard-only journeys: focus lands with focus() (WebKit's Tab skips buttons),
 // text moves with Tab, and every action is a key press.
 const seeded = { routes: [aRoute({ id: "north", name: "Northbound" })] };
 
-test("a segment can be drawn and saved without a pointer @keyboard", async ({
-  page,
-  openMeteo,
+test.describe("drawing", () => {
+  test.beforeEach(async ({ planner, openMeteo }) => {
+    openMeteo.faults.weather = "outage";
+    await planner.open();
+  });
+
+  test("Tab moves from latitude to longitude @keyboard", async ({
+    planner,
+  }) => {
+    await planner.editor.coordinatesToggle.press("Enter");
+
+    await planner.editor.latitude.press("Tab");
+
+    await expect(planner.editor.longitude).toBeFocused();
+  });
+
+  test("points can be added without a pointer @keyboard", async ({
+    planner,
+  }) => {
+    await planner.editor.coordinatesToggle.press("Enter");
+
+    for (const point of northbound)
+      await planner.editor.addPointWithKeyboard(point);
+
+    await expect(planner.editor.pointCount(2)).toBeVisible();
+  });
+
+  test("a segment can be saved without a pointer @keyboard", async ({
+    planner,
+  }) => {
+    await planner.editor.coordinatesToggle.press("Enter");
+    for (const point of northbound)
+      await planner.editor.addPointWithKeyboard(point);
+
+    await planner.editor.routeName.focus();
+    await planner.editor.routeName.fill("Keyboard ride");
+    await planner.editor.ownership.press("Space");
+    await planner.editor.saveButton.press("Enter");
+
+    await expect(planner.status).toHaveText("Route saved on this browser.");
+  });
+});
+
+test.describe("forecast", () => {
+  test.beforeEach(({ openMeteo }) => {
+    openMeteo.hours = { 1: { speed: 0 } };
+  });
+
+  test("ArrowRight moves to the next hour and the readouts follow @keyboard", async ({
+    planner,
+    seed,
+  }) => {
+    await seed(seeded);
+
+    await planner.timeline.press("ArrowRight");
+
+    await expect(planner.timeline.slider).toHaveValue("1");
+    await expect(planner.cockpit.windSummary).toContainText("Calm");
+  });
+
+  test("ArrowLeft moves back and the readouts follow @keyboard", async ({
+    planner,
+    seed,
+  }) => {
+    await seed(seeded);
+    await planner.timeline.press("ArrowRight");
+    await expect(planner.cockpit.windSummary).toContainText("Calm");
+
+    await planner.timeline.press("ArrowLeft");
+
+    await expect(planner.timeline.slider).toHaveValue("0");
+    await expect(planner.cockpit.windSummary).not.toContainText("Calm");
+  });
+});
+
+test("Tomorrow works from the keyboard @keyboard", async ({
+  planner,
+  seed,
 }) => {
-  openMeteo.faults.weather = "outage";
-  await page.goto("/");
-  await page.getByText("Enter coordinates instead", { exact: true }).focus();
-  await page.keyboard.press("Enter");
-  const latitude = page.getByLabel("Latitude", { exact: true });
-  const longitude = page.getByLabel("Longitude", { exact: true });
-  const add = page.getByRole("button", { name: "Add point and centre map" });
-  for (const [lng, lat] of [
-    ["-0.12", "51.5"],
-    ["-0.12", "51.51"],
-  ]) {
-    await latitude.focus();
-    await latitude.fill(lat);
-    await page.keyboard.press("Tab");
-    await expect(longitude).toBeFocused();
-    await longitude.fill(lng);
-    await add.focus();
-    await page.keyboard.press("Enter");
-  }
-  await expect(page.getByText("2 / 500 points")).toBeVisible();
-  const name = page.getByLabel("Route name", { exact: true });
-  await name.focus();
-  await name.fill("Keyboard ride");
-  await page.getByRole("checkbox", { name: /created this route/ }).focus();
-  await page.keyboard.press("Space");
-  await page.getByRole("button", { name: "Save route", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page.locator("p[role=status]")).toHaveText(
-    "Route saved on this browser.",
+  await seed(seeded);
+
+  await planner.timeline.tomorrowButton.press("Enter");
+
+  expect(await planner.timeline.hour()).toBeGreaterThan(0);
+});
+
+test("Best hour works from the keyboard @keyboard", async ({
+  planner,
+  seed,
+}) => {
+  await seed(seeded);
+  await planner.timeline.tomorrowButton.press("Enter");
+
+  await planner.timeline.bestHourButton.press("Space");
+
+  await expect(planner.timeline.bestHourButton).toHaveAttribute(
+    "aria-pressed",
+    "true",
   );
-});
-
-test("the forecast hour changes with arrow keys and the readouts follow @keyboard", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
-  openMeteo.hours = { 1: { speed: 0 } };
-  await seed(seeded);
-  await slider(page).focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(slider(page)).toHaveValue("1");
-  await expect(page.getByTestId("wind-summary")).toContainText("Calm");
-  await page.keyboard.press("ArrowLeft");
-  await expect(slider(page)).toHaveValue("0");
-  await expect(page.getByTestId("wind-summary")).not.toContainText("Calm");
-});
-
-test("day and best-hour buttons work from the keyboard @keyboard", async ({
-  page,
-  seed,
-}) => {
-  await seed(seeded);
-  await page.getByRole("button", { name: "Tomorrow", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  expect(Number(await slider(page).inputValue())).toBeGreaterThan(0);
-  await page.getByRole("button", { name: "Best hour", exact: true }).focus();
-  await page.keyboard.press("Space");
-  await expect(
-    page.getByRole("button", { name: "Best hour", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("selected-window")).toHaveAttribute(
+  await expect(planner.timeline.selectedWindow).toHaveAttribute(
     "data-best",
     "true",
   );
 });
 
 test("terrain loads from the keyboard: consent with Space, load with Enter @keyboard", async ({
-  page,
+  planner,
   seed,
   openMeteo,
 }) => {
   await seed(seeded);
-  const panel = terrainPanel(page);
-  await panel.getByRole("checkbox", { name: /Share sampled/ }).focus();
-  await page.keyboard.press("Space");
-  const load = panel.getByRole("button", { name: "Load terrain", exact: true });
-  await expect(load).toBeEnabled();
-  await load.focus();
-  await page.keyboard.press("Enter");
-  await expect(panel.getByRole("heading")).toHaveText("Terrain · Enabled");
+
+  await planner.terrain.consent.press("Space");
+  await expect(planner.terrain.loadButton).toBeEnabled();
+  await planner.terrain.loadButton.press("Enter");
+
+  await expect(planner.terrain.heading).toHaveText("Terrain · Enabled");
   expect(openMeteo.calls.elevation).toBe(1);
-  await expect(segmentTime(page)).not.toHaveText("Unavailable");
+  await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
 });
 
-test("the hourly times table is reachable and scrollable by keyboard @keyboard @a11y", async ({
-  page,
+test("the hourly times table opens and takes focus from the keyboard @keyboard @a11y", async ({
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await page.getByText("Hourly times", { exact: true }).focus();
-  await page.keyboard.press("Enter");
-  const table = page.getByRole("region", { name: "Hourly times table" });
-  await table.focus();
-  await expect(table).toBeFocused();
+
+  await planner.timeline.hourlyToggle.press("Enter");
+  await planner.timeline.hourlyTable.focus();
+
+  await expect(planner.timeline.hourlyTable).toBeFocused();
+});
+
+test("Enter on an hourly row selects that hour @keyboard @a11y", async ({
+  planner,
+  seed,
+}) => {
+  await seed(seeded);
+  await planner.timeline.hourlyToggle.press("Enter");
   // Hour 0 is already selected, so only a later row proves Enter selects.
-  await expect(slider(page)).toHaveValue("0");
-  await page.locator(".hourly-time-table tbody button").nth(5).focus();
-  await page.keyboard.press("Enter");
-  await expect(slider(page)).toHaveValue("5");
+  await expect(planner.timeline.slider).toHaveValue("0");
+
+  await planner.timeline.hourlyButtons.nth(5).press("Enter");
+
+  await expect(planner.timeline.slider).toHaveValue("5");
 });
 
 // Untagged so only Chromium runs it: Playwright's WebKit does not scroll a
 // focused region on ArrowDown.
 test("arrow keys scroll the focused hourly times table", async ({
-  page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await page.getByText("Hourly times", { exact: true }).focus();
-  await page.keyboard.press("Enter");
-  const table = page.getByRole("region", { name: "Hourly times table" });
-  await table.focus();
-  const scrolled = () => table.evaluate((element) => element.scrollTop);
-  const before = await scrolled();
-  await page.keyboard.press("ArrowDown");
-  await expect.poll(scrolled).toBeGreaterThan(before);
+  await planner.timeline.hourlyToggle.press("Enter");
+  const before = await planner.timeline.hourlyScrollTop();
+
+  await planner.timeline.hourlyTable.press("ArrowDown");
+
+  await expect
+    .poll(() => planner.timeline.hourlyScrollTop())
+    .toBeGreaterThan(before);
 });

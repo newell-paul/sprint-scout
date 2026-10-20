@@ -1,4 +1,4 @@
-import { aRoute, expect, slider, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
 
 // Baselines live in e2e/__screenshots__/<project>/ and are generated only inside
 // the Playwright container (`pnpm test:visual:update`), so every platform
@@ -12,63 +12,61 @@ test.beforeEach(({ openMeteo }) => {
 });
 
 test("cockpit dial and compass at a tailwind hour @visual", async ({
-  page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await expect(page.getByTestId("ride-cockpit")).toHaveAttribute(
-    "data-tone",
-    "gain",
-  );
-  await expect(page.locator(".speed-dial")).toHaveScreenshot(
+
+  await expect(planner.cockpit.region).toHaveAttribute("data-tone", "gain");
+  await expect(planner.cockpit.dial).toHaveScreenshot(
     "dial-tailwind.png",
     options,
   );
-  await expect(page.locator(".wind-compass")).toHaveScreenshot(
+  await expect(planner.cockpit.compass).toHaveScreenshot(
     "compass-southerly.png",
     options,
   );
 });
 
-test("cockpit dial at a calm hour @visual", async ({ page, seed }) => {
+test("cockpit dial at a calm hour @visual", async ({ planner, seed }) => {
   await seed(seeded);
-  await slider(page).fill("2");
-  await expect(page.getByTestId("wind-summary")).toContainText("Calm");
-  await expect(page.locator(".speed-dial")).toHaveScreenshot(
-    "dial-calm.png",
-    options,
-  );
+
+  await planner.timeline.goToHour(2);
+
+  await expect(planner.cockpit.windSummary).toContainText("Calm");
+  await expect(planner.cockpit.dial).toHaveScreenshot("dial-calm.png", options);
 });
 
-test("timeline with night and rain bands @visual", async ({ page, seed }) => {
+test("timeline with night and rain bands @visual", async ({
+  planner,
+  seed,
+}) => {
   await seed(seeded);
-  await expect(page.getByTestId("band-wet")).toHaveCount(1);
-  await expect(page.getByTestId("time-chart")).toHaveScreenshot(
+
+  await expect(planner.timeline.wetBands).toHaveCount(1);
+  await expect(planner.timeline.chart).toHaveScreenshot(
     "timeline-bands.png",
     options,
   );
 });
 
-test("demo planner in the light theme @visual", async ({ page }) => {
-  await page.goto("/demo");
-  await expect(page.getByTestId("route-map")).toHaveAttribute(
-    "data-map-ready",
-    "true",
-  );
-  await expect(page.getByTestId("hour-chart")).toHaveScreenshot(
+test("demo planner in the light theme @visual", async ({ demo }) => {
+  await demo.open();
+
+  await expect(demo.map).toHaveAttribute("data-map-ready", "true");
+  await expect(demo.chart).toHaveScreenshot(
     "demo-hour-chart-light.png",
     options,
   );
 });
 
-test("demo planner in the dark theme @visual", async ({ page }) => {
-  await page.goto("/demo");
-  await expect(page.getByTestId("route-map")).toHaveAttribute(
-    "data-map-ready",
-    "true",
-  );
-  await page.getByRole("button", { name: "Dark theme" }).click();
-  await expect(page.getByTestId("hour-chart")).toHaveScreenshot(
+test("demo planner in the dark theme @visual", async ({ demo }) => {
+  await demo.open();
+  await expect(demo.map).toHaveAttribute("data-map-ready", "true");
+
+  await demo.useDarkTheme();
+
+  await expect(demo.chart).toHaveScreenshot(
     "demo-hour-chart-dark.png",
     options,
   );

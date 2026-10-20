@@ -1,4 +1,4 @@
-import { aRoute, drawSegment, expect, segmentHeading, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
 
 const fiveSaved = () =>
   Array.from({ length: 5 }, (_, slot) =>
@@ -10,68 +10,63 @@ const fiveSaved = () =>
     }),
   );
 
-test("a growing library scrolls on a phone without widening the page @mobile-only @mobile", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
+test.beforeEach(({ openMeteo }) => {
   openMeteo.faults.weather = "outage";
+});
+
+test("a growing library scrolls on a phone without widening the page @mobile-only @mobile", async ({
+  planner,
+  seed,
+}) => {
   await seed({ routes: fiveSaved() });
-  const strip = page.getByRole("group", { name: "Segments", exact: true });
-  await expect(
-    page.getByRole("button", { name: "Scroll segments left" }),
-  ).toBeDisabled();
-  await page.getByRole("button", { name: "Scroll segments right" }).click();
-  await expect
-    .poll(() => strip.evaluate((element) => element.scrollLeft))
-    .toBeGreaterThan(0);
-  await expect(
-    page.getByRole("button", { name: "Scroll segments left" }),
-  ).toBeEnabled();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    await page.evaluate(() => innerWidth),
-  );
+  await expect(planner.library.scrollLeftButton).toBeDisabled();
+
+  await planner.library.scrollRight();
+
+  await expect.poll(() => planner.library.stripScrollLeft()).toBeGreaterThan(0);
+  await expect(planner.library.scrollLeftButton).toBeEnabled();
+  expect(await planner.horizontalOverflow()).toBe(0);
 });
 
 test("the sixth segment saves into slot 6 and leaves slot 7 empty", async ({
-  page,
+  planner,
   seed,
-  openMeteo,
 }) => {
-  openMeteo.faults.weather = "outage";
   await seed({ routes: fiveSaved() });
-  await page.getByTestId("segment-slot-6").click();
-  await drawSegment(page, "Sixth sprint");
-  await expect(page.getByTestId("segment-slot-6")).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(page.getByTestId("segment-slot-7")).toHaveAttribute(
+
+  await planner.library.selectSlot(6);
+  await planner.editor.drawSegment("Sixth sprint");
+
+  await expect(planner.library.slot(6)).toHaveAttribute("aria-pressed", "true");
+  await expect(planner.library.slot(7)).toHaveAttribute(
     "data-defined",
     "false",
   );
-  await page.reload();
-  await page.getByTestId("segment-slot-6").click();
-  await expect(segmentHeading(page)).toContainText("Sixth sprint");
-  await expect(
-    page
-      .getByRole("group", { name: "Segments", exact: true })
-      .getByRole("button"),
-  ).toHaveCount(7);
+});
+
+test("a sixth segment persists and the strip offers seven slots", async ({
+  planner,
+  seed,
+}) => {
+  await seed({ routes: fiveSaved() });
+  await planner.library.selectSlot(6);
+  await planner.editor.drawSegment("Sixth sprint");
+
+  await planner.reload();
+  await planner.library.selectSlot(6);
+
+  await expect(planner.library.heading).toContainText("Sixth sprint");
+  await expect(planner.library.slotButtons()).toHaveCount(7);
 });
 
 test("the planner opens on the lowest saved slot", async ({
-  page,
+  planner,
   seed,
-  openMeteo,
 }) => {
-  openMeteo.faults.weather = "outage";
-  await seed({
-    routes: [aRoute({ id: "later", name: "Later slot", slot: 3 })],
-  });
-  await expect(page.getByTestId("segment-slot-4")).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(segmentHeading(page)).toContainText("Later slot");
+  const routes = [aRoute({ id: "later", name: "Later slot", slot: 3 })];
+
+  await seed({ routes });
+
+  await expect(planner.library.slot(4)).toHaveAttribute("aria-pressed", "true");
+  await expect(planner.library.heading).toContainText("Later slot");
 });

@@ -1,4 +1,4 @@
-import { aRoute, expect, manage, segmentTime, slider, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
 
 // Southerly 5 m/s on a northbound line: hour 1 has no wind, hour 2 is calm,
 // hour 47 is an easterly with rain.
@@ -15,239 +15,288 @@ test.beforeEach(({ openMeteo }) => {
 const seeded = { routes: [aRoute({ id: "straight", name: "Straight" })] };
 
 test("a saved segment opens at the first hour with a tailwind estimate @smoke @a11y", async ({
-  page,
+  planner,
   seed,
   openMeteo,
   aria,
 }) => {
   await seed(seeded);
-  await expect(page.getByTestId("wind-summary")).toContainText(
+
+  const { cockpit } = planner;
+  await expect(cockpit.windSummary).toContainText(
     "18.0 km/h towards north · Tailwind",
   );
-  await expect(page.getByTestId("ride-cockpit")).toHaveAttribute(
-    "data-tone",
-    "gain",
-  );
-  await expect(page.getByTestId("ride-cockpit")).toContainText("40.0 km/h");
-  await expect(page.locator(".dial-range")).toHaveCount(1);
-  await expect(page.getByTestId("weather-icon")).toHaveAttribute(
-    "data-kind",
-    "sun-cloud",
-  );
-  await expect(segmentTime(page)).not.toHaveText("Unavailable");
+  await expect(cockpit.region).toHaveAttribute("data-tone", "gain");
+  await expect(cockpit.region).toContainText("40.0 km/h");
+  await expect(cockpit.dialRange).toHaveCount(1);
+  await expect(cockpit.weatherIcon).toHaveAttribute("data-kind", "sun-cloud");
+  await expect(cockpit.segmentTime).not.toHaveText("Unavailable");
   expect(openMeteo.calls.weather).toBe(1);
-  await aria("cockpit-tailwind", page.getByTestId("ride-cockpit"));
+  await aria("cockpit-tailwind", cockpit.region);
 });
 
 test("the legacy /routes address redirects to the planner", async ({
   page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await page.goto("/routes");
+
+  await planner.openLegacyAddress();
+
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByTestId("segment-slot-1")).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(
-    page.getByRole("link", { name: "Back to demo planner" }),
-  ).toHaveCount(0);
+  await expect(planner.library.slot(1)).toHaveAttribute("aria-pressed", "true");
+  await expect(planner.demoLink).toHaveCount(0);
 });
 
-test("an hour without wind reads unavailable and the previous hour comes back", async ({
-  page,
+test("previous hour is disabled at the first hour", async ({
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await expect(
-    page.getByRole("button", { name: "Previous hour" }),
-  ).toBeDisabled();
-  await page.getByRole("button", { name: "Next hour" }).click();
-  await expect(slider(page)).toHaveValue("1");
-  await expect(segmentTime(page)).toHaveText("Unavailable");
-  await expect(page.getByTestId("wind-summary")).toContainText(
-    "Wind unavailable",
-  );
-  await expect(page.getByTestId("cockpit-speed")).toHaveText("Unavailable");
-  await expect(page.locator(".dial-needle")).toHaveCount(0);
-  await expect(page.getByTestId("wind-map-overlay")).toHaveCount(0);
-  await page.getByRole("button", { name: "Previous hour" }).click();
-  await expect(slider(page)).toHaveValue("0");
+
+  await expect(planner.timeline.previousButton).toBeDisabled();
 });
 
-test("a calm hour matches the still-air time", async ({ page, seed }) => {
+test("an hour without wind reads unavailable", async ({ planner, seed }) => {
   await seed(seeded);
-  await slider(page).fill("2");
-  await expect(segmentTime(page)).toHaveText(
-    await page.getByTestId("segment-calm-time").innerText(),
-  );
-  await expect(page.getByTestId("segment-time-difference")).toContainText(
-    "Same time",
-  );
-  await expect(page.getByTestId("wind-summary")).toContainText("Calm");
+
+  await planner.timeline.next();
+
+  const { cockpit } = planner;
+  await expect(planner.timeline.slider).toHaveValue("1");
+  await expect(cockpit.segmentTime).toHaveText("Unavailable");
+  await expect(cockpit.windSummary).toContainText("Wind unavailable");
+  await expect(cockpit.speed).toHaveText("Unavailable");
+  await expect(cockpit.dialNeedle).toHaveCount(0);
+  await expect(planner.map.overlay).toHaveCount(0);
 });
 
-test("tomorrow, best hour and today drive the slider and the selected window", async ({
-  page,
-  seed,
-}) => {
+test("previous hour steps back", async ({ planner, seed }) => {
   await seed(seeded);
-  const tailwindTime = await segmentTime(page).innerText();
-  await page.getByRole("button", { name: "Tomorrow", exact: true }).click();
-  expect(Number(await slider(page).inputValue())).toBeGreaterThan(0);
-  await page.getByRole("button", { name: "Best hour", exact: true }).click();
-  await expect(slider(page)).toHaveValue("0");
-  await expect(
-    page.getByRole("button", { name: "Best hour", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(
-    page.getByRole("button", { name: "Today", exact: true }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("selected-window")).toHaveAttribute(
-    "data-best",
-    "true",
+  await planner.timeline.next();
+
+  await planner.timeline.previous();
+
+  await expect(planner.timeline.slider).toHaveValue("0");
+});
+
+test("a calm hour matches the still-air time", async ({ planner, seed }) => {
+  await seed(seeded);
+
+  await planner.timeline.goToHour(2);
+
+  const { cockpit } = planner;
+  await expect(cockpit.segmentTime).toHaveText(
+    await cockpit.calmTime.innerText(),
   );
-  await expect(page.getByTestId("selected-window")).toContainText(tailwindTime);
+  await expect(cockpit.timeDifference).toContainText("Same time");
+  await expect(cockpit.windSummary).toContainText("Calm");
+});
+
+test("tomorrow moves the slider past today", async ({ planner, seed }) => {
+  await seed(seeded);
+
+  await planner.timeline.tomorrow();
+
+  expect(await planner.timeline.hour()).toBeGreaterThan(0);
+});
+
+test("best hour selects the best window today", async ({ planner, seed }) => {
+  await seed(seeded);
+  const tailwindTime = await planner.cockpit.time();
+  await planner.timeline.tomorrow();
+
+  await planner.timeline.bestHour();
+
+  const { timeline } = planner;
+  await expect(timeline.slider).toHaveValue("0");
+  await expect(timeline.bestHourButton).toHaveAttribute("aria-pressed", "true");
+  await expect(timeline.todayButton).toHaveAttribute("aria-pressed", "true");
+  await expect(timeline.selectedWindow).toHaveAttribute("data-best", "true");
+  await expect(timeline.selectedWindow).toContainText(tailwindTime);
 });
 
 test("the last hour shows rain and a crosswind and disables next", async ({
-  page,
+  planner,
   seed,
   openMeteo,
 }) => {
   await seed(seeded);
-  const tailwindTime = await segmentTime(page).innerText();
-  await slider(page).fill("47");
-  await expect(
-    page.getByRole("button", { name: "Best hour", exact: true }),
-  ).toHaveAttribute("aria-pressed", "false");
-  await expect(page.getByTestId("selected-window")).toHaveAttribute(
-    "data-best",
+  const tailwindTime = await planner.cockpit.time();
+
+  await planner.timeline.goToHour(47);
+
+  const { timeline, cockpit } = planner;
+  await expect(timeline.bestHourButton).toHaveAttribute(
+    "aria-pressed",
     "false",
   );
-  await expect(segmentTime(page)).not.toHaveText(tailwindTime);
-  await expect(page.getByRole("button", { name: "Next hour" })).toBeDisabled();
-  await expect(page.getByTestId("wind-summary")).toContainText("Hour 48 of 48");
-  await expect(page.getByTestId("wind-day-tick")).toHaveCount(2);
-  await expect(page.getByTestId("weather-icon")).toHaveAttribute(
-    "data-kind",
-    "rain",
-  );
-  await expect(page.getByTestId("wind-summary")).toContainText(
+  await expect(timeline.selectedWindow).toHaveAttribute("data-best", "false");
+  await expect(cockpit.segmentTime).not.toHaveText(tailwindTime);
+  await expect(timeline.nextButton).toBeDisabled();
+  await expect(cockpit.windSummary).toContainText("Hour 48 of 48");
+  await expect(timeline.dayTicks).toHaveCount(2);
+  await expect(cockpit.weatherIcon).toHaveAttribute("data-kind", "rain");
+  await expect(cockpit.windSummary).toContainText(
     "towards east · Mostly crosswind",
   );
   expect(openMeteo.calls.weather).toBe(1);
 });
 
 test("mph converts every readout without a new request", async ({
-  page,
+  planner,
   seed,
   openMeteo,
 }) => {
   await seed(seeded);
-  await slider(page).fill("47");
-  const crosswindTime = await segmentTime(page).innerText();
-  await page
-    .getByRole("group", { name: "Speed units" })
-    .getByRole("button", { name: "mph" })
-    .click();
-  await expect(page.getByTestId("wind-summary")).toContainText("11.2 mph");
-  await expect(page.getByTestId("ride-cockpit")).toContainText("24.9 mph");
-  await expect(page.getByTestId("cockpit-speed")).toContainText("mph");
-  await expect(segmentTime(page)).toHaveText(crosswindTime);
-  await expect(page.getByTestId("wind-map-overlay")).toContainText("11.2 mph");
+  await planner.timeline.goToHour(47);
+  const crosswindTime = await planner.cockpit.time();
+
+  await planner.useMph();
+
+  const { cockpit } = planner;
+  await expect(cockpit.windSummary).toContainText("11.2 mph");
+  await expect(cockpit.region).toContainText("24.9 mph");
+  await expect(cockpit.speed).toContainText("mph");
+  await expect(cockpit.segmentTime).toHaveText(crosswindTime);
+  await expect(planner.map.overlay).toContainText("11.2 mph");
   expect(openMeteo.calls.weather).toBe(1);
 });
 
-test("the map overlay shows the wind and particles can be switched off", async ({
-  page,
+test("the map overlay shows the wind with animated particles", async ({
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await expect(page.getByTestId("wind-map-overlay")).toContainText("18.0 km/h");
-  const particles = page.getByTestId("wind-particle-field");
-  await expect(particles).toHaveAttribute("data-flow-degrees", "0");
-  await expect(particles).toHaveAttribute("data-speed-mps", "5.0");
-  await expect(particles).toHaveAttribute("data-motion", "animated");
-  await page
-    .getByRole("button", { name: "Wind particles on", exact: true })
-    .click();
-  await expect(particles).toHaveCount(0);
-  await expect(page.locator(".wind-direction-arrow")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Wind particles off", exact: true })
-    .click();
-  await expect(particles).toHaveCount(1);
+
+  const { map } = planner;
+  await expect(map.overlay).toContainText("18.0 km/h");
+  await expect(map.particles).toHaveAttribute("data-flow-degrees", "0");
+  await expect(map.particles).toHaveAttribute("data-speed-mps", "5.0");
+  await expect(map.particles).toHaveAttribute("data-motion", "animated");
+});
+
+test("switching particles off leaves the wind arrow", async ({
+  planner,
+  seed,
+}) => {
+  await seed(seeded);
+
+  await planner.map.hideParticles();
+
+  await expect(planner.map.particles).toHaveCount(0);
+  await expect(planner.map.arrow).toBeVisible();
+});
+
+test("switching particles back on restores the field", async ({
+  planner,
+  seed,
+}) => {
+  await seed(seeded);
+  await planner.map.hideParticles();
+
+  await planner.map.showParticles();
+
+  await expect(planner.map.particles).toHaveCount(1);
 });
 
 test("reduced motion keeps the particle field static @a11y", async ({
   page,
+  planner,
   seed,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
+
   await seed(seeded);
-  await expect(page.getByTestId("wind-particle-field")).toHaveAttribute(
-    "data-motion",
-    "static",
-  );
+
+  await expect(planner.map.particles).toHaveAttribute("data-motion", "static");
 });
 
-test("the slider answers Home, arrow keys and a click on the timeline @keyboard", async ({
-  page,
+test("Home moves the slider to the first hour @keyboard", async ({
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await slider(page).fill("5");
-  await slider(page).focus();
-  await page.keyboard.press("Home");
-  await expect(slider(page)).toHaveValue("0");
-  await page.keyboard.press("ArrowRight");
-  await expect(slider(page)).toHaveValue("1");
-  await expect(page.getByTestId("cockpit-speed")).toHaveText("Unavailable");
-  await page.keyboard.press("End");
-  await expect(slider(page)).toHaveValue("47");
-  const bounds = await slider(page).boundingBox();
-  await slider(page).click({
-    position: { x: bounds!.width * 0.75, y: bounds!.height / 2 },
-  });
-  expect(Number(await slider(page).inputValue())).toBeGreaterThan(30);
+  await planner.timeline.goToHour(5);
+
+  await planner.timeline.press("Home");
+
+  await expect(planner.timeline.slider).toHaveValue("0");
 });
 
-test("the hourly table selects an hour", async ({ page, seed }) => {
+test("ArrowRight steps one hour and the readouts follow @keyboard", async ({
+  planner,
+  seed,
+}) => {
   await seed(seeded);
-  const tailwindTime = await segmentTime(page).innerText();
-  await slider(page).fill("47");
-  await page.getByText("Hourly times", { exact: true }).click();
-  await page.locator(".hourly-time-table tbody button").first().click();
-  await expect(slider(page)).toHaveValue("0");
-  await expect(segmentTime(page)).toHaveText(tailwindTime);
+
+  await planner.timeline.press("ArrowRight");
+
+  await expect(planner.timeline.slider).toHaveValue("1");
+  await expect(planner.cockpit.speed).toHaveText("Unavailable");
+});
+
+test("End moves the slider to the last hour @keyboard", async ({
+  planner,
+  seed,
+}) => {
+  await seed(seeded);
+
+  await planner.timeline.press("End");
+
+  await expect(planner.timeline.slider).toHaveValue("47");
+});
+
+test("a click on the timeline jumps to that hour @keyboard", async ({
+  planner,
+  seed,
+}) => {
+  await seed(seeded);
+
+  await planner.timeline.clickTrack(0.75);
+
+  expect(await planner.timeline.hour()).toBeGreaterThan(30);
+});
+
+test("the hourly table selects an hour", async ({ planner, seed }) => {
+  await seed(seeded);
+  const tailwindTime = await planner.cockpit.time();
+  await planner.timeline.goToHour(47);
+
+  await planner.timeline.showHourlyTimes();
+  await planner.timeline.pickHourlyRow(0);
+
+  await expect(planner.timeline.slider).toHaveValue("0");
+  await expect(planner.cockpit.segmentTime).toHaveText(tailwindTime);
 });
 
 test("the timeline stays on screen on a phone @mobile-only @mobile", async ({
-  page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await slider(page).evaluate((el) => el.scrollIntoView({ block: "center" }));
-  await expect(slider(page)).toBeInViewport({ ratio: 1 });
-  await expect(page.getByTestId("ride-cockpit")).toBeInViewport();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    await page.evaluate(() => innerWidth),
-  );
+
+  await planner.timeline.centre();
+
+  await expect(planner.timeline.slider).toBeInViewport({ ratio: 1 });
+  await expect(planner.cockpit.region).toBeInViewport();
+  expect(await planner.horizontalOverflow()).toBe(0);
 });
 
 test("deleting the segment removes the timeline and the map overlay", async ({
-  page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await expect(page.getByTestId("wind-map-overlay")).toHaveCount(1);
-  await manage(page, "Delete segment");
-  await expect(slider(page)).toHaveCount(0);
-  await expect(page.getByTestId("segment-slot-1")).toHaveAttribute(
+  await expect(planner.map.overlay).toHaveCount(1);
+
+  await planner.library.delete();
+
+  await expect(planner.timeline.slider).toHaveCount(0);
+  await expect(planner.library.slot(1)).toHaveAttribute(
     "data-defined",
     "false",
   );
-  await expect(page.getByTestId("wind-map-overlay")).toHaveCount(0);
+  await expect(planner.map.overlay).toHaveCount(0);
 });

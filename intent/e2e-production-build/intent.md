@@ -5,7 +5,7 @@ Opened: 20 October 2026 by the owner
 
 ## Problem
 
-CI runs Playwright against `next dev`. On the `main` run of 20 October 2026 the chromium-desktop median was 10.5 s per test and the slowest 22.9 s; the same tests take 1 to 3.5 s locally. Per-worker timings show the cause: the first test in each worker takes 16 to 20 s while the dev server compiles `/`, and every worker stalls again to 18 to 22 s when `demo.spec.ts` first requests `/demo`. The rest run at 6 to 10 s on a 4-vCPU runner shared by four browsers and an unminified dev build. The dashboard's "slowest ten" therefore reports compile time, not slow tests.
+CI runs Playwright against `next dev`. On the `main` run of 20 October 2026 the chromium-desktop median was 10.5 s per test and the slowest 22.9 s; the same tests take 1 to 3.5 s locally. Per-worker timings show the cause: the first test in each worker takes 16 to 20 s while the dev server compiles `/`, and every worker stalls again to 18 to 22 s when `demo.spec.ts` first requests `/demo`. The rest run at 6 to 10 s on a 4-vCPU runner shared by four browsers and a development build. The dashboard's "slowest ten" therefore reports compile time, not slow tests.
 
 The specs themselves are hard to read: 119 tests across 16 files drive the page through raw locators and a handful of loose helpers in `e2e/fixtures.ts`, so setup, action and check run together and the same selectors repeat across files.
 

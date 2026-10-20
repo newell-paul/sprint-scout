@@ -1,90 +1,11 @@
-import { aRoute, expect, northbound, slider, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
+import type { Page } from "@playwright/test";
 
 const seeded = { routes: [aRoute({ id: "north", name: "Northbound" })] };
 
-test.describe("forecast timeout", () => {
-  test.use({ installClock: true });
-
-  test("a forecast that never answers times out and try again recovers", async ({
-    page,
-    seed,
-    openMeteo,
-  }) => {
-    openMeteo.faults.weather = "timeout";
-    await seed(seeded);
-    await expect(page.getByTestId("forecast-placeholder")).toBeVisible();
-    await page.clock.runFor(12_500);
-    await expect(page.locator("p[role=alert]")).toContainText(
-      "Forecast request timed out or was cancelled.",
-    );
-    openMeteo.faults.weather = "ok";
-    await page.getByRole("button", { name: "Try again", exact: true }).click();
-    await expect(slider(page)).toBeVisible();
-    await expect(page.locator("p[role=alert]")).toHaveCount(0);
-    expect(openMeteo.calls.weather).toBe(2);
-  });
-});
-
-test.describe("rate limit", () => {
-  test.use({ installClock: true });
-
-  test("a rate-limited forecast says so and does not retry on its own", async ({
-    page,
-    seed,
-    openMeteo,
-  }) => {
-    openMeteo.faults.weather = "rateLimit";
-    await seed(seeded);
-    await expect(page.locator("p[role=alert]")).toContainText(
-      "Weather service rate limit reached. Try again later.",
-    );
-    await expect(
-      page.getByRole("button", { name: "Try again", exact: true }),
-    ).toBeVisible();
-    // Long enough for any backoff a retry would plausibly use.
-    await page.clock.runFor(5 * 60_000);
-    expect(openMeteo.calls.weather).toBe(1);
-  });
-});
-
-test("an empty forecast body is reported as unusable", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
-  openMeteo.faults.weather = "empty";
-  await seed(seeded);
-  await expect(page.locator("p[role=alert]")).toBeVisible();
-  await expect(slider(page)).toHaveCount(0);
-});
-
-test("map tiles failing to load leaves the map usable", async ({
-  page,
-  seed,
-  externalRequests,
-}) => {
-  await seed(seeded);
-  await expect(
-    page.getByRole("region", { name: "Route drawing map" }),
-  ).toBeVisible();
-  await expect(page.getByTestId("wind-map-overlay")).toBeVisible();
-  await expect
-    .poll(
-      () =>
-        externalRequests.filter((url) => url.includes("tile.openstreetmap.org"))
-          .length,
-    )
-    .toBeGreaterThan(0);
-});
-
-test("a full storage quota refuses the save and preserves existing routes", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
-  openMeteo.faults.weather = "outage";
-  await seed({ routes: [aRoute({ id: "kept", name: "Kept segment" })] });
-  await page.evaluate(() => {
+// Fills localStorage in shrinking blocks until nothing more fits.
+const fillStorage = (page: Page) =>
+  page.evaluate(() => {
     let index = 0;
     for (const size of [512 * 1024, 32 * 1024, 2 * 1024, 128, 8]) {
       const block = "x".repeat(size);
@@ -96,66 +17,186 @@ test("a full storage quota refuses the save and preserves existing routes", asyn
       }
     }
   });
-  await page.getByTestId("segment-slot-2").click();
-  await page.getByText("Enter coordinates instead", { exact: true }).click();
-  await page.getByLabel("Latitude", { exact: true }).fill("51.5");
-  await page.getByLabel("Longitude", { exact: true }).fill("-0.12");
-  await page.getByRole("button", { name: "Add point and centre map" }).click();
-  await page.getByLabel("Latitude", { exact: true }).fill("51.51");
-  await page.getByRole("button", { name: "Add point and centre map" }).click();
-  await page.getByLabel("Route name", { exact: true }).fill("Will not fit");
-  await page.getByRole("checkbox", { name: /created this route/ }).check();
-  await page.getByRole("button", { name: "Save route", exact: true }).click();
-  await expect(page.locator("p[role=status]")).toContainText(
-    "Could not save changes. Storage may be full",
-  );
-  await page.evaluate(() => {
+const freeStorage = (page: Page) =>
+  page.evaluate(() => {
     for (const key of Object.keys(localStorage))
       if (key.startsWith("filler-")) localStorage.removeItem(key);
   });
-  await page.reload();
-  await expect(page.getByTestId("segment-slot-1")).toHaveAttribute(
-    "data-defined",
-    "true",
-  );
-  await expect(page.getByTestId("segment-slot-2")).toHaveAttribute(
-    "data-defined",
-    "false",
-  );
+
+test.describe("forecast timeout", () => {
+  test.use({ installClock: true });
+
+  test.beforeEach(({ openMeteo }) => {
+    openMeteo.faults.weather = "timeout";
+  });
+
+  test("a forecast that never answers times out", async ({
+    page,
+    planner,
+    seed,
+  }) => {
+    await seed(seeded);
+    await expect(planner.timeline.placeholder).toBeVisible();
+
+    await page.clock.runFor(12_500);
+
+    await expect(planner.alert).toContainText(
+      "Forecast request timed out or was cancelled.",
+    );
+  });
+
+  test("try again recovers after a timeout", async ({
+    page,
+    planner,
+    seed,
+    openMeteo,
+  }) => {
+    await seed(seeded);
+    await page.clock.runFor(12_500);
+    await expect(planner.alert).toBeVisible();
+    openMeteo.faults.weather = "ok";
+
+    await planner.timeline.tryAgain();
+
+    await expect(planner.timeline.slider).toBeVisible();
+    await expect(planner.alert).toHaveCount(0);
+    expect(openMeteo.calls.weather).toBe(2);
+  });
 });
 
-test("unreadable saved routes are preserved rather than replaced", async ({
-  page,
+test.describe("rate limit", () => {
+  test.use({ installClock: true });
+
+  test.beforeEach(({ openMeteo }) => {
+    openMeteo.faults.weather = "rateLimit";
+  });
+
+  test("a rate-limited forecast says so and offers a retry", async ({
+    planner,
+    seed,
+  }) => {
+    await seed(seeded);
+
+    await expect(planner.alert).toContainText(
+      "Weather service rate limit reached. Try again later.",
+    );
+    await expect(planner.timeline.tryAgainButton).toBeVisible();
+  });
+
+  test("a rate-limited forecast does not retry on its own", async ({
+    page,
+    planner,
+    seed,
+    openMeteo,
+  }) => {
+    await seed(seeded);
+    await expect(planner.alert).toBeVisible();
+
+    // Long enough for any backoff a retry would plausibly use.
+    await page.clock.runFor(5 * 60_000);
+
+    expect(openMeteo.calls.weather).toBe(1);
+  });
+});
+
+test("an empty forecast body is reported as unusable", async ({
+  planner,
+  seed,
   openMeteo,
 }) => {
-  openMeteo.faults.weather = "outage";
-  await page.goto("/health");
-  await page.evaluate(() =>
-    localStorage.setItem("sprint-scout.drawn-routes.v1", "{not json"),
-  );
-  await page.goto("/");
-  await expect(page.locator("p[role=status]")).toHaveText(
-    "Cannot read saved routes. Existing data is preserved.",
-  );
-  await page.getByText("Enter coordinates instead", { exact: true }).click();
-  for (const [longitude, latitude] of northbound) {
-    await page.getByLabel("Latitude", { exact: true }).fill(String(latitude));
-    await page.getByLabel("Longitude", { exact: true }).fill(String(longitude));
-    await page
-      .getByRole("button", { name: "Add point and centre map" })
-      .click();
-  }
-  await page.getByLabel("Route name", { exact: true }).fill("Fresh segment");
-  await page.getByRole("checkbox", { name: /created this route/ }).check();
-  const save = page.getByRole("button", { name: "Save route", exact: true });
-  await expect(save).toBeEnabled();
-  await save.click();
-  await expect(page.locator("p[role=status]")).toHaveText(
-    "Could not save changes. Storage may be full, unavailable, or invalid; existing routes are preserved.",
-  );
-  expect(
-    await page.evaluate(() =>
-      localStorage.getItem("sprint-scout.drawn-routes.v1"),
-    ),
-  ).toBe("{not json");
+  openMeteo.faults.weather = "empty";
+
+  await seed(seeded);
+
+  await expect(planner.alert).toBeVisible();
+  await expect(planner.timeline.slider).toHaveCount(0);
+});
+
+test("map tiles failing to load leaves the map usable", async ({
+  planner,
+  seed,
+  externalRequests,
+}) => {
+  await seed(seeded);
+
+  await expect(planner.map.region).toBeVisible();
+  await expect(planner.map.overlay).toBeVisible();
+  await expect
+    .poll(
+      () =>
+        externalRequests.filter((url) => url.includes("tile.openstreetmap.org"))
+          .length,
+    )
+    .toBeGreaterThan(0);
+});
+
+test.describe("with the forecast unavailable", () => {
+  test.beforeEach(({ openMeteo }) => {
+    openMeteo.faults.weather = "outage";
+  });
+
+  test("a full storage quota refuses the save", async ({
+    page,
+    planner,
+    seed,
+  }) => {
+    await seed({ routes: [aRoute({ id: "kept", name: "Kept segment" })] });
+    await fillStorage(page);
+    await planner.library.selectSlot(2);
+
+    await planner.editor.draft("Will not fit");
+    await planner.editor.save();
+
+    await expect(planner.status).toContainText(
+      "Could not save changes. Storage may be full",
+    );
+  });
+
+  test("a refused save preserves the existing routes", async ({
+    page,
+    planner,
+    seed,
+  }) => {
+    await seed({ routes: [aRoute({ id: "kept", name: "Kept segment" })] });
+    await fillStorage(page);
+    await planner.library.selectSlot(2);
+    await planner.editor.draft("Will not fit");
+    await planner.editor.save();
+    await expect(planner.status).toContainText("Could not save changes");
+
+    await freeStorage(page);
+    await planner.reload();
+
+    await expect(planner.library.slot(1)).toHaveAttribute(
+      "data-defined",
+      "true",
+    );
+    await expect(planner.library.slot(2)).toHaveAttribute(
+      "data-defined",
+      "false",
+    );
+  });
+
+  test("unreadable saved routes are reported", async ({ planner }) => {
+    await planner.openWithStoredRoutes("{not json");
+
+    await expect(planner.status).toHaveText(
+      "Cannot read saved routes. Existing data is preserved.",
+    );
+  });
+
+  test("a save over unreadable routes is refused and leaves them in place", async ({
+    planner,
+  }) => {
+    await planner.openWithStoredRoutes("{not json");
+    await planner.editor.draft("Fresh segment");
+    await expect(planner.editor.saveButton).toBeEnabled();
+
+    await planner.editor.save();
+
+    await expect(planner.status).toHaveText(
+      "Could not save changes. Storage may be full, unavailable, or invalid; existing routes are preserved.",
+    );
+    expect(await planner.storedRoutes()).toBe("{not json");
+  });
 });

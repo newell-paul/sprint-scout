@@ -6,12 +6,14 @@ From [spec.md](spec.md).
 
 - `playwright.config.ts`: `webServer.command` is `pnpm --filter @scout/web start` when `CI` is set, `pnpm --filter @scout/web dev` otherwise.
 - `.github/workflows/ci.yml`: the e2e job runs `pnpm --filter @scout/web build` before `playwright test`.
-- `e2e/pages/planner.ts`: `PlannerPage` with `open()`, `reload()`, `status`, `pageWidthFits()` and the panels below.
+- `e2e/pages/planner.ts`: `Planner` with `open()`, `reload()`, `status`, `alert`, `horizontalOverflow()`, `reverseSegment()`, `storedRoutes()` and the panels below.
 - `e2e/pages/library.ts`, `editor.ts`, `timeline.ts`, `cockpit.ts`, `map.ts`, `attempt.ts`, `rider.ts`, `shelter.ts`, `terrain.ts`, `efforts.ts`, `board.ts`: one class per panel, locators as readonly fields, user actions as methods. Actions may wait for the app to settle; checks stay in specs.
-- `e2e/pages/demo.ts`: `DemoPage` for `/demo`.
+- `e2e/pages/demo.ts`: `DemoPlanner` for `/demo`.
+- `e2e/pages/canvas.ts`: `paintedPixels` and `horizontalOverflow`, shared by the planner map and the demo map.
 - `e2e/pages/index.ts`: re-exports.
-- `e2e/fixtures.ts`: adds the `planner` and `demo` fixtures; `drawSegment`, `manage`, `slider`, `segmentHeading`, `segmentTime`, `terrainPanel`, `loadTerrain` and `reverseAndSave` move into page objects and are removed; `paintedPixels` moves into `map.ts`.
+- `e2e/fixtures.ts`: adds the `planner` and `demo` fixtures; `drawSegment`, `manage`, `slider`, `segmentHeading`, `segmentTime`, `terrainPanel`, `loadTerrain` and `reverseAndSave` move into page objects and are removed; `paintedPixels` moves into `canvas.ts`, used by `map.ts` and `demo.ts`. `northbound` and `Point` come from `e2e/pages/editor.ts`.
 - `e2e/*.spec.ts` (16 files): rewritten onto page objects in arrange-act-assert form; independent behaviours split.
+- `scripts/visual-baselines.sh`: builds the app before the container run, because `CI=1` now serves `next start`.
 - `docs/test-strategy.md`, `docs/design.md`: as the spec says.
 - `intent/e2e-production-build/intent.md`: status `in build`, then `done`.
 

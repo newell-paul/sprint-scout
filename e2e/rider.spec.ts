@@ -1,4 +1,4 @@
-import { aRoute, expect, slider, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
 
 // Southerly all day; hours 0–5 are night, hour 6 rains.
 test.beforeEach(({ openMeteo }) => {
@@ -19,82 +19,98 @@ test.use({ fixedTime: "2026-09-10T07:00:00Z" });
 const seeded = { routes: [aRoute({ id: "north", name: "Northbound" })] };
 
 test("night and wet bands mark the hours on the timeline", async ({
-  page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  const nightBands = page.getByTestId("band-night");
+
+  const { nightBands, wetBands } = planner.timeline;
   await expect(nightBands).toHaveCount(1);
   await expect(nightBands.first()).toHaveAttribute("data-from", "0");
   await expect(nightBands.first()).toHaveAttribute("data-to", "5");
-  const wetBands = page.getByTestId("band-wet");
   await expect(wetBands).toHaveCount(1);
   await expect(wetBands.first()).toHaveAttribute("data-from", "6");
 });
 
+test("the best hour can fall in the rain", async ({ planner, seed }) => {
+  await seed(seeded);
+
+  await planner.timeline.bestHour();
+
+  await expect(planner.timeline.slider).toHaveValue("6");
+});
+
 test("dry daylight only moves the best hour past the rain", async ({
-  page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await page.getByRole("button", { name: "Best hour", exact: true }).click();
-  await expect(slider(page)).toHaveValue("6");
-  await page.getByLabel("Dry daylight only").check();
-  await page.getByRole("button", { name: "Best hour", exact: true }).click();
-  await expect(slider(page)).toHaveValue("7");
+
+  await planner.timeline.onlyDryDaylight();
+  await planner.timeline.bestHour();
+
+  await expect(planner.timeline.slider).toHaveValue("7");
 });
 
-test("the hourly table names rain and night", async ({ page, seed }) => {
+test("the hourly table names rain and night", async ({ planner, seed }) => {
   await seed(seeded);
-  await page.getByText("Hourly times", { exact: true }).click();
-  const rows = page.locator(".hourly-time-table tbody tr");
-  await expect(rows.nth(6).locator("td").last()).toHaveText("Rain");
-  await expect(rows.first().locator("td").last()).toContainText("night");
+
+  await planner.timeline.showHourlyTimes();
+
+  await expect(planner.timeline.hourlyVerdict(6)).toHaveText("Rain");
+  await expect(planner.timeline.hourlyVerdict(0)).toContainText("night");
 });
 
-test("rider power changes the still-air time and persists across reload", async ({
-  page,
-  seed,
-}) => {
+test("rider power changes the still-air time", async ({ planner, seed }) => {
   await seed(seeded);
-  await expect(page.getByTestId("rider-summary")).toContainText(
+  await expect(planner.rider.summary).toContainText(
     "Reference rider · 40.0 km/h",
   );
-  const calmBefore = await page.getByTestId("segment-calm-time").innerText();
-  await page.getByText("Rider", { exact: false }).first().click();
-  await page.getByLabel("Sustained power").fill("400");
-  await expect(page.getByTestId("rider-summary")).toContainText("Your numbers");
-  await expect(page.getByTestId("segment-calm-time")).not.toHaveText(
-    calmBefore,
-  );
-  await page.reload();
-  await expect(page.getByTestId("rider-summary")).toContainText("Your numbers");
+  const calmBefore = await planner.cockpit.calmTime.innerText();
+  await planner.rider.open();
+
+  await planner.rider.setPower(400);
+
+  await expect(planner.rider.summary).toContainText("Your numbers");
+  await expect(planner.cockpit.calmTime).not.toHaveText(calmBefore);
+});
+
+test("the rider's numbers persist across reload", async ({ planner, seed }) => {
+  await seed(seeded);
+  await planner.rider.open();
+  await planner.rider.setPower(400);
+  await expect(planner.rider.summary).toContainText("Your numbers");
+
+  await planner.reload();
+
+  await expect(planner.rider.summary).toContainText("Your numbers");
 });
 
 test("an out-of-range CdA is refused and the saved numbers stand", async ({
-  page,
+  planner,
   seed,
 }) => {
   await seed(seeded);
-  await page.getByText("Rider", { exact: false }).first().click();
-  await page.getByLabel("Sustained power").fill("400");
-  await page.getByLabel("CdA").fill("0.9");
-  await expect(page.locator(".rider-note")).toContainText("CdA must be");
-  await expect(page.getByTestId("rider-summary")).toContainText("Your numbers");
+  await planner.rider.open();
+  await planner.rider.setPower(400);
+
+  await planner.rider.setCda(0.9);
+
+  await expect(planner.rider.note).toContainText("CdA must be");
+  await expect(planner.rider.summary).toContainText("Your numbers");
 });
 
 test("use reference rider restores the default pace", async ({
-  page,
+  planner,
   seed,
 }) => {
-  await seed({
-    ...seeded,
-    rider: { powerW: 400, massKg: 85, cdaM2: 0.3 },
-  });
-  await expect(page.getByTestId("rider-summary")).toContainText("Your numbers");
-  await page.getByText("Rider", { exact: false }).first().click();
-  await page.getByRole("button", { name: "Use reference rider" }).click();
-  await expect(page.getByTestId("rider-summary")).toContainText(
+  await seed({ ...seeded, rider: { powerW: 400, massKg: 85, cdaM2: 0.3 } });
+  await expect(planner.rider.summary).toContainText("Your numbers");
+  await planner.rider.open();
+
+  await planner.rider.useReference();
+
+  await expect(planner.rider.summary).toContainText(
     "Reference rider · 40.0 km/h",
   );
 });

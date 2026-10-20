@@ -1,58 +1,23 @@
-import { aRoute, expect, manage, segmentHeading, test } from "./fixtures";
+import type { Page } from "@playwright/test";
+import { aRoute, expect, test } from "./fixtures";
+import { routesKey } from "./pages";
 
-const key = "sprint-scout.drawn-routes.v1";
-const otherTabRenames = (page: import("@playwright/test").Page) =>
-  page.evaluate((storageKey) => {
-    const routes = JSON.parse(localStorage.getItem(storageKey)!);
+const original = {
+  routes: [aRoute({ id: "original", name: "Original route" })],
+};
+
+// What another tab does: write the library and fire the storage event.
+const otherTabRenames = (page: Page) =>
+  page.evaluate((key) => {
+    const routes = JSON.parse(localStorage.getItem(key)!);
     routes[0].name = "Other tab version";
-    localStorage.setItem(storageKey, JSON.stringify(routes));
-    window.dispatchEvent(new StorageEvent("storage", { key: storageKey }));
-  }, key);
-
-test("a save is refused when another tab changed the segment and the draft stays", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
-  openMeteo.faults.weather = "outage";
-  await seed({ routes: [aRoute({ id: "original", name: "Original route" })] });
-  await manage(page, "Redraw segment");
-  await page.getByLabel("Route name", { exact: true }).fill("My draft");
-  await page.getByRole("checkbox", { name: /created this route/ }).check();
-  await otherTabRenames(page);
-  await page.getByRole("button", { name: "Save route", exact: true }).click();
-  await expect(page.locator("p[role=status]")).toContainText(
-    "Could not save changes",
-  );
-  await expect(page.getByLabel("Route name", { exact: true })).toHaveValue(
-    "My draft",
-  );
-});
-
-test("cancelling after another tab's change shows that tab's version", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
-  openMeteo.faults.weather = "outage";
-  await seed({ routes: [aRoute({ id: "original", name: "Original route" })] });
-  await manage(page, "Redraw segment");
-  await otherTabRenames(page);
-  await page.getByRole("button", { name: "Cancel drawing" }).click();
-  await expect(segmentHeading(page)).toContainText("Other tab version");
-});
-
-test("undo delete is refused when another tab replaced the slot", async ({
-  page,
-  seed,
-  openMeteo,
-}) => {
-  openMeteo.faults.weather = "outage";
-  await seed({ routes: [aRoute({ id: "original", name: "Original route" })] });
-  await manage(page, "Delete segment");
-  await page.evaluate((storageKey) => {
+    localStorage.setItem(key, JSON.stringify(routes));
+    window.dispatchEvent(new StorageEvent("storage", { key }));
+  }, routesKey);
+const otherTabReplaces = (page: Page) =>
+  page.evaluate((key) => {
     localStorage.setItem(
-      storageKey,
+      key,
       JSON.stringify([
         {
           id: "replacement",
@@ -67,11 +32,68 @@ test("undo delete is refused when another tab replaced the slot", async ({
         },
       ]),
     );
-  }, key);
-  await page.getByRole("button", { name: "Undo delete" }).click();
-  await expect(page.locator("p[role=status]")).toContainText(
-    "Could not save changes",
-  );
-  await page.reload();
-  await expect(segmentHeading(page)).toContainText("Replacement route");
+  }, routesKey);
+
+test.beforeEach(({ openMeteo }) => {
+  openMeteo.faults.weather = "outage";
+});
+
+test("a save is refused when another tab changed the segment and the draft stays", async ({
+  page,
+  planner,
+  seed,
+}) => {
+  await seed(original);
+  await planner.library.redraw();
+  await planner.editor.name("My draft");
+  await planner.editor.confirmOwnership();
+  await otherTabRenames(page);
+
+  await planner.editor.save();
+
+  await expect(planner.status).toContainText("Could not save changes");
+  await expect(planner.editor.routeName).toHaveValue("My draft");
+});
+
+test("cancelling after another tab's change shows that tab's version", async ({
+  page,
+  planner,
+  seed,
+}) => {
+  await seed(original);
+  await planner.library.redraw();
+  await otherTabRenames(page);
+
+  await planner.editor.cancel();
+
+  await expect(planner.library.heading).toContainText("Other tab version");
+});
+
+test("undo delete is refused when another tab replaced the slot", async ({
+  page,
+  planner,
+  seed,
+}) => {
+  await seed(original);
+  await planner.library.delete();
+  await otherTabReplaces(page);
+
+  await planner.library.undoDelete();
+
+  await expect(planner.status).toContainText("Could not save changes");
+});
+
+test("another tab's replacement survives a refused undo delete", async ({
+  page,
+  planner,
+  seed,
+}) => {
+  await seed(original);
+  await planner.library.delete();
+  await otherTabReplaces(page);
+
+  await planner.library.undoDelete();
+  await planner.reload();
+
+  await expect(planner.library.heading).toContainText("Replacement route");
 });
