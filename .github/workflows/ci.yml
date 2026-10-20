@@ -221,8 +221,10 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # The browser tests run against `next dev` with the in-memory planner;
-      # no database or API build is needed here.
+      # The browser tests run against `next start` with the in-memory planner;
+      # no database or API build is needed here. A production build means no
+      # test waits for a route to compile, as every test did under `next dev`.
+      - run: pnpm --filter @scout/web build
       - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm exec playwright test --shard=${{ matrix.shard }}/4
       - uses: actions/upload-artifact@v7

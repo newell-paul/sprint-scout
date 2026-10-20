@@ -27,7 +27,11 @@ export default defineConfig({
     video: ci ? "retain-on-failure" : "off",
   },
   webServer: {
-    command: "pnpm --filter @scout/web dev",
+    // CI serves the production build its e2e job makes, so no test pays for
+    // an on-demand route compile; locally the dev server keeps hot reload.
+    command: ci
+      ? "pnpm --filter @scout/web start"
+      : "pnpm --filter @scout/web dev",
     url: "http://127.0.0.1:3000/health",
     // Locally a dev server on :3000 is reused; CI always starts its own.
     reuseExistingServer: !ci,
