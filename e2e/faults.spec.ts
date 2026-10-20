@@ -52,6 +52,7 @@ test.describe("forecast timeout", () => {
     openMeteo,
   }) => {
     await seed(seeded);
+    await expect(planner.timeline.placeholder).toBeVisible();
     await page.clock.runFor(12_500);
     await expect(planner.alert).toBeVisible();
     openMeteo.faults.weather = "ok";

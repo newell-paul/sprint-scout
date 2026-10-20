@@ -1,6 +1,6 @@
 # End-to-end suite on a production build, with page objects
 
-Status: in build
+Status: done
 Opened: 20 October 2026 by the owner
 
 ## Problem
