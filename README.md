@@ -8,11 +8,9 @@ A browser-only planner for timing cycling segment attempts to the wind. Draw a s
 
 Segments stay in local storage. No accounts, API keys or server. Wind, elevation and map tiles come from Open-Meteo and OpenStreetMap. Saving a segment confirms it is your own and permits sending its start coordinate for wind; elevation and past wind each have a separate consent box. Estimates are physics for a reference rider, not a prediction of your time.
 
-<p align="center"><img src="docs/images/planner.gif" width="100%" alt="The planner: the example segment on the map, then Best hour picks the fastest hour on the 48-hour chart"></p>
-
 ## Try it
 
-Live at <https://newell-paul.github.io/sprint-scout/>, or run it locally:
+Live at <https://newell-paul.github.io/sprint-scout/> ([demo recording](docs/images/planner.gif)), or run it locally:
 
 ```sh
 pnpm install --frozen-lockfile
