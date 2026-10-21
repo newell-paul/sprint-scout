@@ -10,7 +10,7 @@ SprintScout is a small planner, but the repository is a public showcase of AI-na
 
 - One maintainer, one public GitHub repository, static deployment to GitHub Pages. No production service, telemetry, on-call rota, Slack workspace or ticket system. Where the article assumes production signals, the signals here are the pipeline itself: test health, coverage, mutation score, eval pass rate, Lighthouse, bundle size, PR cycle time.
 - Claude Code is used in auto mode from the terminal with `AGENTS.md` as the instruction file. Repo-level hooks, agents and skills were added on 10 October 2026.
-- Paid steps use `ANTHROPIC_API_KEY` as a repository secret. Each is triggered by a path filter, an event or a dispatch, never a timer, and each writes its result into the dashboard so the spend is visible as output.
+- Paid steps authenticate with `CLAUDE_CODE_OAUTH_TOKEN`, a repository secret made by `claude setup-token`, and bill the owner's Claude subscription. Each is triggered by a path filter, an event or a dispatch, never a timer, and each writes its result into the dashboard so the spend is visible as output.
 
 ## Play by play
 
@@ -70,7 +70,7 @@ The test health page kept a 90-run history of suite duration, pass counts, cover
 - **Branch protection on `main`** as the human gate: Checks required, pull request required, no force push.
 - **Pull requests as the only write path** for every automated step (spec drafts, fix loop, band issues).
 - **`workflow_run`, `pull_request`, `issue_comment` and `workflow_dispatch`** replace every schedule in the article.
-- **`claude-code-action`** for review and the fix loop; **`claude -p`** in ordinary jobs for evals, spec drafts, triage and intent drafts. All read `ANTHROPIC_API_KEY` from repository secrets. The action uses the Claude GitHub App's installation token, scoped to this repository, so a fix-loop push re-runs Checks; a push with the job token would not. Everything else runs with the job token only.
+- **`claude-code-action`** for review and the fix loop; **`claude -p`** in ordinary jobs for evals, spec drafts, triage and intent drafts. All read `CLAUDE_CODE_OAUTH_TOKEN` from repository secrets. The action uses the Claude GitHub App's installation token, scoped to this repository, so a fix-loop push re-runs Checks; a push with the job token would not. Everything else runs with the job token only.
 - **Actions artifacts and Pages** store and publish the dashboard history and badges.
 - **Dependabot** supplies dependency and security update pull requests through the same gate.
 
