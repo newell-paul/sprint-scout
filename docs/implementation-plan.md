@@ -1,4 +1,4 @@
-# Personal Segment & Wind Planner â€” Implementation Plan
+# Personal Segment & Wind Planner — Implementation Plan
 
 Status: milestones 0–4 complete; milestone 5 (MCP host) withdrawn 22 September 2026; milestone 6 delivered as the browser-only independent-route slice with GPX efforts and archive wind; Strava integration blocked. Open checklist items below are marked done or dropped as of 9 October 2026.
 Prepared: 7 September 2026.
@@ -12,7 +12,7 @@ Work one milestone at a time. At each milestone report changed files, executed c
 
 Use synthetic fixtures until a source-specific usage decision permits real data. Do not ask for credentials in chat or commit them. Missing real credentials does not block demo work.
 
-## Milestone 0 â€” Feasibility and source boundaries
+## Milestone 0 — Feasibility and source boundaries
 
 - [x] Inspect repository instructions, existing code and uncommitted changes; preserve unrelated work.
 - [x] Read the current official sources linked in the design; record dates and applicable sections in `docs/integration-decisions.md`.
@@ -24,9 +24,9 @@ Use synthetic fixtures until a source-specific usage decision permits real data.
 
 Deliverables: integration decision log, explicit enabled/disabled capability list, documented fixture provenance.
 
-Acceptance: no implementation task requires prohibited or uncertain real-data use. If live integration remains blocked, continue milestones 1â€“5 in demo mode. The gate blocks the affected feature, not the entire prototype.
+Acceptance: no implementation task requires prohibited or uncertain real-data use. If live integration remains blocked, continue milestones 1–5 in demo mode. The gate blocks the affected feature, not the entire prototype.
 
-## Milestone 1 â€” Repository foundation and contracts
+## Milestone 1 — Repository foundation and contracts
 
 Dependencies: milestone 0 demo boundary established.
 
@@ -45,7 +45,7 @@ Acceptance: clean installation, migration, build and test succeed without extern
 
 Validation for milestones 0–1: see [validation.md](validation.md). Lockfile generated; the Git repository was initialised on 9 October 2026.
 
-## Milestone 2 â€” Directed geometry and wind engine
+## Milestone 2 — Directed geometry and wind engine
 
 Dependencies: contracts and fixtures.
 
@@ -75,7 +75,7 @@ Acceptance: the package is pure and requires no network, database or model call.
 
 Validation: see the Milestone 2 section of [validation.md](validation.md). All checks passed; milestones 3 and 4 followed.
 
-## Milestone 3 â€” Open-Meteo adapter and time handling
+## Milestone 3 — Open-Meteo adapter and time handling
 
 Dependencies: engine and contracts.
 
@@ -88,11 +88,11 @@ Dependencies: engine and contracts.
 - [x] Restrict analysis to forecast coverage and refuse silent extrapolation.
 - [x] Add an opt-in live smoke test using demo coordinates; normal tests replay synthetic provider fixtures.
 
-Acceptance: two identical requests reuse the cache; failures surface a visible unavailable/stale state. Date boundaries and DST round-trip correctly. Wind from 359Â°/1Â° is never averaged arithmetically if interpolation is implemented. Forecast attribution appears in API/UI data.
+Acceptance: two identical requests reuse the cache; failures surface a visible unavailable/stale state. Date boundaries and DST round-trip correctly. Wind from 359°/1° is never averaged arithmetically if interpolation is implemented. Forecast attribution appears in API/UI data.
 
 Validation: see the Milestone 3 section of [validation.md](validation.md). Live smoke remains opt-in and was not executed; normal checks passed with synthetic fixtures.
 
-## Milestone 4 â€” Standalone visual MVP
+## Milestone 4 — Standalone visual MVP
 
 Dependencies: wind engine and weather adapter.
 
@@ -110,7 +110,7 @@ Acceptance: map, chart, table and cards reflect the same selected instant and an
 
 Validation: Milestone 4 completed 8 September 2026; see [validation.md](validation.md). Synthetic-only standalone demo, with no external map tiles or live provider requests. Milestone 5 implementation follows below.
 
-## Milestone 5 â€” MCP tools, embedded app and skill
+## Milestone 5 — MCP tools, embedded app and skill
 
 Dependencies: shared services and working web view.
 
@@ -132,7 +132,7 @@ Implementation status (8 September 2026): tools, stdio, embedded resource and sk
 
 Removed (22 September 2026): the owner chose to keep Sprint Scout as a focused web app. `apps/mcp`, `apps/mcp-ui`, `skills/sprint-scout`, `docs/mcp.md` and the MCP tool contracts were deleted; milestone 5 is closed as withdrawn, not accepted. Remote MCP items in milestone 7 no longer apply.
 
-## Milestone 6 â€” Approved personal data integration
+## Milestone 6 — Approved personal data integration
 
 Dependencies: explicit source-specific milestone 0 approval. Skip blocked providers; do not create workarounds.
 
@@ -148,7 +148,7 @@ Dependencies: explicit source-specific milestone 0 approval. Skip blocked provid
 
 Acceptance: real data is accessed only through the documented allowed path; unsupported capabilities return an explicit reason. Revocation, refresh races, rate limits, duplicate events and deletion are tested. No restricted data enters model context, logs, fixtures or persistent stores.
 
-## Milestone 7 â€” Private operation and release hardening
+## Milestone 7 — Private operation and release hardening
 
 Dependencies: selected release mode and user-approved hosting choice.
 
@@ -164,7 +164,7 @@ Dependencies: selected release mode and user-approved hosting choice.
 
 Acceptance: only the owner can access data; secrets are absent from bundles/logs; expiry and deletion work; failures do not produce fabricated forecasts. Release notes clearly identify demo vs real provider capabilities and tested MCP host (withdrawn with milestone 5 on 22 September 2026).
 
-## Milestone 8 â€” Optional validated predictions and ride planning
+## Milestone 8 — Optional validated predictions and ride planning
 
 Not part of MVP; requires a separate go/no-go decision.
 
