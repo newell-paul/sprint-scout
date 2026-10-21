@@ -1,4 +1,4 @@
-import { aRoute, expect, slider, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
 
 test.use({ fixedTime: "2026-09-10T07:00:00Z" });
 const northbound = aRoute({ id: "north", name: "Northbound", slot: 0 });
@@ -11,6 +11,7 @@ const southbound = aRoute({
     [-0.2, 51.5],
   ],
 });
+const both = { routes: [northbound, southbound] };
 
 test.beforeEach(({ openMeteo }) => {
   openMeteo.wind = { speed: 4, direction: 180, gust: null };
@@ -27,93 +28,89 @@ test.beforeEach(({ openMeteo }) => {
 });
 
 test("ranking fetches one forecast per segment and puts the gain first @smoke @a11y", async ({
-  page,
+  planner,
   seed,
   openMeteo,
   aria,
 }) => {
-  await seed({ routes: [northbound, southbound] });
+  await seed(both);
   await expect.poll(() => openMeteo.weatherLongitudes).toEqual(["-0.12"]);
-  await page.getByRole("button", { name: "Rank my segments" }).click();
-  const rows = page.getByTestId("board-row");
-  await expect(rows).toHaveCount(2);
-  await expect(rows.first()).toHaveAttribute("data-status", "ranked");
-  await expect(rows.nth(1)).toHaveAttribute("data-status", "ranked");
-  await expect(rows.first()).toContainText("Northbound");
-  await expect(rows.first().locator(".board-gain")).toHaveAttribute(
-    "data-tone",
-    "gain",
-  );
-  await expect(rows.nth(1)).toContainText("Southbound");
-  await expect(rows.nth(1).locator(".board-gain")).toHaveAttribute(
-    "data-tone",
-    "loss",
-  );
+
+  await planner.board.rank();
+
+  const { board } = planner;
+  const [first, second] = [board.rows.first(), board.rows.nth(1)];
+  await expect(board.rows).toHaveCount(2);
+  await expect(first).toHaveAttribute("data-status", "ranked");
+  await expect(second).toHaveAttribute("data-status", "ranked");
+  await expect(first).toContainText("Northbound");
+  await expect(board.gain(first)).toHaveAttribute("data-tone", "gain");
+  await expect(second).toContainText("Southbound");
+  await expect(board.gain(second)).toHaveAttribute("data-tone", "loss");
   expect(openMeteo.weatherLongitudes).toEqual(["-0.12", "-0.2"]);
-  await aria("board-ranked", page.getByTestId("opportunity-board"));
+  await aria("board-ranked", board.region);
 });
 
 test("open jumps to that segment's best hour without a new request", async ({
-  page,
+  planner,
   seed,
   openMeteo,
 }) => {
-  await seed({ routes: [northbound, southbound] });
-  await page.getByLabel("Dry daylight only").check();
-  await page.getByRole("button", { name: "Rank my segments" }).click();
-  const rows = page.getByTestId("board-row");
-  await rows.nth(1).getByRole("button", { name: "Open" }).click();
-  await expect(page.getByTestId("segment-slot-2")).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(slider(page)).toHaveValue("7");
-  await expect(page.getByTestId("ride-cockpit")).toHaveAttribute(
-    "data-tone",
-    "loss",
-  );
+  await seed(both);
+  await planner.timeline.onlyDryDaylight();
+  await planner.board.rank();
+
+  await planner.board.open("Southbound");
+
+  await expect(planner.library.slot(2)).toHaveAttribute("aria-pressed", "true");
+  await expect(planner.timeline.slider).toHaveValue("7");
+  await expect(planner.cockpit.region).toHaveAttribute("data-tone", "loss");
   expect(openMeteo.weatherLongitudes).toEqual(["-0.12", "-0.2"]);
 });
 
-test("refresh asks every segment again", async ({ page, seed, openMeteo }) => {
-  await seed({ routes: [northbound, southbound] });
-  await page.getByRole("button", { name: "Rank my segments" }).click();
-  await expect(page.getByTestId("board-row")).toHaveCount(2);
-  await expect(page.getByRole("button", { name: "Refresh" })).toBeEnabled();
-  await page.getByRole("button", { name: "Refresh" }).click();
-  await expect(page.getByRole("button", { name: "Refresh" })).toBeEnabled();
+test("refresh asks every segment again", async ({
+  planner,
+  seed,
+  openMeteo,
+}) => {
+  await seed(both);
+  await planner.board.rank();
+  await expect(planner.board.rows).toHaveCount(2);
+  await expect(planner.board.refreshButton).toBeEnabled();
+
+  await planner.board.refresh();
+
+  await expect(planner.board.refreshButton).toBeEnabled();
   expect(openMeteo.calls.weather).toBe(4);
 });
 
 test("a segment whose forecast fails stays unranked with the reason", async ({
-  page,
+  planner,
   seed,
   openMeteo,
 }) => {
-  await seed({ routes: [northbound, southbound] });
+  await seed(both);
   openMeteo.faults.weather = "outage";
-  await page.getByRole("button", { name: "Rank my segments" }).click();
-  const rows = page.getByTestId("board-row");
-  await expect(rows).toHaveCount(2);
-  await expect(rows.filter({ hasText: "Southbound" })).toHaveAttribute(
+
+  await planner.board.rank();
+
+  const { board } = planner;
+  await expect(board.rows).toHaveCount(2);
+  await expect(board.row("Southbound")).toHaveAttribute(
     "data-status",
     "unavailable",
   );
-  await expect(
-    rows
-      .filter({ hasText: "Southbound" })
-      .getByRole("button", { name: "Open" }),
-  ).toBeDisabled();
+  await expect(board.openButton(board.row("Southbound"))).toBeDisabled();
 });
 
 test("the board is fine on a phone @mobile-only @mobile", async ({
-  page,
+  planner,
   seed,
 }) => {
-  await seed({ routes: [northbound, southbound] });
-  await page.getByRole("button", { name: "Rank my segments" }).click();
-  await expect(page.getByTestId("board-row")).toHaveCount(2);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    await page.evaluate(() => innerWidth),
-  );
+  await seed(both);
+
+  await planner.board.rank();
+
+  await expect(planner.board.rows).toHaveCount(2);
+  expect(await planner.horizontalOverflow()).toBe(0);
 });

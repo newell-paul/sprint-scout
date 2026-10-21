@@ -1,119 +1,139 @@
-import { aRoute, expect, segmentTime, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
 
 test.beforeEach(({ openMeteo }) => {
   openMeteo.wind = { speed: 5, direction: 180, gust: 10 };
 });
 
-const twoSprints = () =>
-  [0, 1].map((slot) =>
+const twoSprints = {
+  routes: [0, 1].map((slot) =>
     aRoute({ id: `sprint-${slot}`, name: `Sprint ${slot + 1}`, slot }),
-  );
-const preset = (page: import("@playwright/test").Page, name: string) =>
-  page
-    .getByRole("group", { name: "Shelter level" })
-    .getByRole("button", { name, exact: true });
+  ),
+};
+const denseSprint = {
+  routes: [aRoute({ id: "sprint-0", name: "Sprint 1", shelter: "dense" })],
+};
 
-test("dense shelter shortens the tailwind benefit and leaves the weather alone", async ({
-  page,
-  seed,
-}) => {
-  await seed({ routes: twoSprints() });
-  await expect(preset(page, "Exposed 0% wind reduction")).toHaveAttribute(
+test("a segment starts exposed", async ({ planner, seed }) => {
+  await seed(twoSprints);
+
+  await expect(planner.shelter.preset("exposed")).toHaveAttribute(
     "aria-pressed",
     "true",
   );
-  await expect(segmentTime(page)).not.toHaveText("Unavailable");
-  const before = await segmentTime(page).innerText();
-  const conditions = page.getByRole("region", { name: "Attempt conditions" });
-  const weather = await conditions.innerText();
-  await preset(page, "Dense 65% wind reduction").click();
-  await expect(segmentTime(page)).not.toHaveText(before);
-  await expect(page.getByTestId("ride-cockpit")).toContainText(
-    "Exposed comparison",
-  );
-  await expect(page.getByTestId("ride-cockpit")).toContainText(before);
-  await expect(page.getByTestId("shelter-assumption")).toHaveText(
-    "Dense · assumed shelter",
-  );
-  await expect(conditions).toHaveText(weather, { useInnerText: true });
 });
 
-test("shelter is per segment and persists across reload", async ({
-  page,
+test("dense shelter shortens the tailwind benefit and leaves the weather alone", async ({
+  planner,
   seed,
-  openMeteo,
 }) => {
-  await seed({ routes: twoSprints() });
-  await preset(page, "Dense 65% wind reduction").click();
-  const after = await segmentTime(page).innerText();
-  await page.getByTestId("segment-slot-2").click();
-  await expect(preset(page, "Exposed 0% wind reduction")).toHaveAttribute(
+  await seed(twoSprints);
+  await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
+  const before = await planner.cockpit.time();
+  const weather = await planner.attempt.conditions.innerText();
+
+  await planner.shelter.choose("dense");
+
+  const { cockpit } = planner;
+  await expect(cockpit.segmentTime).not.toHaveText(before);
+  await expect(cockpit.region).toContainText("Exposed comparison");
+  await expect(cockpit.region).toContainText(before);
+  await expect(planner.shelter.assumption).toHaveText(
+    "Dense · assumed shelter",
+  );
+  await expect(planner.attempt.conditions).toHaveText(weather, {
+    useInnerText: true,
+  });
+});
+
+test("shelter is per segment", async ({ planner, seed }) => {
+  await seed(twoSprints);
+  await planner.shelter.choose("dense");
+
+  await planner.library.selectSlot(2);
+
+  await expect(planner.shelter.preset("exposed")).toHaveAttribute(
     "aria-pressed",
     "true",
   );
-  await page.getByTestId("segment-slot-1").click();
-  await expect(preset(page, "Dense 65% wind reduction")).toHaveAttribute(
+});
+
+test("shelter persists across reload", async ({ planner, seed, openMeteo }) => {
+  await seed(twoSprints);
+  await planner.shelter.choose("dense");
+  await expect(planner.shelter.assumption).toBeVisible();
+  const after = await planner.cockpit.time();
+
+  await planner.reload();
+
+  await expect(planner.shelter.preset("dense")).toHaveAttribute(
     "aria-pressed",
     "true",
   );
-  await page.reload();
-  await expect(preset(page, "Dense 65% wind reduction")).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(segmentTime(page)).toHaveText(after);
+  await expect(planner.cockpit.segmentTime).toHaveText(after);
   expect(openMeteo.calls.weather).toBe(2);
 });
 
-test("the board carries the assumption and opens the same estimate", async ({
-  page,
+test("the board carries the shelter assumption", async ({ planner, seed }) => {
+  await seed(denseSprint);
+
+  await planner.board.rank();
+
+  await expect(planner.board.row("Sprint 1")).toContainText(
+    "Dense · assumed shelter",
+  );
+});
+
+test("opening from the board gives the same sheltered estimate", async ({
+  planner,
   seed,
   openMeteo,
 }) => {
-  await seed({
-    routes: [aRoute({ id: "sprint-0", name: "Sprint 1", shelter: "dense" })],
-  });
-  const after = await segmentTime(page).innerText();
-  await page.getByRole("button", { name: "Rank my segments" }).click();
-  const row = page.getByTestId("board-row").filter({ hasText: "Sprint 1" });
-  await expect(row).toContainText("Dense · assumed shelter");
-  await row.getByRole("button", { name: "Open" }).click();
-  await expect(segmentTime(page)).toHaveText(after);
+  await seed(denseSprint);
+  await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
+  const after = await planner.cockpit.time();
+  await planner.board.rank();
+
+  await planner.board.open("Sprint 1");
+
+  await expect(planner.cockpit.segmentTime).toHaveText(after);
   expect(openMeteo.calls.weather).toBe(1);
 });
 
 test("a preset can be chosen with the keyboard @keyboard", async ({
-  page,
+  planner,
   seed,
 }) => {
-  await seed({ routes: twoSprints() });
-  await preset(page, "Sheltered 35% wind reduction").focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByTestId("shelter-assumption")).toHaveText(
+  await seed(twoSprints);
+
+  await planner.shelter.chooseWithKeyboard("sheltered");
+
+  await expect(planner.shelter.assumption).toHaveText(
     "Sheltered · assumed shelter",
   );
 });
 
 test("back to exposed restores the original estimate", async ({
-  page,
+  planner,
   seed,
 }) => {
-  await seed({ routes: twoSprints() });
-  const before = await segmentTime(page).innerText();
-  await preset(page, "Dense 65% wind reduction").click();
-  await expect(segmentTime(page)).not.toHaveText(before);
-  await preset(page, "Exposed 0% wind reduction").click();
-  await expect(segmentTime(page)).toHaveText(before);
-  await expect(page.getByTestId("shelter-assumption")).toHaveCount(0);
+  await seed(twoSprints);
+  await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
+  const before = await planner.cockpit.time();
+  await planner.shelter.choose("dense");
+  await expect(planner.cockpit.segmentTime).not.toHaveText(before);
+
+  await planner.shelter.choose("exposed");
+
+  await expect(planner.cockpit.segmentTime).toHaveText(before);
+  await expect(planner.shelter.assumption).toHaveCount(0);
 });
 
 test("the shelter choices fit a phone @mobile-only @mobile", async ({
-  page,
+  planner,
   seed,
 }) => {
-  await seed({ routes: twoSprints() });
-  await expect(preset(page, "Dense 65% wind reduction")).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    await page.evaluate(() => innerWidth),
-  );
+  await seed(twoSprints);
+
+  await expect(planner.shelter.preset("dense")).toBeVisible();
+  expect(await planner.horizontalOverflow()).toBe(0);
 });

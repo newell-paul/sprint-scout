@@ -1,17 +1,19 @@
-import {
-  test as base,
-  expect,
-  type Locator,
-  type Page,
-} from "@playwright/test";
+import { test as base, expect, type Locator } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { installOpenMeteo, type OpenMeteo } from "@scout/testing/playwright";
 import { writeFile } from "node:fs/promises";
 import allowlist from "./a11y-allowlist.json" with { type: "json" };
+import {
+  DemoPlanner,
+  northbound,
+  Planner,
+  routesKey,
+  type Point,
+} from "./pages";
 
 export { expect };
 
-export type Point = [number, number];
+export { northbound };
 export type SeedRoute = {
   id: string;
   name: string;
@@ -26,11 +28,6 @@ export type SeedRoute = {
   efforts?: Record<string, unknown>[];
 };
 export type Rider = { powerW: number; massKg: number; cdaM2: number };
-
-export const northbound: Point[] = [
-  [-0.12, 51.5],
-  [-0.12, 51.51],
-];
 
 export const aRoute = (overrides: Partial<SeedRoute> = {}): SeedRoute => ({
   id: "hill",
@@ -67,6 +64,8 @@ type Fixtures = {
   seed: (data: { routes?: SeedRoute[]; rider?: Rider }) => Promise<void>;
   a11y: void;
   aria: (name: string, locator: Locator) => Promise<void>;
+  planner: Planner;
+  demo: DemoPlanner;
 };
 
 export const test = base.extend<Fixtures>({
@@ -79,14 +78,14 @@ export const test = base.extend<Fixtures>({
   library: [
     async ({ page, firstVisit }, use) => {
       if (!firstVisit)
-        await page.addInitScript(() => {
+        await page.addInitScript((key) => {
           try {
-            if (localStorage.getItem("sprint-scout.drawn-routes.v1") === null)
-              localStorage.setItem("sprint-scout.drawn-routes.v1", "[]");
+            if (localStorage.getItem(key) === null)
+              localStorage.setItem(key, "[]");
           } catch {
             /* Opaque origin. */
           }
-        });
+        }, routesKey);
       await use();
     },
     { auto: true },
@@ -175,104 +174,10 @@ export const test = base.extend<Fixtures>({
       await expect(locator).toMatchAriaSnapshot({ name: `${name}.aria.yml` });
     });
   },
+  planner: async ({ page }, use) => {
+    await use(new Planner(page));
+  },
+  demo: async ({ page }, use) => {
+    await use(new DemoPlanner(page));
+  },
 });
-
-export async function drawSegment(
-  page: Page,
-  name: string,
-  points: Point[] = northbound,
-) {
-  await page.getByText("Enter coordinates instead", { exact: true }).click();
-  for (const [longitude, latitude] of points) {
-    await page.getByLabel("Latitude", { exact: true }).fill(String(latitude));
-    await page.getByLabel("Longitude", { exact: true }).fill(String(longitude));
-    await page
-      .getByRole("button", { name: "Add point and centre map" })
-      .click();
-  }
-  await page.getByLabel("Route name", { exact: true }).fill(name);
-  await page.getByRole("checkbox", { name: /created this route/ }).check();
-  await page.getByRole("button", { name: "Save route", exact: true }).click();
-  await expect(page.locator("p[role=status]")).toHaveText(
-    "Route saved on this browser.",
-  );
-}
-export const segmentHeading = (page: Page) =>
-  page.locator(".segment-heading strong");
-export const slider = (page: Page) =>
-  page.getByRole("slider", { name: "Forecast hour" });
-export const manage = async (page: Page, action: string) => {
-  await page.getByText("Manage", { exact: true }).click();
-  await page.getByRole("button", { name: action, exact: true }).click();
-};
-export const terrainPanel = (page: Page) =>
-  page.getByRole("region", { name: "Segment terrain", exact: true });
-export const segmentTime = (page: Page) =>
-  page.getByTestId("segment-time-value");
-
-/** Redraw the current segment reversed and save it, the standard geometry edit. */
-export async function reverseAndSave(page: Page) {
-  await page.getByText("Manage", { exact: true }).click();
-  await page
-    .getByRole("button", { name: "Redraw segment", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Reverse direction", exact: true })
-    .click();
-  await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "Save route", exact: true }).click();
-}
-
-export async function loadTerrain(page: Page) {
-  const panel = terrainPanel(page);
-  await panel.getByRole("checkbox", { name: /Share sampled/ }).check();
-  await panel
-    .getByRole("button", { name: "Load terrain", exact: true })
-    .click();
-  await expect(panel.getByRole("heading")).toHaveText("Terrain · Enabled");
-}
-
-// Counts pixels of a colour in a canvas screenshot: the one check that proves
-// MapLibre actually painted a layer rather than mounting an empty map.
-export async function paintedPixels(
-  page: Page,
-  canvas: Locator,
-  colours: string | string[],
-  tolerance = 16,
-) {
-  const png = (await canvas.screenshot()).toString("base64");
-  const wanted = [colours]
-    .flat()
-    .map((hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)));
-  return page.evaluate(
-    async ([data, wanted, tol]) => {
-      const image = new Image();
-      image.src = `data:image/png;base64,${data}`;
-      await image.decode();
-      const scratch = document.createElement("canvas");
-      scratch.width = image.width;
-      scratch.height = image.height;
-      const context = scratch.getContext("2d")!;
-      context.drawImage(image, 0, 0);
-      const pixels = context.getImageData(
-        0,
-        0,
-        scratch.width,
-        scratch.height,
-      ).data;
-      let count = 0;
-      for (let i = 0; i < pixels.length; i += 4)
-        if (
-          wanted.some(
-            ([red, green, blue]) =>
-              Math.abs(pixels[i]! - red!) <= tol &&
-              Math.abs(pixels[i + 1]! - green!) <= tol &&
-              Math.abs(pixels[i + 2]! - blue!) <= tol,
-          )
-        )
-          count++;
-      return count;
-    },
-    [png, wanted, tolerance] as const,
-  );
-}
