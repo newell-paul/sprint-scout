@@ -46,7 +46,7 @@ jobs:
       - id: review
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_sticky_comment: true
           prompt: |
             REPO: ${{ github.repository }}
@@ -135,7 +135,7 @@ jobs:
       same-repo: ${{ steps.origin.outputs.same-repo }}
     steps:
       # A comment event does not carry the pull request's head repository, and
-      # the fix job installs and runs that head with the API key, so a fork
+      # the fix job installs and runs that head with the Claude token, so a fork
       # pull request stops here.
       - id: origin
         env:
@@ -173,7 +173,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
             --model ${{ vars.REVIEW_MODEL || 'claude-sonnet-5-5' }}
             --max-turns 40
