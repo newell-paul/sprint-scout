@@ -1,6 +1,6 @@
 # Paid CI steps on the owner's subscription
 
-Status: in build
+Status: done
 Opened: 21 October 2026 by Paul Newell
 
 ## Problem
