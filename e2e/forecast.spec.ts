@@ -209,6 +209,7 @@ test("reduced motion keeps the particle field static @a11y", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
 
   await seed(seeded);
+  await planner.map.waitUntilReady();
 
   await expect(planner.map.particles).toHaveAttribute("data-motion", "static");
 });

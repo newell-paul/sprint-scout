@@ -2,6 +2,15 @@
 
 One entry per bug that reached `main` or a shipped build, newest first. Each names the test that now catches it. When a class of mistake appears twice, it also becomes a line under "Known mistakes" in `AGENTS.md`.
 
+## 22 October 2026: the reduced-motion particle test timed out on WebKit
+
+- What broke: `forecast.spec.ts`, "reduced motion keeps the particle field static", failed on the `webkit-a11y` project in Checks for PR #14, which changed only `AGENTS.md`. Both attempts timed out waiting for `wind-particle-field`.
+- Found by: Checks on PR #14. The trace shows the field arriving about 5.6 s after the assertion started, with `data-motion="static"`, so the product was right and late.
+- Cause: the particle field and the wind overlay wait for MapLibre's first `load`, which runs on software WebGL in CI WebKit and can take longer than the 5 s default assertion timeout.
+- Fix: `PlannerMap.waitUntilReady()` waits up to 15 s for the wind overlay, and the test waits on it before asserting.
+- Test: the same test; it now separates "the map was slow" from "the field is wrong".
+- Rule: wait for the app's visible ready state before asserting on what depends on it. It follows the hydration race of 15 October and the forecast clock race on PR #12; the matching known-mistake line is in PR #14.
+
 ## 16 October 2026: a Google Fonts blip failed whole e2e shards
 
 - What broke: three e2e runs on 16 October failed every test in a shard with `Can't resolve '@vercel/turbopack-next/internal/font/google/font'`. Re-running sometimes passed.
