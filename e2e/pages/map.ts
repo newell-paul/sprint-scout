@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { paintedPixels } from "./canvas";
 
 /** The drawing map with its wind overlay and particle field. */
@@ -25,11 +25,6 @@ export class PlannerMap {
       name: "Wind particles off",
       exact: true,
     });
-  }
-
-  /** MapLibre's first load runs on software WebGL in CI WebKit and can pass 5 s. */
-  async waitUntilReady() {
-    await expect(this.overlay).toBeAttached({ timeout: 15_000 });
   }
 
   painted(colour: string) {
