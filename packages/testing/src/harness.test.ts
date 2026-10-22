@@ -385,9 +385,14 @@ describe("workflows", () => {
     const tools = /--allowedTools "([^"]+)"/.exec(
       action?.with?.["claude_args"] ?? "",
     )?.[1];
-    expect(tools?.split(",").filter((t) => t.startsWith("Bash"))).toEqual([
+    expect(tools?.split(",")).toEqual([
+      "Read",
+      "Glob",
+      "Grep",
+      "Edit(intent/${{ steps.select.outputs.slug }}/spec.md)",
       "Bash(pnpm spec:draft open)",
     ]);
+    expect(spec).toContain("persist-credentials: false");
   });
 
   it("opens band issues only on a main breach, read-only, behind its switch", () => {
@@ -410,6 +415,7 @@ describe("workflows", () => {
       "github.ref == 'refs/heads/main'",
     );
     expect(job?.permissions).toEqual({ contents: "read", issues: "write" });
+    expect(JSON.stringify(job?.steps)).toContain('"persist-credentials":false');
     const cli = read("packages/testing/src/band-issue.cli.ts");
     expect(cli).toMatch(/"--allowedTools",\s*"Read,Glob,Grep"/);
   });

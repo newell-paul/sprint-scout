@@ -9,6 +9,7 @@ import {
 import { join } from "node:path";
 import {
   branchFor,
+  validSlug,
   pullRequestBody,
   selectCandidates,
   specPrompt,
@@ -114,7 +115,7 @@ function select() {
 
 function open() {
   const slug = process.env["SPEC_SLUG"] ?? "";
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug))
+  if (!validSlug(slug))
     throw new Error("SPEC_SLUG is missing or not a folder name");
   const file = join("intent", slug, "spec.md");
   if (!existsSync(file)) {

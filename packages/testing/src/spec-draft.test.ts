@@ -62,13 +62,25 @@ describe("selectCandidates", () => {
     const selection = selectCandidates(
       [
         intent("zone", "accepted"),
-        intent("Apex", "accepted"),
+        intent("apex", "accepted"),
         intent("alpha", "Accepted"),
       ],
       [],
     );
-    expect(selection.slug).toBe("Apex");
-    expect(selection.waiting).toEqual(["alpha", "zone"]);
+    expect(selection.slug).toBe("alpha");
+    expect(selection.waiting).toEqual(["apex", "zone"]);
+  });
+
+  it("skips a folder name that could widen the model's write permission", () => {
+    const selection = selectCandidates(
+      [intent("a/../..", "accepted"), intent("Wind Rose", "accepted")],
+      [],
+    );
+    expect(selection.slug).toBeNull();
+    expect(selection.skipped.map((s) => s.reason)).toEqual([
+      "folder name is not a-z, 0-9 and hyphens",
+      "folder name is not a-z, 0-9 and hyphens",
+    ]);
   });
 
   it("treats an intent without a status line as not accepted", () => {

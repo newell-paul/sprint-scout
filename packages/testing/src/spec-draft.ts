@@ -14,6 +14,8 @@ export function intentStatus(text: string) {
 }
 
 export const branchFor = (slug: string) => `spec/${slug}`;
+// The slug lands in the model's write permission and a branch name.
+export const validSlug = (slug: string) => /^[a-z0-9][a-z0-9-]*$/.test(slug);
 
 export function selectCandidates(
   intents: IntentFile[],
@@ -25,7 +27,12 @@ export function selectCandidates(
     a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0,
   )) {
     const status = intentStatus(intent.text);
-    if (status !== "accepted")
+    if (!validSlug(intent.slug))
+      skipped.push({
+        slug: intent.slug,
+        reason: "folder name is not a-z, 0-9 and hyphens",
+      });
+    else if (status !== "accepted")
       skipped.push({
         slug: intent.slug,
         reason: `status is ${status ?? "missing"}`,

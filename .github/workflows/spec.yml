@@ -1,11 +1,11 @@
 name: Spec drafts
 # Drafts spec.md for an intent accepted on main and opens it as a pull
 # request (docs/sdlc.md, step 13). Inputs are main only: merged intents and
-# the repository. The model reads, writes the spec, and runs one command,
-# `pnpm spec:draft open`, which validates the file and opens the pull request
-# with the action's GitHub App token so Checks run on it; the action revokes
-# that token when it ends, so nothing after it can. Paid, behind
-# SPEC_ENABLED. No schedule, by policy.
+# the repository. The model reads, may write only the spec file, and runs
+# one command, `pnpm spec:draft open`, which validates the file and opens the
+# pull request with the action's GitHub App token so Checks run on it; the
+# action revokes that token when it ends, so nothing after it can. Paid,
+# behind SPEC_ENABLED. No schedule, by policy.
 on:
   push:
     branches: [main]
@@ -27,9 +27,12 @@ jobs:
     env:
       SPEC_MODEL: ${{ vars.SPEC_MODEL || 'claude-sonnet-5-5' }}
     steps:
+      # No token left in .git/config for the model to read; `pnpm spec:draft
+      # open` logs git in with the action's token through gh.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -60,7 +63,7 @@ jobs:
           claude_args: |
             --model ${{ env.SPEC_MODEL }}
             --max-turns 40
-            --allowedTools "Read,Glob,Grep,Write,Edit,Bash(pnpm spec:draft open)"
+            --allowedTools "Read,Glob,Grep,Edit(intent/${{ steps.select.outputs.slug }}/spec.md),Bash(pnpm spec:draft open)"
       - name: Check the pull request was opened
         if: always() && steps.select.outputs.slug != ''
         env:
