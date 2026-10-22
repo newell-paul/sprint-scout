@@ -361,4 +361,56 @@ describe("workflows", () => {
     expect(triage).toMatch(/contents: read/);
     expect(triage).not.toMatch(/contents: write/);
   });
+
+  // The spec job holds a token that can open pull requests, so it reads main
+  // only, and its model's one command is the script that validates the draft.
+  it("drafts specs only from accepted intents on main, behind its switch", () => {
+    const spec = read(".github/workflows/spec.yml");
+    const doc = parse(spec) as {
+      on: Record<string, { branches?: string[]; paths?: string[] }>;
+      jobs: Record<
+        string,
+        { if?: string; steps?: { with?: Record<string, string> }[] }
+      >;
+    };
+    expect(Object.keys(doc.on)).toEqual(["push"]);
+    expect(doc.on["push"]?.branches).toEqual(["main"]);
+    expect(doc.on["push"]?.paths).toEqual(["intent/*/intent.md"]);
+    expect(doc.jobs["draft"]?.if).toBe("vars.SPEC_ENABLED == 'true'");
+    expect(spec).not.toMatch(/^\s+ref:/m);
+    expect(spec).not.toMatch(/contents: write/);
+    const action = doc.jobs["draft"]?.steps?.find(
+      (s) => s.with?.["claude_args"],
+    );
+    const tools = /--allowedTools "([^"]+)"/.exec(
+      action?.with?.["claude_args"] ?? "",
+    )?.[1];
+    expect(tools?.split(",").filter((t) => t.startsWith("Bash"))).toEqual([
+      "Bash(pnpm spec:draft open)",
+    ]);
+  });
+
+  it("opens band issues only on a main breach, read-only, behind its switch", () => {
+    const doc = parse(read(".github/workflows/ci.yml")) as {
+      jobs: Record<
+        string,
+        {
+          if?: string;
+          needs?: string;
+          permissions?: Record<string, string>;
+          steps?: { run?: string }[];
+        }
+      >;
+    };
+    const job = doc.jobs["band-issue"];
+    expect(job?.needs).toBe("dashboard");
+    expect(job?.if).toContain("needs.dashboard.outputs.breach == 'true'");
+    expect(job?.if).toContain("vars.SPEC_ENABLED == 'true'");
+    expect(doc.jobs["dashboard"]?.if).toContain(
+      "github.ref == 'refs/heads/main'",
+    );
+    expect(job?.permissions).toEqual({ contents: "read", issues: "write" });
+    const cli = read("packages/testing/src/band-issue.cli.ts");
+    expect(cli).toMatch(/"--allowedTools",\s*"Read,Glob,Grep"/);
+  });
 });

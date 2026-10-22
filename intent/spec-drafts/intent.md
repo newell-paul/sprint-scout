@@ -1,6 +1,6 @@
 # Spec drafts and band issues
 
-Status: in build
+Status: done
 Opened: 22 October 2026 by Paul Newell
 
 ## Problem

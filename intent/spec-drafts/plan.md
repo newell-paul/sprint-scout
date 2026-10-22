@@ -28,6 +28,6 @@ From [spec.md](spec.md).
 
 - `pnpm test` (unit), `pnpm lint`, `pnpm typecheck`, `pnpm lint:md`, `pnpm spell`, `pnpm knip`.
 - `pnpm spec:draft select` run locally against this intent's own commit range prints a skip, because `spec.md` exists.
-- `pnpm band:issue --from <fixture dir> --no-post --no-agent` writes a fallback issue body.
+- `pnpm band:issue --dashboard <fixture dir> --repo <repo> --sha <sha> --no-post --no-agent` writes the fallback issue body and exits 1.
 - `pnpm verify` through the verifier agent before reporting done.
 - After merge, with `SPEC_ENABLED` still off, the next push touching an intent shows the off job's summary line. The first paid run happens only when the owner turns the switch on.

@@ -278,6 +278,8 @@ jobs:
       contents: read
       actions: read
       pull-requests: read
+    outputs:
+      breach: ${{ steps.breach.outputs.breach }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -355,6 +357,13 @@ jobs:
           name: dashboard
           path: reports/dashboard
           retention-days: 90
+      - id: breach
+        # Read from bands.json rather than the build outcome, so a crash in
+        # the build is not reported as a breach.
+        if: always()
+        run: |
+          count=$(jq '[.[] | select(.level == 3)] | length' reports/dashboard/bands.json 2>/dev/null || echo 0)
+          echo "breach=$([ "${count:-0}" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - name: Fail on a 3σ band breach
         # The dashboard and its history are uploaded first, so the breach is
         # visible on the page as well as on the run. Pages does not publish a
@@ -363,3 +372,61 @@ jobs:
         run: |
           echo "::error::A dashboard metric left its 3σ band. See the job summary and reports/dashboard/bands.md."
           exit 1
+  band-issue:
+    # A 3σ breach on main becomes one issue per band with a drafted intent
+    # (docs/sdlc.md, step 13). Inputs are main only: the dashboard artifact
+    # of this run, the repository and its commit messages. The model has
+    # read-only tools; the issue is written with the job token. Paid, behind
+    # SPEC_ENABLED.
+    name: Band breach issue (paid)
+    needs: dashboard
+    if: always() && needs.dashboard.outputs.breach == 'true' && vars.SPEC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    env:
+      SPEC_MODEL: ${{ vars.SPEC_MODEL || 'claude-sonnet-5-5' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npm install --global @anthropic-ai/claude-code
+      - uses: actions/download-artifact@v8
+        with:
+          name: dashboard
+          path: reports/dashboard
+      - name: Draft the intent and open or update the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: pnpm band:issue --dashboard reports/dashboard --repo "$GITHUB_REPOSITORY" --sha "$GITHUB_SHA" --run-url "$RUN_URL" --model "$SPEC_MODEL"
+      - name: Summary
+        if: always()
+        run: cat reports/band-issue/summary.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: band-issue
+          path: reports/band-issue
+          retention-days: 30
+  band-issue-off:
+    name: Band breach issue (off)
+    needs: dashboard
+    if: always() && needs.dashboard.outputs.breach == 'true' && vars.SPEC_ENABLED != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          {
+            echo "## Band issue"
+            echo
+            echo "A metric left its 3σ band, but band issues are switched off (repository variable \`SPEC_ENABLED\` is not \`true\`)."
+          } >> "$GITHUB_STEP_SUMMARY"
