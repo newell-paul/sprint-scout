@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react/pure";
+import type { Map as RouteMap } from "maplibre-gl";
 import WindPreview from "./wind-preview";
 import {
   aRoute,
@@ -10,7 +11,10 @@ import {
   uniquePoints,
 } from "../../test/fixtures";
 
-afterEach(resetOpenMeteo);
+afterEach(() => {
+  resetOpenMeteo();
+  vi.restoreAllMocks();
+});
 
 const console = { name: "Route wind forecast" };
 const props = () => ({
@@ -180,4 +184,46 @@ it("terrain mode without elevation: cockpit unavailable, panel offers fallback",
   await expect
     .element(region.getByRole("button", { name: "Use flat-road estimate" }))
     .toBeVisible();
+});
+
+// Only getContainer is used once the map is ready; MapLibre itself is covered by e2e.
+const readyMap = () => {
+  const container = document.createElement("div");
+  document.body.append(container);
+  return {
+    map: { getContainer: () => container } as unknown as RouteMap,
+    ready: true,
+  };
+};
+const prefersReducedMotion = (reduce: boolean) => {
+  const original = window.matchMedia.bind(window);
+  vi.spyOn(window, "matchMedia").mockImplementation((query) =>
+    query === "(prefers-reduced-motion: reduce)"
+      ? ({ ...original(query), matches: reduce } as MediaQueryList)
+      : original(query),
+  );
+};
+
+it("reduced motion: the particle field is drawn static", async () => {
+  prefersReducedMotion(true);
+
+  const screen = await render(
+    <WindPreview route={fresh()} {...props()} {...readyMap()} />,
+  );
+
+  await expect
+    .element(screen.getByTestId("wind-particle-field"))
+    .toHaveAttribute("data-motion", "static");
+});
+
+it("full motion: the particle field animates", async () => {
+  prefersReducedMotion(false);
+
+  const screen = await render(
+    <WindPreview route={fresh()} {...props()} {...readyMap()} />,
+  );
+
+  await expect
+    .element(screen.getByTestId("wind-particle-field"))
+    .toHaveAttribute("data-motion", "animated");
 });

@@ -201,19 +201,6 @@ test("switching particles back on restores the field", async ({
   await expect(planner.map.particles).toHaveCount(1);
 });
 
-test("reduced motion keeps the particle field static @a11y", async ({
-  page,
-  planner,
-  seed,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-
-  await seed(seeded);
-  await planner.map.waitUntilReady();
-
-  await expect(planner.map.particles).toHaveAttribute("data-motion", "static");
-});
-
 test("Home moves the slider to the first hour @keyboard", async ({
   planner,
   seed,
