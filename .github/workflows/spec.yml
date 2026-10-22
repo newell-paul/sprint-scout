@@ -71,7 +71,8 @@ jobs:
           SLUG: ${{ steps.select.outputs.slug }}
           CONCLUSION: ${{ steps.draft.outputs.conclusion }}
         run: |
-          url=$(gh pr list --head "spec/$SLUG" --state open --json url --jq '.[0].url // ""')
+          url=$(gh pr list --state open --json headRefName,url \
+            --jq "[.[] | select(.headRefName | startswith(\"spec/$SLUG/\"))][0].url // \"\"")
           if [ -n "$url" ]; then
             echo "Spec draft for \`$SLUG\`: $url" >> "$GITHUB_STEP_SUMMARY"
           else

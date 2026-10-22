@@ -13,7 +13,13 @@ export function intentStatus(text: string) {
   return /^Status:\s*(.+?)\s*$/m.exec(text)?.[1]?.toLowerCase() ?? null;
 }
 
-export const branchFor = (slug: string) => `spec/${slug}`;
+// One branch per run, so a closed pull request's branch left on the remote
+// never blocks the next draft; open pull requests are matched by prefix.
+export const branchPrefix = (slug: string) => `spec/${slug}/`;
+export const branchFor = (slug: string, runId: string) =>
+  `${branchPrefix(slug)}run-${runId}`;
+export const openBranchFor = (slug: string, openBranches: string[]) =>
+  openBranches.find((b) => b.startsWith(branchPrefix(slug))) ?? null;
 // The slug lands in the model's write permission and a branch name.
 export const validSlug = (slug: string) => /^[a-z0-9][a-z0-9-]*$/.test(slug);
 
@@ -39,10 +45,10 @@ export function selectCandidates(
       });
     else if (intent.hasSpec)
       skipped.push({ slug: intent.slug, reason: "spec.md already exists" });
-    else if (openBranches.includes(branchFor(intent.slug)))
+    else if (openBranchFor(intent.slug, openBranches))
       skipped.push({
         slug: intent.slug,
-        reason: `pull request from ${branchFor(intent.slug)} is open`,
+        reason: `pull request from ${openBranchFor(intent.slug, openBranches)} is open`,
       });
     else ready.push(intent.slug);
   }

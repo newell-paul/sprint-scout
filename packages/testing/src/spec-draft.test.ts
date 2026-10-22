@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  branchFor,
   pullRequestBody,
   requiredSections,
   selectCandidates,
@@ -51,10 +52,13 @@ describe("selectCandidates", () => {
   });
 
   it("skips an accepted intent whose spec pull request is still open", () => {
-    const selection = selectCandidates([intent("a", "accepted")], ["spec/a"]);
+    const selection = selectCandidates(
+      [intent("a", "accepted")],
+      ["spec/a-b/run-1", "spec/a/run-7"],
+    );
     expect(selection.slug).toBeNull();
     expect(selection.skipped[0]?.reason).toBe(
-      "pull request from spec/a is open",
+      "pull request from spec/a/run-7 is open",
     );
   });
 
@@ -81,6 +85,14 @@ describe("selectCandidates", () => {
       "folder name is not a-z, 0-9 and hyphens",
       "folder name is not a-z, 0-9 and hyphens",
     ]);
+  });
+
+  it("does not mistake another slug's branch for this one", () => {
+    const selection = selectCandidates(
+      [intent("a", "accepted")],
+      ["spec/a-b/run-1"],
+    );
+    expect(selection.slug).toBe("a");
   });
 
   it("treats an intent without a status line as not accepted", () => {
@@ -180,4 +192,8 @@ describe("pullRequestBody", () => {
 it("reads the title from the spec heading", () => {
   expect(specTitle(spec)).toBe("Wind rose");
   expect(specTitle("no heading")).toBe("untitled");
+});
+
+it("names a fresh branch per run under the slug's prefix", () => {
+  expect(branchFor("wind-rose", "42")).toBe("spec/wind-rose/run-42");
 });

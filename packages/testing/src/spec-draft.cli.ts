@@ -9,6 +9,7 @@ import {
 import { join } from "node:path";
 import {
   branchFor,
+  openBranchFor,
   validSlug,
   pullRequestBody,
   selectCandidates,
@@ -25,7 +26,7 @@ import {
 //   `prompt` in GITHUB_OUTPUT when a draft is due.
 // tsx spec-draft.cli.ts open
 //   Run by the model inside claude-code-action. Validates
-//   intent/$SPEC_SLUG/spec.md, commits it alone on spec/<slug>, pushes and
+//   intent/$SPEC_SLUG/spec.md, commits it alone on spec/<slug>/run-<id>, pushes and
 //   opens the pull request with the action's token. The slug comes from the
 //   job environment, never from arguments. Exits 1 with the errors on an
 //   invalid draft, so the model can fix the file and run it again.
@@ -131,23 +132,23 @@ function open() {
     process.exit(1);
   }
 
-  const branch = branchFor(slug);
-  const existing = run("gh", [
-    "pr",
-    "list",
-    "--head",
-    branch,
-    "--state",
-    "open",
-    "--json",
-    "url",
-    "--jq",
-    ".[0].url",
-  ]);
-  if (existing) {
-    console.log(`A pull request is already open: ${existing}`);
+  const open = JSON.parse(
+    run("gh", ["pr", "list", "--state", "open", "--json", "headRefName,url"]),
+  ) as { headRefName: string; url: string }[];
+  const already = openBranchFor(
+    slug,
+    open.map((pr) => pr.headRefName),
+  );
+  if (already) {
+    console.log(
+      `A pull request is already open: ${open.find((pr) => pr.headRefName === already)?.url}`,
+    );
     return;
   }
+  const branch = branchFor(
+    slug,
+    process.env["GITHUB_RUN_ID"] ?? String(Date.now()),
+  );
   const unresolved = unresolvedQuestions(text);
   const title = specTitle(text);
   const runUrl = `${process.env["GITHUB_SERVER_URL"]}/${process.env["GITHUB_REPOSITORY"]}/actions/runs/${process.env["GITHUB_RUN_ID"]}`;
