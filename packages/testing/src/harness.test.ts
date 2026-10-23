@@ -131,6 +131,102 @@ describe("guard hook", () => {
       expect(runGuard(call, tmp).status).toBe(0);
     });
   });
+
+  // The Edit and Write rules alone left a shell route around both markers.
+  describe("shell commands under the markers", () => {
+    const tmp = mkdtempSync(path.join(os.tmpdir(), "scout-guard-bash-"));
+    mkdirSync(path.join(tmp, ".claude/state"), { recursive: true });
+    const fixing = path.join(tmp, ".claude/state/fixing");
+    const snapshots = path.join(tmp, ".claude/state/snapshots");
+    afterAll(() => rmSync(tmp, { recursive: true, force: true }));
+    const testFile = "apps/web/app/routes/library.test.ts";
+
+    const testWrites = [
+      `sed -i 's/a/b/' ${testFile}`,
+      `node -e "require('fs').writeFileSync('x.test.ts','')"`,
+      `echo x > ${testFile}`,
+      `git checkout -- ${testFile}`,
+      `cat ${testFile} | tee ${testFile}`,
+      ["cat README.md", `sed -i 's/a/b/' ${testFile}`].join("\n"),
+      `cat README.md & sed -i 's/a/b/' ${testFile}`,
+      `git diff --output=${testFile}`,
+      `git diff --output ${testFile}`,
+      `cat $(sed -i 's/a/b/' ${testFile})`,
+      `cat \`sed -i 's/a/b/' ${testFile}\``,
+      `diff <(sed -i 's/a/b/' ${testFile}) README.md`,
+      `f=${testFile}; sed -i 's/a/b/' $f`,
+      `pnpm exec vitest run -u ${testFile}`,
+      "pnpm exec vitest run --update",
+      "pnpm exec playwright test e2e/x.spec.ts --update-snapshots",
+      "pnpm test:visual:update",
+      "pnpm test -- -u",
+      "pnpm test:e2e --update-snapshots",
+      `pnpm exec vitest run "-u" ${testFile}`,
+      "pnpm test:component --update=true",
+      "git -c alias.t='!pnpm test -- -u' t",
+      "(pnpm exec vitest run -u)",
+      "pnpm exec vitest run -\\u",
+    ];
+    const testReads = [
+      `cat ${testFile}`,
+      `pnpm exec vitest run ${testFile}`,
+      `pnpm exec vitest run x.test.ts > /tmp/out.txt`,
+      `git diff -- x.test.ts`,
+      "git add -u",
+      "git push -u origin fix/x",
+      `grep -on newId ${testFile}`,
+    ];
+    const baselineWrites = [
+      "echo x >> e2e/__aria__/x.aria.yml",
+      "cp a.png e2e/__screenshots__/a/b.png",
+      "rm -rf e2e/__aria__",
+      "git checkout origin/main -- e2e/__aria__",
+    ];
+    const baselineRuns = [
+      "pnpm exec playwright test e2e/x.spec.ts --update-snapshots",
+      "git add e2e/__aria__/x.aria.yml",
+      "cat e2e/__aria__/x.aria.yml",
+    ];
+
+    it.each(testWrites)("blocks `%s` while a bug fix is in progress", (cmd) => {
+      writeFileSync(fixing, "");
+      const { status, stderr } = runGuard(bash(cmd), tmp);
+      rmSync(fixing);
+      expect(status).toBe(2);
+      expect(stderr).toMatch(/^Blocked:.*fixing/);
+    });
+
+    it.each(testReads)("allows `%s` while a bug fix is in progress", (cmd) => {
+      writeFileSync(fixing, "");
+      const result = runGuard(bash(cmd), tmp);
+      rmSync(fixing);
+      expect(result).toEqual({ status: 0, stderr: "" });
+    });
+
+    it.each(testWrites)("allows `%s` outside a bug fix", (cmd) => {
+      expect(runGuard(bash(cmd), tmp)).toEqual({ status: 0, stderr: "" });
+    });
+
+    it.each(baselineWrites)(
+      "blocks `%s` without the snapshots marker",
+      (cmd) => {
+        const { status, stderr } = runGuard(bash(cmd), tmp);
+        expect(status).toBe(2);
+        expect(stderr).toMatch(/^Blocked:.*baselines/);
+      },
+    );
+
+    it.each(baselineRuns)("allows `%s` without the snapshots marker", (cmd) => {
+      expect(runGuard(bash(cmd), tmp)).toEqual({ status: 0, stderr: "" });
+    });
+
+    it.each(baselineWrites)("allows `%s` with the snapshots marker", (cmd) => {
+      writeFileSync(snapshots, "");
+      const result = runGuard(bash(cmd), tmp);
+      rmSync(snapshots);
+      expect(result).toEqual({ status: 0, stderr: "" });
+    });
+  });
 });
 
 describe("Claude Code settings", () => {
@@ -215,6 +311,49 @@ describe("intents", () => {
   it.each(built)("intent/%s in build or done has a spec and a plan", (slug) => {
     expect(existsSync(at("intent", slug, "spec.md"))).toBe(true);
     expect(existsSync(at("intent", slug, "plan.md"))).toBe(true);
+  });
+});
+
+describe("skills loaded in an eval transcript", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "scout-transcript-"));
+  afterAll(() => rmSync(tmp, { recursive: true, force: true }));
+  const skillsIn = (lines: string[]) => {
+    const transcript = path.join(tmp, "t.jsonl");
+    writeFileSync(transcript, lines.join("\n"));
+    const result = spawnSync(
+      "node",
+      [at("scripts/eval-skills.mjs"), transcript],
+      { encoding: "utf8" },
+    );
+    expect(result.status).toBe(0);
+    return result.stdout.split("\n").filter(Boolean);
+  };
+  const call = (name: string, input: Record<string, string>) =>
+    JSON.stringify({
+      type: "assistant",
+      message: { content: [{ type: "tool_use", name, input }] },
+    });
+
+  it("lists each skill once, in the order it loaded", () => {
+    expect(
+      skillsIn([
+        call("Skill", { skill: "intent" }),
+        "not json",
+        call("Read", { file_path: "AGENTS.md" }),
+        call("Skill", { command: "bugfix" }),
+        call("Skill", { skill: "intent" }),
+      ]),
+    ).toEqual(["intent", "bugfix"]);
+  });
+
+  it("lists nothing for an empty or missing transcript", () => {
+    expect(skillsIn([])).toEqual([]);
+    const missing = spawnSync(
+      "node",
+      [at("scripts/eval-skills.mjs"), path.join(tmp, "none.jsonl")],
+      { encoding: "utf8" },
+    );
+    expect(missing).toMatchObject({ status: 0, stdout: "" });
   });
 });
 

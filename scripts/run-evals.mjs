@@ -72,7 +72,8 @@ function configHash() {
         f.startsWith(".claude/") ||
         f.startsWith("evals/") ||
         f.startsWith("intent/README") ||
-        f === "scripts/run-evals.mjs",
+        f === "scripts/run-evals.mjs" ||
+        f === "scripts/eval-skills.mjs",
     )
     .sort();
   const hash = createHash("sha256").update(model);
@@ -135,16 +136,23 @@ function prepare(task, dir) {
     });
 }
 
-function runScript(task, name, dir, resultFile) {
+function runScript(task, name, dir, resultFile, transcriptFile) {
   const script = path.join(evalsDir, task, name);
   if (!existsSync(script)) return { status: 0, stdout: "", stderr: "" };
   return sh("bash", [script], {
     cwd: dir,
-    env: { ...process.env, EVAL_ROOT: dir, RESULT_FILE: resultFile },
+    env: {
+      ...process.env,
+      EVAL_ROOT: dir,
+      RESULT_FILE: resultFile,
+      TRANSCRIPT_FILE: transcriptFile,
+    },
   });
 }
 
-function runAgent(task, dir) {
+// The stream-JSON transcript shows which skills loaded; its last line is the
+// same result object the plain JSON output gives.
+function runAgent(task, dir, transcriptFile) {
   const prompt = readFileSync(path.join(evalsDir, task, "task.md"), "utf8");
   const env = { ...process.env };
   delete env.CLAUDECODE; // allow a nested non-interactive session
@@ -159,7 +167,8 @@ function runAgent(task, dir) {
       "--max-turns",
       String(config.maxTurns),
       "--output-format",
-      "json",
+      "stream-json",
+      "--verbose",
       "--permission-mode",
       "acceptEdits",
       "--allowedTools",
@@ -167,12 +176,25 @@ function runAgent(task, dir) {
     ],
     { cwd: dir, env, maxBuffer: 64 * 1024 * 1024 },
   );
-  let out;
-  try {
-    out = JSON.parse(r.stdout);
-  } catch {
-    out = { result: r.stdout, is_error: true };
-  }
+  writeFileSync(transcriptFile, r.stdout ?? "");
+  // Subagents can add their own result lines; the run's own is the last
+  // one outside any tool call.
+  const parse = (line) => {
+    try {
+      return JSON.parse(line);
+    } catch {
+      return null;
+    }
+  };
+  const out = (r.stdout ?? "")
+    .split("\n")
+    .map(parse)
+    .findLast(
+      (event) => event?.type === "result" && !event.parent_tool_use_id,
+    ) ?? {
+    result: "",
+    is_error: true,
+  };
   return {
     result: String(out.result ?? ""),
     isError: Boolean(out.is_error) || r.status !== 0,
@@ -252,12 +274,21 @@ for (const task of tasks) {
   process.stdout.write(`${task}: `);
   const dir = makeCopy(task);
   const resultFile = path.join(dir, ".eval-result.txt");
+  // Outside the copy, so checks that scan the working tree never see it.
+  const transcriptFile = `${dir}.transcript.jsonl`;
   writeFileSync(resultFile, "");
+  writeFileSync(transcriptFile, "");
   try {
     prepare(task, dir);
     if (dryRun) {
-      runScript(task, "naive.sh", dir, resultFile);
-      const check = runScript(task, "check.sh", dir, resultFile);
+      runScript(task, "naive.sh", dir, resultFile, transcriptFile);
+      const check = runScript(
+        task,
+        "check.sh",
+        dir,
+        resultFile,
+        transcriptFile,
+      );
       const pass = check.status !== 0;
       results.push({
         task,
@@ -267,9 +298,15 @@ for (const task of tasks) {
           : "check passed before any agent ran; the task proves nothing",
       });
     } else {
-      const agent = runAgent(task, dir);
+      const agent = runAgent(task, dir, transcriptFile);
       writeFileSync(resultFile, agent.result);
-      const check = runScript(task, "check.sh", dir, resultFile);
+      const check = runScript(
+        task,
+        "check.sh",
+        dir,
+        resultFile,
+        transcriptFile,
+      );
       const pass = check.status === 0;
       results.push({
         task,
@@ -294,8 +331,11 @@ for (const task of tasks) {
       note: String(error.message).split("\n")[0],
     });
   } finally {
-    if (keep) console.log(`(kept ${dir})`);
-    else rmSync(dir, { recursive: true, force: true });
+    if (keep) console.log(`(kept ${dir} and ${transcriptFile})`);
+    else {
+      rmSync(dir, { recursive: true, force: true });
+      rmSync(transcriptFile, { force: true });
+    }
   }
   const last = results.at(-1);
   console.log(
