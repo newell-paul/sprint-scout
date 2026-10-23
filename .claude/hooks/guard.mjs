@@ -115,10 +115,20 @@ if (tool === "Bash") {
   if (!marker("snapshots") && shellWrites(cmd, namesBaseline))
     block(baselineReason);
   // The runners are trusted readers, except when told to rewrite snapshots.
+  // Package scripts reach them under any name, so the flag itself decides,
+  // in every segment that is not a git command.
   const updatesSnapshots =
-    /\b(vitest|playwright)\b[^;&|]*\s(-u|--update(-snapshots)?)(?=[\s=]|$)/.test(
-      cmd,
-    ) || /\btest:visual:update\b/.test(cmd);
+    /\btest:visual:update\b/.test(cmd) ||
+    cmd
+      .split(/&&|\|\||[;\n|&]/)
+      .filter((segment) => !/^\s*git\s/.test(segment))
+      .some((segment) =>
+        segment
+          .trim()
+          .split(/\s+/)
+          .map((w) => w.replace(/^["']|["']$/g, ""))
+          .some((w) => /^(-u|--update(-snapshots)?)(=.*)?$/.test(w)),
+      );
   if (
     marker("fixing") &&
     (updatesSnapshots ||
