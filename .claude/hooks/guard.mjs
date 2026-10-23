@@ -114,9 +114,15 @@ if (tool === "Bash") {
     );
   if (!marker("snapshots") && shellWrites(cmd, namesBaseline))
     block(baselineReason);
+  // The runners are trusted readers, except when told to rewrite snapshots.
+  const updatesSnapshots =
+    /\b(vitest|playwright)\b[^;&|]*\s(-u|--update(-snapshots)?)(?=[\s=]|$)/.test(
+      cmd,
+    ) || /\btest:visual:update\b/.test(cmd);
   if (
     marker("fixing") &&
-    shellWrites(cmd, (w) => namesTest(w) || namesBaseline(w))
+    (updatesSnapshots ||
+      shellWrites(cmd, (w) => namesTest(w) || namesBaseline(w)))
   )
     block(fixingReason);
 }
