@@ -1,5 +1,7 @@
 version: 2
 updates:
+  # Minor and patch updates arrive as one pull request; each major update
+  # arrives on its own, so one breaking upgrade never holds back the rest.
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -7,7 +9,12 @@ updates:
     groups:
       dependencies:
         patterns: ["*"]
-    open-pull-requests-limit: 3
+        update-types: [minor, patch]
+    ignore:
+      # typescript-eslint does not support TypeScript 7 yet.
+      - dependency-name: typescript
+        versions: [">=7"]
+    open-pull-requests-limit: 5
   - package-ecosystem: github-actions
     directory: /
     schedule:
