@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@scout/contracts": "workspace:*",
-    "@turf/bearing": "7.3.4",
-    "@turf/destination": "7.3.4",
-    "@turf/distance": "7.3.4"
+    "@turf/bearing": "7.4.0",
+    "@turf/destination": "7.4.0",
+    "@turf/distance": "7.4.0"
   }
 }

@@ -16,8 +16,8 @@
     "@scout/analysis": "workspace:*",
     "@scout/contracts": "workspace:*",
     "@scout/providers": "workspace:*",
-    "@turf/destination": "7.3.4",
-    "@turf/distance": "7.3.4"
+    "@turf/destination": "7.4.0",
+    "@turf/distance": "7.4.0"
   },
   "devDependencies": {
     "@scout/testing": "workspace:*"

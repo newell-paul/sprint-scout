@@ -5,7 +5,7 @@
   "exports": "./src/index.ts",
   "dependencies": {
     "@scout/contracts": "workspace:*",
-    "zod": "^4.5.4"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@scout/testing": "workspace:*"
