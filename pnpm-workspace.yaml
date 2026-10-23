@@ -24,6 +24,7 @@ overrides:
   proxy-addr: ^2.0.8
   qs: ^6.16.0
   smol-toml: ^1.9.0
+  zod@4: ^4.6.6
   # vite 8.2.2 (via vitest) has a medium advisory fixed in 8.2.4.
   vite: ^8.2.4
   # Lighthouse CI and markdownlint are pinned to old releases that pull these
