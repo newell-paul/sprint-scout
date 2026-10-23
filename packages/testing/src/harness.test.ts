@@ -163,6 +163,9 @@ describe("guard hook", () => {
       "pnpm test:e2e --update-snapshots",
       `pnpm exec vitest run "-u" ${testFile}`,
       "pnpm test:component --update=true",
+      "git -c alias.t='!pnpm test -- -u' t",
+      "(pnpm exec vitest run -u)",
+      "pnpm exec vitest run -\\u",
     ];
     const testReads = [
       `cat ${testFile}`,
