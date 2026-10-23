@@ -159,12 +159,18 @@ describe("guard hook", () => {
       "pnpm exec vitest run --update",
       "pnpm exec playwright test e2e/x.spec.ts --update-snapshots",
       "pnpm test:visual:update",
+      "pnpm test -- -u",
+      "pnpm test:e2e --update-snapshots",
+      `pnpm exec vitest run "-u" ${testFile}`,
+      "pnpm test:component --update=true",
     ];
     const testReads = [
       `cat ${testFile}`,
       `pnpm exec vitest run ${testFile}`,
       `pnpm exec vitest run x.test.ts > /tmp/out.txt`,
       `git diff -- x.test.ts`,
+      "git add -u",
+      "git push -u origin fix/x",
     ];
     const baselineWrites = [
       "echo x >> e2e/__aria__/x.aria.yml",
