@@ -35,7 +35,7 @@ The checks compare against the committed copy with `git diff`, so a change by an
 `guard.mjs` gains a Bash rule for the two marker rules, alongside the existing Edit and Write rule.
 
 - A **protected path** is a test file (`*.test.ts(x)`, `*.spec.ts(x)`) while `fixing` exists, or a baseline path (`__aria__/`, `__screenshots__/`) while `snapshots` does not.
-- A Bash command that names a protected path is blocked unless every segment that names it (split on `;`, `&&`, `||` and `|`) starts with a known reader or runner and has no output redirect:
+- A Bash command that names a protected path is blocked unless every segment that names it (split on newlines, `;`, `&&`, `||`, `|` and `&`) starts with a known reader or runner, has no output redirect and passes no option carrying the path (such as `git diff --output=`):
   - readers: `cat`, `head`, `tail`, `less`, `grep`, `rg`, `wc`, `ls`, `diff`;
   - git: `git diff`, `git log`, `git show`, `git status`, `git add`, `git blame`;
   - runners: `pnpm test`, `pnpm exec vitest`, `pnpm exec playwright`, `pnpm test:visual:update`, `npx vitest`, `npx playwright`.

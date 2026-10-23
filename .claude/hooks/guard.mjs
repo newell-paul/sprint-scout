@@ -69,15 +69,20 @@ const redirectTargets = (segment) =>
   [...segment.matchAll(/(?:\d|&)?>>?\s*["']?([^\s;&|"']+)/g)].map((m) => m[1]);
 
 function shellWrites(cmd, isProtected) {
-  for (const segment of cmd.split(/;|&&|\|\||\|/)) {
+  for (const segment of cmd.split(/&&|\|\||[;\n|&]/)) {
     if (redirectTargets(segment).some(isProtected)) return true;
     const words = segment.trim().split(/\s+/);
     while (words[0] && /^\w+=/.test(words[0])) words.shift();
-    const named = words.some((w) => isProtected(w.replace(/^["']|["']$/g, "")));
+    const naming = words.filter((w) =>
+      isProtected(w.replace(/^["']|["']$/g, "")),
+    );
     const reads = readers.some(
       (r) => words.slice(0, r.split(" ").length).join(" ") === r,
     );
-    if (named && !reads) return true;
+    // An option carrying the path, like `git diff --output=x.test.ts`, can
+    // make even a reader write it.
+    if (naming.length && (!reads || naming.some((w) => w.startsWith("-"))))
+      return true;
   }
   return false;
 }
