@@ -69,19 +69,28 @@ const redirectTargets = (segment) =>
   [...segment.matchAll(/(?:\d|&)?>>?\s*["']?([^\s;&|"']+)/g)].map((m) => m[1]);
 
 function shellWrites(cmd, isProtected) {
+  const pathIn = (w) =>
+    isProtected(w.replace(/^["']|["']$/g, "").replace(/^-[^=]*=/, ""));
+  // A nested command hides inside a reader's segment, so any substitution
+  // next to a protected path counts as a write.
+  if (/\$\(|`|[<>]\(/.test(cmd) && cmd.split(/[\s"'`()=]+/).some(pathIn))
+    return true;
   for (const segment of cmd.split(/&&|\|\||[;\n|&]/)) {
     if (redirectTargets(segment).some(isProtected)) return true;
     const words = segment.trim().split(/\s+/);
+    // An assignment naming the path counts, since `$f` can carry it on.
+    const naming = words.filter((w) => pathIn(w.replace(/^\w+=/, "")));
     while (words[0] && /^\w+=/.test(words[0])) words.shift();
-    const naming = words.filter((w) =>
-      isProtected(w.replace(/^["']|["']$/g, "")),
-    );
     const reads = readers.some(
       (r) => words.slice(0, r.split(" ").length).join(" ") === r,
     );
-    // An option carrying the path, like `git diff --output=x.test.ts`, can
-    // make even a reader write it.
-    if (naming.length && (!reads || naming.some((w) => w.startsWith("-"))))
+    // An output option, like `git diff --output x.test.ts`, makes even a
+    // reader write the file.
+    const writesOutput = words.some((w) => /^(-o|--output)/.test(w));
+    if (
+      naming.length &&
+      (!reads || writesOutput || naming.some((w) => w.startsWith("-")))
+    )
       return true;
   }
   return false;
