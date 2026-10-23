@@ -1,6 +1,6 @@
 # Skill and hook evals
 
-Status: accepted
+Status: done
 Opened: 23 October 2026 by Paul Newell
 
 ## Problem

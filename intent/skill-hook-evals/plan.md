@@ -18,7 +18,7 @@ From [spec.md](spec.md).
 1. Guard tests first: add the Bash cases to `harness.test.ts` and confirm the blocked ones fail against the current guard.
 2. Extend `guard.mjs` until the guard tests pass, without weakening the existing cases.
 3. Parser tests, then `scripts/eval-skills.mjs`.
-4. Runner: stream-JSON, transcript path and environment, hash input; `Skill` in the config allowlist; the workflow path filter and cache key.
+4. Runner: stream-JSON, transcript path and environment, hash input; `Skill` in the config allowlist; the workflow path filter and cache key. The run's own result is the last `result` line outside any tool call, since a subagent the agent starts writes its own.
 5. The eight task folders. `pnpm evals --dry-run` must report 13/13 checks can fail.
 6. One paid run of the new tasks on Sonnet (`pnpm evals --only <the eight>`). Then adjust any task whose prompt proves ambiguous rather than any check, and record the result.
 7. Docs, intent status `done`.
