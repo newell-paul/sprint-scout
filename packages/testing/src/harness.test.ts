@@ -290,6 +290,49 @@ describe("intents", () => {
   });
 });
 
+describe("skills loaded in an eval transcript", () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), "scout-transcript-"));
+  afterAll(() => rmSync(tmp, { recursive: true, force: true }));
+  const skillsIn = (lines: string[]) => {
+    const transcript = path.join(tmp, "t.jsonl");
+    writeFileSync(transcript, lines.join("\n"));
+    const result = spawnSync(
+      "node",
+      [at("scripts/eval-skills.mjs"), transcript],
+      { encoding: "utf8" },
+    );
+    expect(result.status).toBe(0);
+    return result.stdout.split("\n").filter(Boolean);
+  };
+  const call = (name: string, input: Record<string, string>) =>
+    JSON.stringify({
+      type: "assistant",
+      message: { content: [{ type: "tool_use", name, input }] },
+    });
+
+  it("lists each skill once, in the order it loaded", () => {
+    expect(
+      skillsIn([
+        call("Skill", { skill: "intent" }),
+        "not json",
+        call("Read", { file_path: "AGENTS.md" }),
+        call("Skill", { command: "bugfix" }),
+        call("Skill", { skill: "intent" }),
+      ]),
+    ).toEqual(["intent", "bugfix"]);
+  });
+
+  it("lists nothing for an empty or missing transcript", () => {
+    expect(skillsIn([])).toEqual([]);
+    const missing = spawnSync(
+      "node",
+      [at("scripts/eval-skills.mjs"), path.join(tmp, "none.jsonl")],
+      { encoding: "utf8" },
+    );
+    expect(missing).toMatchObject({ status: 0, stdout: "" });
+  });
+});
+
 describe("eval tasks", () => {
   const config = JSON.parse(read("evals/config.json")) as Record<
     string,
