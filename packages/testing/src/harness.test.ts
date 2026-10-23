@@ -155,6 +155,10 @@ describe("guard hook", () => {
       `cat \`sed -i 's/a/b/' ${testFile}\``,
       `diff <(sed -i 's/a/b/' ${testFile}) README.md`,
       `f=${testFile}; sed -i 's/a/b/' $f`,
+      `pnpm exec vitest run -u ${testFile}`,
+      "pnpm exec vitest run --update",
+      "pnpm exec playwright test e2e/x.spec.ts --update-snapshots",
+      "pnpm test:visual:update",
     ];
     const testReads = [
       `cat ${testFile}`,
