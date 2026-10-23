@@ -18,7 +18,7 @@ on:
       model:
         description: Model to run the tasks on
         type: string
-        default: claude-haiku-5-5
+        default: claude-sonnet-5-5
 permissions:
   contents: read
 concurrency:
@@ -54,7 +54,7 @@ jobs:
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     env:
-      EVALS_MODEL: ${{ inputs.model || vars.EVALS_MODEL || 'claude-haiku-5-5' }}
+      EVALS_MODEL: ${{ inputs.model || vars.EVALS_MODEL || 'claude-sonnet-5-5' }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6

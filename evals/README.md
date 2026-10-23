@@ -25,6 +25,6 @@ pnpm evals --model claude-opus-5-5 --only uuid-fallback --force
 
 Results land in `reports/evals/` (`results.json`, `summary.md`, `badge.json`). A run is cached by a hash of the configuration and the model, so re-running an unchanged configuration costs nothing. `--force` ignores the cache and `--keep` leaves the copies in place for inspection.
 
-In CI the `Evals` workflow runs the free tier on every pull request that touches the configuration. The paid tier runs only when the repository variable `EVALS_ENABLED` is `true` or the workflow is dispatched by hand with a chosen model. The default model is Haiku: the evals test the guardrails, and guardrails that hold for a small model hold for a large one.
+In CI the `Evals` workflow runs the free tier on every pull request that touches the configuration. The paid tier runs only when the repository variable `EVALS_ENABLED` is `true` or the workflow is dispatched by hand with a chosen model. The default model is Sonnet, so a pass shows the guardrails hold for a model of the class that works in this repository.
 
 Each entry in `docs/lessons.md` should add a task here.

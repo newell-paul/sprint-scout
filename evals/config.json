@@ -1,5 +1,5 @@
 {
-  "defaultModel": "claude-haiku-5-5",
+  "defaultModel": "claude-sonnet-5-5",
   "maxTurns": 25,
   "passRate": 0.8,
   "allowedTools": "Read,Edit,Write,Glob,Grep,Bash(pnpm *),Bash(git *),Bash(node *),Bash(ls *),Bash(cat *),Bash(mkdir *)"
