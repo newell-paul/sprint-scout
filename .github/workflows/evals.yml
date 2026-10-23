@@ -12,6 +12,7 @@ on:
       - evals/**
       - intent/README.md
       - scripts/run-evals.mjs
+      - scripts/eval-skills.mjs
       - .github/workflows/evals.yml
   workflow_dispatch:
     inputs:
@@ -68,7 +69,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: reports/evals/cache
-          key: evals-${{ env.EVALS_MODEL }}-${{ hashFiles('AGENTS.md', 'REVIEW.md', '.claude/**', 'evals/**', 'intent/README.md', 'scripts/run-evals.mjs') }}
+          key: evals-${{ env.EVALS_MODEL }}-${{ hashFiles('AGENTS.md', 'REVIEW.md', '.claude/**', 'evals/**', 'intent/README.md', 'scripts/run-evals.mjs', 'scripts/eval-skills.mjs') }}
       - name: Run tasks
         run: pnpm evals --model "$EVALS_MODEL"
         env:
