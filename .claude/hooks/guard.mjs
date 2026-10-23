@@ -86,7 +86,10 @@ function shellWrites(cmd, isProtected) {
     );
     // An output option, like `git diff --output x.test.ts`, makes even a
     // reader write the file.
-    const writesOutput = words.some((w) => /^(-o|--output)/.test(w));
+    // grep and rg take -o for only-matching, which writes nothing.
+    const writesOutput =
+      !/^(grep|rg)$/.test(words[0] ?? "") &&
+      words.some((w) => /^(-o|--output)/.test(w));
     if (
       naming.length &&
       (!reads || writesOutput || naming.some((w) => w.startsWith("-")))
@@ -96,7 +99,8 @@ function shellWrites(cmd, isProtected) {
   return false;
 }
 const namesTest = (word) => /\.(test|spec)\.tsx?\b/.test(word);
-const namesBaseline = (word) => /(^|\/)(__aria__|__screenshots__)\//.test(word);
+const namesBaseline = (word) =>
+  /(^|\/)(__aria__|__screenshots__)(\/|$)/.test(word);
 
 if (tool === "Bash") {
   const cmd = String(args.command ?? "");
