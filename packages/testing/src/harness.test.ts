@@ -147,6 +147,9 @@ describe("guard hook", () => {
       `echo x > ${testFile}`,
       `git checkout -- ${testFile}`,
       `cat ${testFile} | tee ${testFile}`,
+      `cat README.md\nsed -i 's/a/b/' ${testFile}`,
+      `cat README.md & sed -i 's/a/b/' ${testFile}`,
+      `git diff --output=${testFile}`,
     ];
     const testReads = [
       `cat ${testFile}`,
