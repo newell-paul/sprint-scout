@@ -131,6 +131,78 @@ describe("guard hook", () => {
       expect(runGuard(call, tmp).status).toBe(0);
     });
   });
+
+  // The Edit and Write rules alone left a shell route around both markers.
+  describe("shell commands under the markers", () => {
+    const tmp = mkdtempSync(path.join(os.tmpdir(), "scout-guard-bash-"));
+    mkdirSync(path.join(tmp, ".claude/state"), { recursive: true });
+    const fixing = path.join(tmp, ".claude/state/fixing");
+    const snapshots = path.join(tmp, ".claude/state/snapshots");
+    afterAll(() => rmSync(tmp, { recursive: true, force: true }));
+    const testFile = "apps/web/app/routes/library.test.ts";
+
+    const testWrites = [
+      `sed -i 's/a/b/' ${testFile}`,
+      `node -e "require('fs').writeFileSync('x.test.ts','')"`,
+      `echo x > ${testFile}`,
+      `git checkout -- ${testFile}`,
+      `cat ${testFile} | tee ${testFile}`,
+    ];
+    const testReads = [
+      `cat ${testFile}`,
+      `pnpm exec vitest run ${testFile}`,
+      `pnpm exec vitest run x.test.ts > /tmp/out.txt`,
+      `git diff -- x.test.ts`,
+    ];
+    const baselineWrites = [
+      "echo x >> e2e/__aria__/x.aria.yml",
+      "cp a.png e2e/__screenshots__/a/b.png",
+    ];
+    const baselineRuns = [
+      "pnpm exec playwright test e2e/x.spec.ts --update-snapshots",
+      "git add e2e/__aria__/x.aria.yml",
+      "cat e2e/__aria__/x.aria.yml",
+    ];
+
+    it.each(testWrites)("blocks `%s` while a bug fix is in progress", (cmd) => {
+      writeFileSync(fixing, "");
+      const { status, stderr } = runGuard(bash(cmd), tmp);
+      rmSync(fixing);
+      expect(status).toBe(2);
+      expect(stderr).toMatch(/^Blocked:.*fixing/);
+    });
+
+    it.each(testReads)("allows `%s` while a bug fix is in progress", (cmd) => {
+      writeFileSync(fixing, "");
+      const result = runGuard(bash(cmd), tmp);
+      rmSync(fixing);
+      expect(result).toEqual({ status: 0, stderr: "" });
+    });
+
+    it.each(testWrites)("allows `%s` outside a bug fix", (cmd) => {
+      expect(runGuard(bash(cmd), tmp)).toEqual({ status: 0, stderr: "" });
+    });
+
+    it.each(baselineWrites)(
+      "blocks `%s` without the snapshots marker",
+      (cmd) => {
+        const { status, stderr } = runGuard(bash(cmd), tmp);
+        expect(status).toBe(2);
+        expect(stderr).toMatch(/^Blocked:.*baselines/);
+      },
+    );
+
+    it.each(baselineRuns)("allows `%s` without the snapshots marker", (cmd) => {
+      expect(runGuard(bash(cmd), tmp)).toEqual({ status: 0, stderr: "" });
+    });
+
+    it.each(baselineWrites)("allows `%s` with the snapshots marker", (cmd) => {
+      writeFileSync(snapshots, "");
+      const result = runGuard(bash(cmd), tmp);
+      rmSync(snapshots);
+      expect(result).toEqual({ status: 0, stderr: "" });
+    });
+  });
 });
 
 describe("Claude Code settings", () => {
