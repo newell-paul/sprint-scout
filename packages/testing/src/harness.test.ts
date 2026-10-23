@@ -150,6 +150,11 @@ describe("guard hook", () => {
       `cat README.md\nsed -i 's/a/b/' ${testFile}`,
       `cat README.md & sed -i 's/a/b/' ${testFile}`,
       `git diff --output=${testFile}`,
+      `git diff --output ${testFile}`,
+      `cat $(sed -i 's/a/b/' ${testFile})`,
+      `cat \`sed -i 's/a/b/' ${testFile}\``,
+      `diff <(sed -i 's/a/b/' ${testFile}) README.md`,
+      `f=${testFile}; sed -i 's/a/b/' $f`,
     ];
     const testReads = [
       `cat ${testFile}`,
