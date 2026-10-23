@@ -7,6 +7,9 @@ onlyBuiltDependencies:
 # Transitive pins from Tailwind, Vitest and ESLint plugins hold 1.2.1, which
 # has a high-severity advisory; drop once they ship 1.2.2 themselves.
 overrides:
+  # One @types/node across the workspace; msw pulls a newer one through
+  # @inquirer, which splits vitest into two incompatible type trees.
+  "@types/node": ^22.19.0
   source-map-js: ^1.2.2
   # The rest lift transitive tooling to the patched release in the same major,
   # as reported by the OSV scan; drop each once its parent catches up.
