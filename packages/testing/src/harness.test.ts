@@ -147,7 +147,7 @@ describe("guard hook", () => {
       `echo x > ${testFile}`,
       `git checkout -- ${testFile}`,
       `cat ${testFile} | tee ${testFile}`,
-      `cat README.md\nsed -i 's/a/b/' ${testFile}`,
+      ["cat README.md", `sed -i 's/a/b/' ${testFile}`].join("\n"),
       `cat README.md & sed -i 's/a/b/' ${testFile}`,
       `git diff --output=${testFile}`,
       `git diff --output ${testFile}`,
@@ -174,10 +174,13 @@ describe("guard hook", () => {
       `git diff -- x.test.ts`,
       "git add -u",
       "git push -u origin fix/x",
+      `grep -on newId ${testFile}`,
     ];
     const baselineWrites = [
       "echo x >> e2e/__aria__/x.aria.yml",
       "cp a.png e2e/__screenshots__/a/b.png",
+      "rm -rf e2e/__aria__",
+      "git checkout origin/main -- e2e/__aria__",
     ];
     const baselineRuns = [
       "pnpm exec playwright test e2e/x.spec.ts --update-snapshots",
