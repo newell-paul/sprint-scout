@@ -23,6 +23,34 @@ Applies to every pull request, whether reviewed by a person, by a second model r
 
 Findings grouped by severity, each with file, line, the defect in one sentence and the concrete input or state that triggers it. End with the tally. Repeated findings across reviews become a line in `AGENTS.md` under "Known mistakes".
 
+Every comment uses the same Markdown, so the notification emails read alike. Each inline comment:
+
+```markdown
+**Minor** · <the defect, under ten words>
+
+**Trigger:** <the concrete input or state>
+
+**Fix:** <the smallest change that closes it>
+```
+
+The summary comment:
+
+```markdown
+### Review
+
+**Major**
+
+- `path/to/file.ts:42` <defect>. **Trigger:** <input or state>.
+
+**Minor**
+
+- ...
+
+Tally: 0 blocker, 1 major, 1 minor, 0 nit
+```
+
+Only severities with findings get a heading. With no findings, the summary is the `### Review` heading, two sentences and the tally line.
+
 ## Automation
 
 The `Review` workflow applies this policy with `claude-code-action` to every non-draft pull request from this repository when the repository variable `REVIEW_ENABLED` is `true`: inline comments for Blocker, Major and Minor findings, one summary comment with the tally, and a `review-report` artifact that the dashboard reads. It never approves or requests changes. A comment containing `@claude` on a pull request starts the fix loop, which changes only what the comment asks, runs the relevant check and pushes to that pull request's branch only.
