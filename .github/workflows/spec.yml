@@ -1,0 +1,99 @@
+name: Spec drafts
+# Drafts spec.md for an intent accepted on main and opens it as a pull
+# request (docs/sdlc.md, step 13). Inputs are main only: merged intents and
+# the repository. The model reads, may write only the spec file, and runs
+# one command, `pnpm spec:draft open`, which validates the file and opens the
+# pull request with the action's GitHub App token so Checks run on it; the
+# action revokes that token when it ends, so nothing after it can. Paid,
+# behind SPEC_ENABLED. No schedule, by policy.
+on:
+  push:
+    branches: [main]
+    paths: ["intent/*/intent.md"]
+permissions: {}
+jobs:
+  draft:
+    name: Draft spec.md for an accepted intent (paid)
+    if: vars.SPEC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: spec-draft
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pull-requests: read
+      id-token: write
+    env:
+      SPEC_MODEL: ${{ vars.SPEC_MODEL || 'claude-sonnet-5-5' }}
+    steps:
+      # No token left in .git/config for the model to read; `pnpm spec:draft
+      # open` logs git in with the action's token through gh.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          mkdir -p reports/spec-draft
+          if git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            git diff --name-only "$BEFORE" "$GITHUB_SHA" -- 'intent/*/intent.md' > reports/spec-draft/changed.txt
+          else
+            git show --name-only --pretty=format: "$GITHUB_SHA" -- 'intent/*/intent.md' > reports/spec-draft/changed.txt
+          fi
+          pnpm spec:draft select --changed reports/spec-draft/changed.txt
+          cat reports/spec-draft/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - id: draft
+        if: steps.select.outputs.slug != ''
+        uses: anthropics/claude-code-action@v1
+        env:
+          SPEC_SLUG: ${{ steps.select.outputs.slug }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ steps.select.outputs.prompt }}
+          claude_args: |
+            --model ${{ env.SPEC_MODEL }}
+            --max-turns 40
+            --allowedTools "Read,Glob,Grep,Edit(intent/${{ steps.select.outputs.slug }}/spec.md),Bash(pnpm spec:draft open)"
+      - name: Check the pull request was opened
+        if: always() && steps.select.outputs.slug != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLUG: ${{ steps.select.outputs.slug }}
+          CONCLUSION: ${{ steps.draft.outputs.conclusion }}
+        run: |
+          url=$(gh pr list --state open --json headRefName,url \
+            --jq "[.[] | select(.headRefName | startswith(\"spec/$SLUG/\"))][0].url // \"\"")
+          if [ -n "$url" ]; then
+            echo "Spec draft for \`$SLUG\`: $url" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No pull request was opened for \`$SLUG\` (action conclusion: ${CONCLUSION:-none})." >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::The spec draft for $SLUG opened no pull request."
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: spec-draft
+          path: reports/spec-draft
+          retention-days: 30
+  skipped:
+    name: Spec drafts (off)
+    if: vars.SPEC_ENABLED != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          {
+            echo "## Spec drafts"
+            echo
+            echo "Spec drafts are switched off (repository variable \`SPEC_ENABLED\` is not \`true\`)."
+          } >> "$GITHUB_STEP_SUMMARY"
