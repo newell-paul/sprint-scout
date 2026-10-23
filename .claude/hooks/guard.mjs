@@ -116,17 +116,18 @@ if (tool === "Bash") {
     block(baselineReason);
   // The runners are trusted readers, except when told to rewrite snapshots.
   // Package scripts reach them under any name, so the flag itself decides,
-  // in every segment that is not a git command.
+  // in every segment except `git add` and `git push`, whose -u means
+  // something else.
   const updatesSnapshots =
     /\btest:visual:update\b/.test(cmd) ||
     cmd
       .split(/&&|\|\||[;\n|&]/)
-      .filter((segment) => !/^\s*git\s/.test(segment))
+      .filter((segment) => !/^\s*git\s+(add|push)\s/.test(segment))
       .some((segment) =>
         segment
           .trim()
           .split(/\s+/)
-          .map((w) => w.replace(/^["']|["']$/g, ""))
+          .map((w) => w.replace(/^[("'{]+|[)"'}]+$/g, "").replaceAll("\\", ""))
           .some((w) => /^(-u|--update(-snapshots)?)(=.*)?$/.test(w)),
       );
   if (
