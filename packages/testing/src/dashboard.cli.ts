@@ -16,10 +16,13 @@ import {
 import {
   appendHistory,
   badges,
+  intentBoard,
+  refreshBoard,
   render,
   snapshot,
   type LighthouseManifest,
   type LighthouseResult,
+  type OpenIntent,
   type Snapshot,
 } from "./dashboard";
 
@@ -34,6 +37,9 @@ import {
 //   [--repo owner/name] [--reviews reports/review/reviews.json]
 //   [--bands packages/testing/bands.yaml]
 //   [--date YYYY-MM-DD] [--sha <commit>]
+// tsx dashboard.cli.ts --refresh-board <dashboard dir> [--intents intent]
+//   [--open-intents reports/github/open-intents.json] [--repo owner/name]
+//   [--date YYYY-MM-DD]
 // Every input is optional: a missing file leaves its cards at n/a. With
 // --bands, exits 3 when a metric leaves its 3σ band, after writing everything.
 const args = process.argv.slice(2);
@@ -74,6 +80,36 @@ function readIntents(dir: string | undefined) {
       spec: existsSync(join(dirname(file), "spec.md")),
       plan: existsSync(join(dirname(file), "plan.md")),
     }));
+}
+
+const refreshDir = option("--refresh-board");
+if (refreshDir) {
+  const history = readJson<Snapshot[]>(join(refreshDir, "history.json")) ?? [];
+  const repo =
+    option("--repo") ??
+    process.env.GITHUB_REPOSITORY ??
+    history.at(-1)?.repo ??
+    "newell-paul/sprint-scout";
+  const board = intentBoard(
+    readIntents(option("--intents") ?? "intent") ?? [],
+    readJson<OpenIntent[]>(option("--open-intents")) ?? [],
+    repo,
+  );
+  const refreshed = refreshBoard(
+    history,
+    board,
+    option("--date") ?? new Date().toISOString().slice(0, 10),
+  );
+  writeFileSync(
+    join(refreshDir, "history.json"),
+    JSON.stringify(refreshed, null, 2) + "\n",
+  );
+  writeFileSync(
+    join(refreshDir, "index.html"),
+    render(refreshed, readJson(join(refreshDir, "bands.json")) ?? []),
+  );
+  console.log(`Intent board refreshed in ${resolve(refreshDir)}/index.html`);
+  process.exit(0);
 }
 
 const out = option("--out") ?? "reports/dashboard";

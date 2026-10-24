@@ -1,6 +1,6 @@
 # Manual rebuild of the intent board
 
-Status: accepted
+Status: done
 Opened: 24 October 2026 by the owner
 
 ## Problem

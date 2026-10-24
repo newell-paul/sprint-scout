@@ -12,6 +12,11 @@ permissions:
   pages: write
   id-token: write
   actions: read
+  # A manual run refreshes the intent board, which reads open pull requests
+  # and their check states.
+  pull-requests: read
+  checks: read
+  statuses: read
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -56,6 +61,17 @@ jobs:
           if [ -n "$run" ]; then
             gh run download "$run" --name dashboard --dir apps/web/out/dashboard || true
           fi
+      - name: Refresh the intent board
+        # The "Rebuild now" link on the board leads here. The rest of the
+        # dashboard stays as the last Checks run on main left it.
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f apps/web/out/dashboard/history.json ] || exit 0
+          node scripts/collect-intents.mjs || true
+          pnpm exec tsx packages/testing/src/dashboard.cli.ts --refresh-board apps/web/out/dashboard \
+            --intents intent --open-intents reports/github/open-intents.json
       - run: touch apps/web/out/.nojekyll
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
