@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LibreMap, GeoJSONSource } from "maplibre-gl";
 import type { PlannerHour } from "@scout/contracts";
-import { loadMapLibre } from "./maplibre";
+import { clickToActivate, loadMapLibre } from "./maplibre";
 function arrow(color: string) {
   const canvas = document.createElement("canvas");
   canvas.width = 40;
@@ -37,6 +37,7 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
     let disposed = false;
     let instance: LibreMap | undefined;
     let observer: ResizeObserver | undefined;
+    let release: (() => void) | undefined;
     const onContextLost = () => {
       if (!disposed) setFailed(true);
     };
@@ -67,6 +68,7 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
             renderWorldCopies: false,
           });
           map.current = instance;
+          release = clickToActivate(instance, element).dispose;
           observer = new ResizeObserver(() => instance?.resize());
           observer.observe(element);
           instance.addControl(
@@ -155,6 +157,7 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
     return () => {
       disposed = true;
       observer?.disconnect();
+      release?.();
       instance
         ?.getCanvas()
         .removeEventListener("webglcontextlost", onContextLost);

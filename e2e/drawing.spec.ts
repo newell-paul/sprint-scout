@@ -2,6 +2,43 @@ import { aRoute, expect, test } from "./fixtures";
 
 const saved = { routes: [aRoute({ name: "Independent ride" })] };
 
+test("the click that hands the map control places no point; the next click does", async ({ planner }) => {
+  await planner.open();
+  await expect(planner.map.region).toHaveAttribute("data-map-active", "false");
+
+  await planner.map.clickAt(120, 120);
+
+  await expect(planner.map.region).toHaveAttribute("data-map-active", "true");
+  await expect(planner.editor.pointCount(0)).toBeVisible();
+
+  await planner.map.clickAt(220, 160);
+
+  await expect(planner.editor.pointCount(1)).toBeVisible();
+});
+
+test("while a route is being drawn the map keeps control when the mouse leaves", async ({ planner }) => {
+  await planner.open();
+  await planner.map.waitUntilInteractive();
+  await planner.map.clickAt(120, 120);
+  await planner.map.clickAt(220, 160);
+  await expect(planner.editor.pointCount(1)).toBeVisible();
+
+  await planner.map.moveMouseAway();
+
+  await expect(planner.map.region).toHaveAttribute("data-map-active", "true");
+});
+
+test("with no points drawn the map gives control back when the mouse leaves", async ({ planner }) => {
+  await planner.open();
+  await planner.map.waitUntilInteractive();
+  await planner.map.clickAt(120, 120);
+  await expect(planner.map.region).toHaveAttribute("data-map-active", "true");
+
+  await planner.map.moveMouseAway();
+
+  await expect(planner.map.region).toHaveAttribute("data-map-active", "false");
+});
+
 test.describe("with the forecast unavailable", () => {
   test.beforeEach(({ openMeteo }) => {
     openMeteo.faults.weather = "outage";

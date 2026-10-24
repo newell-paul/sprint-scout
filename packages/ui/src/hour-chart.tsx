@@ -125,6 +125,7 @@ export default function HourChart({
       role="group"
       data-testid="hour-chart"
       data-attempt={attemptAt}
+      data-chart-ready={ready ? "true" : "false"}
       aria-label="Hourly wind chart. Use the table below to select any hour."
     >
       <div className="chart-canvas" ref={container} aria-hidden="true" />

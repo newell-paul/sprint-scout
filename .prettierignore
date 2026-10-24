@@ -22,3 +22,5 @@ apps/web/public/maplibre
 **/__aria__
 **/__screenshots__
 .lighthouseci
+# Personal Claude Code settings, untracked
+.claude/settings.local.json

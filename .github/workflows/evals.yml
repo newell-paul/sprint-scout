@@ -1,9 +1,21 @@
 name: Evals
 # Tier 0 is free and runs on every pull request that touches the agent
-# configuration. Tier 1 calls a model and runs only when the repository
-# variable EVALS_ENABLED is "true" or the workflow is dispatched by hand.
+# configuration, and on main when such a change merges. Tier 1 calls a model
+# and runs only when the repository variable EVALS_ENABLED is "true" or the
+# workflow is dispatched by hand. The run on main is what the dashboard shows.
 # No schedule, by policy.
 on:
+  push:
+    branches: [main]
+    paths:
+      - AGENTS.md
+      - REVIEW.md
+      - .claude/**
+      - evals/**
+      - intent/README.md
+      - scripts/run-evals.mjs
+      - scripts/eval-skills.mjs
+      - .github/workflows/evals.yml
   pull_request:
     paths:
       - AGENTS.md
@@ -52,7 +64,8 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (vars.EVALS_ENABLED == 'true' &&
-       github.event.pull_request.head.repo.full_name == github.repository)
+       (github.event_name == 'push' ||
+        github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     env:
       EVALS_MODEL: ${{ inputs.model || vars.EVALS_MODEL || 'claude-sonnet-5-5' }}
@@ -89,7 +102,8 @@ jobs:
     if: >-
       github.event_name != 'workflow_dispatch' &&
       !(vars.EVALS_ENABLED == 'true' &&
-        github.event.pull_request.head.repo.full_name == github.repository)
+        (github.event_name == 'push' ||
+         github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     steps:
       - env:
