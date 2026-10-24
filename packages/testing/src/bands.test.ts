@@ -143,6 +143,35 @@ describe("evaluateBand", () => {
     });
     expect(result.runs).toBe(4);
   });
+
+  it("restarts the baseline at since, so an intended step does not alarm", () => {
+    const shrunk = run("2026-10-12", 40_000, {
+      e2e: { tests: 100, failed: 0, durationMs: 40_000, slowest: [] },
+    });
+    const count: BandConfig = {
+      id: "e2e-count",
+      label: "End-to-end tests",
+      path: "e2e.tests",
+      worse: "lower",
+      minSigma: 1,
+    };
+    expect(evaluateBand([...steady, shrunk], count).level).toBe(3);
+    const restarted = evaluateBand([...steady, shrunk], {
+      ...count,
+      since: "2026-10-11T00:00:00Z",
+    });
+    expect(restarted.level).toBe(0);
+    expect(restarted.runs).toBe(0);
+    expect(restarted.reason).toBe("baseline needs 5 runs, has 0");
+  });
+
+  it("keeps runs dated on or after since in the baseline", () => {
+    const result = evaluateBand([...steady, run("2026-10-11", 41_000)], {
+      ...duration,
+      since: "2026-10-06",
+    });
+    expect(result.runs).toBe(5);
+  });
 });
 
 describe("evaluateBands", () => {
