@@ -65,6 +65,7 @@ export default function Routes() {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<RouteMap | null>(null);
   const [points, setPoints] = useState<Point[]>([]);
+  const drawing = useRef(false);
   const [name, setName] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [routes, setRoutes] = useState<DrawnRoute[]>([]);
@@ -170,7 +171,11 @@ export default function Routes() {
           },
         });
         map.current = instance;
-        release = clickToActivate(instance, container.current);
+        const activation = clickToActivate(instance, container.current, {
+          hint: "Click to use the map",
+          holdOnLeave: () => drawing.current,
+        });
+        release = activation.dispose;
         instance.addControl(new NavigationControl({ showCompass: false }));
         instance.touchZoomRotate.disableRotation();
         instance.keyboard.disableRotation();
@@ -228,7 +233,8 @@ export default function Routes() {
           setReady(true);
         });
         instance.on("click", (e) => {
-          if (viewing.current) return;
+          // The press that hands the map control does not also drop a point.
+          if (activation.takeActivation() || viewing.current) return;
           const p: Point = [e.lngLat.wrap().lng, e.lngLat.lat];
           if (validPoint(p))
             setPoints((old) => (old.length < 500 ? [...old, p] : old));
@@ -247,6 +253,9 @@ export default function Routes() {
       map.current = null;
     };
   }, []);
+  useEffect(() => {
+    drawing.current = points.length > 0;
+  }, [points]);
   useEffect(() => {
     if (!ready) return;
     const source = map.current?.getSource("route") as GeoJSONSource | undefined;

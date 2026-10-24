@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { paintedPixels } from "./canvas";
 
 /** The drawing map with its wind overlay and particle field. */
@@ -25,6 +25,20 @@ export class PlannerMap {
       name: "Wind particles off",
       exact: true,
     });
+  }
+
+  /** The map installs its click-to-activate handling once MapLibre loads. */
+  async waitUntilInteractive() {
+    await expect(this.region).toHaveAttribute("data-map-active", /true|false/);
+  }
+
+  /** Clicks at an offset from the map's top-left corner. */
+  async clickAt(x: number, y: number) {
+    await this.region.click({ position: { x, y } });
+  }
+
+  async moveMouseAway() {
+    await this.page.getByRole("heading", { name: "SprintScout" }).hover();
   }
 
   painted(colour: string) {

@@ -39,10 +39,25 @@ type GestureMap = Pick<
   "scrollZoom" | "dragPan" | "touchZoomRotate"
 >;
 
+export type MapActivation = {
+  /** True once, right after the press that activated the map. */
+  takeActivation: () => boolean;
+  dispose: () => void;
+};
+
 // The map only takes the wheel and one-finger drags after a click or tap, so
 // scrolling the page past it never zooms or pans it by accident. Clicks on the
 // map, its buttons and its keyboard handler keep working while it is inactive.
-export function clickToActivate(map: GestureMap, element: HTMLElement) {
+export function clickToActivate(
+  map: GestureMap,
+  element: HTMLElement,
+  options: {
+    /** Shown while the mouse rests on the inactive map. */
+    hint?: string;
+    /** While true, the mouse leaving the map does not release it. */
+    holdOnLeave?: () => boolean;
+  } = {},
+): MapActivation {
   const doc = element.ownerDocument;
   const hint = doc.createElement("div");
   hint.className = "map-activate-hint";
@@ -63,6 +78,8 @@ export function clickToActivate(map: GestureMap, element: HTMLElement) {
   });
   element.append(hint);
   let active = false;
+  let activating = false;
+  let lastPointer = "";
   let hideTimer: ReturnType<typeof setTimeout> | undefined;
   const set = (on: boolean) => {
     active = on;
@@ -71,21 +88,38 @@ export function clickToActivate(map: GestureMap, element: HTMLElement) {
       if (on) handler.enable();
       else handler.disable();
     }
-    if (on) hint.style.display = "none";
+    if (on) hideHint();
   };
-  const showHint = (text: string) => {
+  const press = () => {
+    activating = !active;
+    set(true);
+  };
+  const hideHint = () => {
+    clearTimeout(hideTimer);
+    hint.style.display = "none";
+  };
+  const showHint = (text: string, ms?: number) => {
     if (active) return;
     hint.textContent = text;
     hint.style.display = "block";
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => (hint.style.display = "none"), 1500);
+    if (ms) hideTimer = setTimeout(hideHint, ms);
   };
   const onPointerDown = (event: PointerEvent) => {
-    if (event.pointerType === "mouse") set(true);
+    lastPointer = event.pointerType;
+    if (event.pointerType === "mouse") press();
   };
-  const onClick = () => set(true);
+  // Capture phase, so a tap activates before MapLibre turns it into a map click.
+  const onClick = () => {
+    if (lastPointer !== "mouse") press();
+  };
+  const onPointerEnter = (event: PointerEvent) => {
+    if (event.pointerType === "mouse" && options.hint) showHint(options.hint);
+  };
   const onPointerLeave = (event: PointerEvent) => {
-    if (event.pointerType === "mouse") set(false);
+    if (event.pointerType !== "mouse") return;
+    hideHint();
+    if (!options.holdOnLeave?.()) set(false);
   };
   const onOutside = (event: Event) => {
     if (!element.contains(event.target as Node)) set(false);
@@ -93,26 +127,35 @@ export function clickToActivate(map: GestureMap, element: HTMLElement) {
   const onFocusOut = (event: FocusEvent) => {
     if (!element.contains(event.relatedTarget as Node | null)) set(false);
   };
-  const onWheel = () => showHint("Click the map to zoom");
-  const onTouchMove = () => showHint("Tap the map to move it");
+  const onWheel = () => showHint("Click the map to zoom", 1500);
+  const onTouchMove = () => showHint("Tap the map to move it", 1500);
   const capture = { capture: true };
   element.addEventListener("pointerdown", onPointerDown, capture);
-  element.addEventListener("click", onClick);
+  element.addEventListener("click", onClick, capture);
+  element.addEventListener("pointerenter", onPointerEnter);
   element.addEventListener("pointerleave", onPointerLeave);
   element.addEventListener("focusout", onFocusOut);
   element.addEventListener("wheel", onWheel, { passive: true });
   element.addEventListener("touchmove", onTouchMove, { passive: true });
   doc.addEventListener("pointerdown", onOutside, capture);
   set(false);
-  return () => {
-    clearTimeout(hideTimer);
-    element.removeEventListener("pointerdown", onPointerDown, capture);
-    element.removeEventListener("click", onClick);
-    element.removeEventListener("pointerleave", onPointerLeave);
-    element.removeEventListener("focusout", onFocusOut);
-    element.removeEventListener("wheel", onWheel);
-    element.removeEventListener("touchmove", onTouchMove);
-    doc.removeEventListener("pointerdown", onOutside, capture);
-    hint.remove();
+  return {
+    takeActivation() {
+      const was = activating;
+      activating = false;
+      return was;
+    },
+    dispose() {
+      clearTimeout(hideTimer);
+      element.removeEventListener("pointerdown", onPointerDown, capture);
+      element.removeEventListener("click", onClick, capture);
+      element.removeEventListener("pointerenter", onPointerEnter);
+      element.removeEventListener("pointerleave", onPointerLeave);
+      element.removeEventListener("focusout", onFocusOut);
+      element.removeEventListener("wheel", onWheel);
+      element.removeEventListener("touchmove", onTouchMove);
+      doc.removeEventListener("pointerdown", onOutside, capture);
+      hint.remove();
+    },
   };
 }

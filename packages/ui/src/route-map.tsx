@@ -68,7 +68,7 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
             renderWorldCopies: false,
           });
           map.current = instance;
-          release = clickToActivate(instance, element);
+          release = clickToActivate(instance, element).dispose;
           observer = new ResizeObserver(() => instance?.resize());
           observer.observe(element);
           instance.addControl(

@@ -92,11 +92,17 @@ describe("clickToActivate", () => {
     return { doc, element, outside, map, enabled, hint };
   }
 
-  async function start() {
+  async function start(
+    options?: Parameters<typeof import("./maplibre").clickToActivate>[2],
+  ) {
     const { clickToActivate } = await import("./maplibre");
     const s = setup();
-    const cleanup = clickToActivate(s.map as never, s.element as never);
-    return { ...s, cleanup };
+    const activation = clickToActivate(
+      s.map as never,
+      s.element as never,
+      options,
+    );
+    return { ...s, activation, cleanup: activation.dispose };
   }
 
   it("starts with wheel, drag and touch gestures off", async () => {
@@ -160,6 +166,59 @@ describe("clickToActivate", () => {
     expect(hint().style.display).toBe("none");
   });
 
+  it("reports the activating press once, so a drawing map can skip it", async () => {
+    const { element, activation } = await start();
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    element.dispatchEvent(event("click"));
+    expect(activation.takeActivation()).toBe(true);
+    expect(activation.takeActivation()).toBe(false);
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    element.dispatchEvent(event("click"));
+    expect(activation.takeActivation()).toBe(false);
+  });
+
+  it("reports a tap that activates, but not a later tap", async () => {
+    const { element, activation } = await start();
+    element.dispatchEvent(event("pointerdown", { pointerType: "touch" }));
+    element.dispatchEvent(event("click"));
+    expect(activation.takeActivation()).toBe(true);
+    element.dispatchEvent(event("pointerdown", { pointerType: "touch" }));
+    element.dispatchEvent(event("click"));
+    expect(activation.takeActivation()).toBe(false);
+  });
+
+  it("keeps control when the mouse leaves while holdOnLeave says so", async () => {
+    let hold = true;
+    const { element, enabled } = await start({ holdOnLeave: () => hold });
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    element.dispatchEvent(event("pointerleave", { pointerType: "mouse" }));
+    expect(enabled()).toEqual([true, true, true]);
+    hold = false;
+    element.dispatchEvent(event("pointerleave", { pointerType: "mouse" }));
+    expect(enabled()).toEqual([false, false, false]);
+  });
+
+  it("shows the hover hint while the mouse rests on the inactive map", async () => {
+    const { element, hint } = await start({ hint: "Click to use the map" });
+    element.dispatchEvent(event("pointerenter", { pointerType: "touch" }));
+    expect(hint().style.display).toBe("none");
+    element.dispatchEvent(event("pointerenter", { pointerType: "mouse" }));
+    expect(hint().textContent).toBe("Click to use the map");
+    vi.advanceTimersByTime(5000);
+    expect(hint().style.display).toBe("block");
+    element.dispatchEvent(event("pointerleave", { pointerType: "mouse" }));
+    expect(hint().style.display).toBe("none");
+    element.dispatchEvent(event("pointerenter", { pointerType: "mouse" }));
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    expect(hint().style.display).toBe("none");
+  });
+
+  it("shows no hover hint without one", async () => {
+    const { element, hint } = await start();
+    element.dispatchEvent(event("pointerenter", { pointerType: "mouse" }));
+    expect(hint().style.display).toBe("none");
+  });
+
   it("cleanup removes the release listeners, so nothing switches the map back off", async () => {
     const { doc, element, outside, enabled, cleanup } = await start();
     element.dispatchEvent(event("click"));
@@ -173,7 +232,9 @@ describe("clickToActivate", () => {
   });
 
   it("cleanup removes the hint and every listener", async () => {
-    const { doc, element, outside, enabled, hint, cleanup } = await start();
+    const { doc, element, outside, enabled, hint, cleanup } = await start({
+      hint: "Click to use the map",
+    });
     cleanup();
     expect(hint().remove).toHaveBeenCalled();
     element.dispatchEvent(event("click"));
@@ -181,6 +242,7 @@ describe("clickToActivate", () => {
     element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
     element.dispatchEvent(event("wheel"));
     element.dispatchEvent(event("touchmove"));
+    element.dispatchEvent(event("pointerenter", { pointerType: "mouse" }));
     expect(hint().style.display).toBe("none");
     expect(enabled()).toEqual([false, false, false]);
     const away = event("pointerdown");
