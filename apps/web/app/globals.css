@@ -1754,7 +1754,7 @@ hr {
 }
 @media (max-width: 600px) {
   .segment-screen {
-    padding: 20px 12px 12px;
+    padding: 20px 16px 16px;
   }
   .segment-toolbar {
     gap: 8px;
@@ -1766,11 +1766,11 @@ hr {
     gap: 8px;
   }
   .segment-logo .logo-mark {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
   }
   .logo-word {
-    font-size: 29px;
+    font-size: 27px;
   }
   .unit-control {
     margin-left: auto;
@@ -2933,4 +2933,29 @@ hr {
     .opportunity-board
   ) {
   padding: 16px 20px;
+}
+.segment-screen :is(input, select, summary, a) {
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.segment-screen button,
+.segment-slot.defined {
+  transition-duration: 180ms;
+}
+.segment-screen summary:hover {
+  color: var(--ink);
+}
+.dial-progress {
+  transition: d 200ms ease;
+}
+@media (max-width: 600px) {
+  .segment-screen .forecast-console .forecast-navigation button {
+    padding: 4px 7px;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 13px;
+  }
 }
