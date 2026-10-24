@@ -31,7 +31,6 @@
     ".stryker-tmp",
     "apps/web/out",
     "apps/web/public/maplibre/**",
-    "apps/web/test/public/**",
     "blob-report",
     "coverage",
     "e2e/__aria__/**",

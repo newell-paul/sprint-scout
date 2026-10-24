@@ -8,9 +8,9 @@ From [spec.md](spec.md).
 - `packages/testing/src/msw-browser.ts`: `blockExternal(origin, record)`, the `onUnhandledFrame` handler, using `HttpNetworkFrame` from `msw/experimental`.
 - `apps/web/test/unhandled.ts`: new; the record the setup writes and the no-internet test drains, kept separate so the test does not load the setup file twice.
 - `apps/web/test/browser-setup.ts`: `onUnhandledFrame`, the record module, unawaited `worker.stop()`.
-- `apps/web/test/no-internet.browser.test.ts`: new; the guard cases.
+- `apps/web/test/no-internet.browser.test.tsx`: new; the guard cases. The `.tsx` suffix keeps it out of the unit project, whose exclude names `*.browser.test.tsx`; in Node it would send a real request.
 - `apps/web/test/public/mockServiceWorker.js`: deleted.
-- `vitest.config.ts`: `publicDir` resolved to msw's installed worker script from `packages/testing`; browser `include` gains `test/**/*.browser.test.ts`.
+- `vitest.config.ts`: `publicDir` resolved to msw's installed worker script from `packages/testing`; browser `include` gains `test/**/*.browser.test.tsx`.
 - `packages/application/src/archive-wind.test.ts`, `route-wind.contract.test.ts`: `onUnhandledFrame: "error"`.
 - `cspell.json`, `docs/design.md`: as in the spec.
 

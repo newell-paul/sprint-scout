@@ -30,7 +30,7 @@ None. msw 3 no longer patches `setTimeout`. The component tests fake only `Date`
 
 ## Tests
 
-- New `apps/web/test/no-internet.browser.test.ts`, with the browser project's `include` extended to `test/**/*.browser.test.ts`:
+- New `apps/web/test/no-internet.browser.test.tsx`, with the browser project's `include` extended to `test/**/*.browser.test.tsx`:
   - a `fetch` to `https://example.com/…` rejects and is the one recorded target;
   - a same-origin `fetch` of the worker script succeeds and records nothing.
 - The guard is checked by mutation during the build: with recording removed, the first case fails.

@@ -12,7 +12,7 @@ import {
 
 const config = defaultOpenMeteoConfig();
 const server = openMeteoServer(config);
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
   config.faults.archive = "ok";
