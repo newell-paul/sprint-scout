@@ -18,11 +18,7 @@ test.beforeEach(({ openMeteo }) => {
   openMeteo.hours = Object.fromEntries(
     Array.from({ length: 48 }, (_, i) => [
       i,
-      i === 6
-        ? { speed: 8, code: 61 }
-        : i < 6
-          ? { speed: 7, code: 1, isDay: 0 as const }
-          : { code: 1 },
+      i === 6 ? { speed: 8, code: 61 } : i < 6 ? { speed: 7, code: 1, isDay: 0 as const } : { code: 1 },
     ]),
   );
 });
@@ -51,11 +47,7 @@ test("ranking fetches one forecast per segment and puts the gain first @smoke @a
   await aria("board-ranked", board.region);
 });
 
-test("open jumps to that segment's best hour without a new request", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("open jumps to that segment's best hour without a new request", async ({ planner, seed, openMeteo }) => {
   await seed(both);
   await planner.timeline.onlyDryDaylight();
   await planner.board.rank();
@@ -68,11 +60,7 @@ test("open jumps to that segment's best hour without a new request", async ({
   expect(openMeteo.weatherLongitudes).toEqual(["-0.12", "-0.2"]);
 });
 
-test("refresh asks every segment again", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("refresh asks every segment again", async ({ planner, seed, openMeteo }) => {
   await seed(both);
   await planner.board.rank();
   await expect(planner.board.rows).toHaveCount(2);
@@ -84,11 +72,7 @@ test("refresh asks every segment again", async ({
   expect(openMeteo.calls.weather).toBe(4);
 });
 
-test("a segment whose forecast fails stays unranked with the reason", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("a segment whose forecast fails stays unranked with the reason", async ({ planner, seed, openMeteo }) => {
   await seed(both);
   openMeteo.faults.weather = "outage";
 
@@ -96,17 +80,11 @@ test("a segment whose forecast fails stays unranked with the reason", async ({
 
   const { board } = planner;
   await expect(board.rows).toHaveCount(2);
-  await expect(board.row("Southbound")).toHaveAttribute(
-    "data-status",
-    "unavailable",
-  );
+  await expect(board.row("Southbound")).toHaveAttribute("data-status", "unavailable");
   await expect(board.openButton(board.row("Southbound"))).toBeDisabled();
 });
 
-test("the board is fine on a phone @mobile-only @mobile", async ({
-  planner,
-  seed,
-}) => {
+test("the board is fine on a phone @mobile-only @mobile", async ({ planner, seed }) => {
   await seed(both);
 
   await planner.board.rank();

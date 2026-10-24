@@ -23,9 +23,7 @@ test("a saved segment opens at the first hour with a tailwind estimate @smoke @a
   await seed(seeded);
 
   const { cockpit } = planner;
-  await expect(cockpit.windSummary).toContainText(
-    "18.0 km/h towards north · Tailwind",
-  );
+  await expect(cockpit.windSummary).toContainText("18.0 km/h towards north · Tailwind");
   await expect(cockpit.region).toHaveAttribute("data-tone", "gain");
   await expect(cockpit.region).toContainText("40.0 km/h");
   await expect(cockpit.dialRange).toHaveCount(1);
@@ -35,11 +33,7 @@ test("a saved segment opens at the first hour with a tailwind estimate @smoke @a
   await aria("cockpit-tailwind", cockpit.region);
 });
 
-test("the legacy /routes address redirects to the planner", async ({
-  page,
-  planner,
-  seed,
-}) => {
+test("the legacy /routes address redirects to the planner", async ({ page, planner, seed }) => {
   await seed(seeded);
 
   await planner.openLegacyAddress();
@@ -49,10 +43,7 @@ test("the legacy /routes address redirects to the planner", async ({
   await expect(planner.demoLink).toHaveCount(0);
 });
 
-test("previous hour is disabled at the first hour", async ({
-  planner,
-  seed,
-}) => {
+test("previous hour is disabled at the first hour", async ({ planner, seed }) => {
   await seed(seeded);
 
   await expect(planner.timeline.previousButton).toBeDisabled();
@@ -87,9 +78,7 @@ test("a calm hour matches the still-air time", async ({ planner, seed }) => {
   await planner.timeline.goToHour(2);
 
   const { cockpit } = planner;
-  await expect(cockpit.segmentTime).toHaveText(
-    await cockpit.calmTime.innerText(),
-  );
+  await expect(cockpit.segmentTime).toHaveText(await cockpit.calmTime.innerText());
   await expect(cockpit.timeDifference).toContainText("Same time");
   await expect(cockpit.windSummary).toContainText("Calm");
 });
@@ -117,38 +106,25 @@ test("best hour selects the best window today", async ({ planner, seed }) => {
   await expect(timeline.selectedWindow).toContainText(tailwindTime);
 });
 
-test("the last hour shows rain and a crosswind and disables next", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("the last hour shows rain and a crosswind and disables next", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
   const tailwindTime = await planner.cockpit.time();
 
   await planner.timeline.goToHour(47);
 
   const { timeline, cockpit } = planner;
-  await expect(timeline.bestHourButton).toHaveAttribute(
-    "aria-pressed",
-    "false",
-  );
+  await expect(timeline.bestHourButton).toHaveAttribute("aria-pressed", "false");
   await expect(timeline.selectedWindow).toHaveAttribute("data-best", "false");
   await expect(cockpit.segmentTime).not.toHaveText(tailwindTime);
   await expect(timeline.nextButton).toBeDisabled();
   await expect(cockpit.windSummary).toContainText("Hour 48 of 48");
   await expect(timeline.dayTicks).toHaveCount(2);
   await expect(cockpit.weatherIcon).toHaveAttribute("data-kind", "rain");
-  await expect(cockpit.windSummary).toContainText(
-    "towards east · Mostly crosswind",
-  );
+  await expect(cockpit.windSummary).toContainText("towards east · Mostly crosswind");
   expect(openMeteo.calls.weather).toBe(1);
 });
 
-test("mph converts every readout without a new request", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("mph converts every readout without a new request", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
   await planner.timeline.goToHour(47);
   const crosswindTime = await planner.cockpit.time();
@@ -164,10 +140,7 @@ test("mph converts every readout without a new request", async ({
   expect(openMeteo.calls.weather).toBe(1);
 });
 
-test("the map overlay shows the wind with animated particles", async ({
-  planner,
-  seed,
-}) => {
+test("the map overlay shows the wind with animated particles", async ({ planner, seed }) => {
   await seed(seeded);
 
   const { map } = planner;
@@ -177,10 +150,7 @@ test("the map overlay shows the wind with animated particles", async ({
   await expect(map.particles).toHaveAttribute("data-motion", "animated");
 });
 
-test("switching particles off leaves the wind arrow", async ({
-  planner,
-  seed,
-}) => {
+test("switching particles off leaves the wind arrow", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.map.hideParticles();
@@ -189,10 +159,7 @@ test("switching particles off leaves the wind arrow", async ({
   await expect(planner.map.arrow).toBeVisible();
 });
 
-test("switching particles back on restores the field", async ({
-  planner,
-  seed,
-}) => {
+test("switching particles back on restores the field", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.map.hideParticles();
 
@@ -201,10 +168,7 @@ test("switching particles back on restores the field", async ({
   await expect(planner.map.particles).toHaveCount(1);
 });
 
-test("Home moves the slider to the first hour @keyboard", async ({
-  planner,
-  seed,
-}) => {
+test("Home moves the slider to the first hour @keyboard", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.timeline.goToHour(5);
 
@@ -213,10 +177,7 @@ test("Home moves the slider to the first hour @keyboard", async ({
   await expect(planner.timeline.slider).toHaveValue("0");
 });
 
-test("ArrowRight steps one hour and the readouts follow @keyboard", async ({
-  planner,
-  seed,
-}) => {
+test("ArrowRight steps one hour and the readouts follow @keyboard", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.press("ArrowRight");
@@ -225,10 +186,7 @@ test("ArrowRight steps one hour and the readouts follow @keyboard", async ({
   await expect(planner.cockpit.speed).toHaveText("Unavailable");
 });
 
-test("End moves the slider to the last hour @keyboard", async ({
-  planner,
-  seed,
-}) => {
+test("End moves the slider to the last hour @keyboard", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.press("End");
@@ -236,10 +194,7 @@ test("End moves the slider to the last hour @keyboard", async ({
   await expect(planner.timeline.slider).toHaveValue("47");
 });
 
-test("a click on the timeline jumps to that hour @keyboard", async ({
-  planner,
-  seed,
-}) => {
+test("a click on the timeline jumps to that hour @keyboard", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.clickTrack(0.75);
@@ -259,10 +214,7 @@ test("the hourly table selects an hour", async ({ planner, seed }) => {
   await expect(planner.cockpit.segmentTime).toHaveText(tailwindTime);
 });
 
-test("the timeline stays on screen on a phone @mobile-only @mobile", async ({
-  planner,
-  seed,
-}) => {
+test("the timeline stays on screen on a phone @mobile-only @mobile", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.centre();
@@ -272,19 +224,13 @@ test("the timeline stays on screen on a phone @mobile-only @mobile", async ({
   expect(await planner.horizontalOverflow()).toBe(0);
 });
 
-test("deleting the segment removes the timeline and the map overlay", async ({
-  planner,
-  seed,
-}) => {
+test("deleting the segment removes the timeline and the map overlay", async ({ planner, seed }) => {
   await seed(seeded);
   await expect(planner.map.overlay).toHaveCount(1);
 
   await planner.library.delete();
 
   await expect(planner.timeline.slider).toHaveCount(0);
-  await expect(planner.library.slot(1)).toHaveAttribute(
-    "data-defined",
-    "false",
-  );
+  await expect(planner.library.slot(1)).toHaveAttribute("data-defined", "false");
   await expect(planner.map.overlay).toHaveCount(0);
 });

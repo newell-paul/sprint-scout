@@ -6,11 +6,7 @@ test.beforeEach(({ openMeteo }) => {
   openMeteo.hours = Object.fromEntries(
     Array.from({ length: 48 }, (_, i) => [
       i,
-      i === 6
-        ? { speed: 8, code: 61 }
-        : i < 6
-          ? { speed: 7, code: 1, isDay: 0 as const }
-          : { code: 1 },
+      i === 6 ? { speed: 8, code: 61 } : i < 6 ? { speed: 7, code: 1, isDay: 0 as const } : { code: 1 },
     ]),
   );
 });
@@ -18,10 +14,7 @@ test.beforeEach(({ openMeteo }) => {
 test.use({ fixedTime: "2026-09-10T07:00:00Z" });
 const seeded = { routes: [aRoute({ id: "north", name: "Northbound" })] };
 
-test("night and wet bands mark the hours on the timeline", async ({
-  planner,
-  seed,
-}) => {
+test("night and wet bands mark the hours on the timeline", async ({ planner, seed }) => {
   await seed(seeded);
 
   const { nightBands, wetBands } = planner.timeline;
@@ -40,10 +33,7 @@ test("the best hour can fall in the rain", async ({ planner, seed }) => {
   await expect(planner.timeline.slider).toHaveValue("6");
 });
 
-test("dry daylight only moves the best hour past the rain", async ({
-  planner,
-  seed,
-}) => {
+test("dry daylight only moves the best hour past the rain", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.onlyDryDaylight();
@@ -63,9 +53,7 @@ test("the hourly table names rain and night", async ({ planner, seed }) => {
 
 test("rider power changes the still-air time", async ({ planner, seed }) => {
   await seed(seeded);
-  await expect(planner.rider.summary).toContainText(
-    "Reference rider · 40.0 km/h",
-  );
+  await expect(planner.rider.summary).toContainText("Reference rider · 40.0 km/h");
   const calmBefore = await planner.cockpit.calmTime.innerText();
   await planner.rider.open();
 
@@ -86,10 +74,7 @@ test("the rider's numbers persist across reload", async ({ planner, seed }) => {
   await expect(planner.rider.summary).toContainText("Your numbers");
 });
 
-test("an out-of-range CdA is refused and the saved numbers stand", async ({
-  planner,
-  seed,
-}) => {
+test("an out-of-range CdA is refused and the saved numbers stand", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.rider.open();
   await planner.rider.setPower(400);
@@ -100,17 +85,12 @@ test("an out-of-range CdA is refused and the saved numbers stand", async ({
   await expect(planner.rider.summary).toContainText("Your numbers");
 });
 
-test("use reference rider restores the default pace", async ({
-  planner,
-  seed,
-}) => {
+test("use reference rider restores the default pace", async ({ planner, seed }) => {
   await seed({ ...seeded, rider: { powerW: 400, massKg: 85, cdaM2: 0.3 } });
   await expect(planner.rider.summary).toContainText("Your numbers");
   await planner.rider.open();
 
   await planner.rider.useReference();
 
-  await expect(planner.rider.summary).toContainText(
-    "Reference rider · 40.0 km/h",
-  );
+  await expect(planner.rider.summary).toContainText("Reference rider · 40.0 km/h");
 });

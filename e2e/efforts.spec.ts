@@ -13,9 +13,7 @@ test(
 
     const { efforts } = planner;
     await expect(efforts.rows).toHaveCount(2);
-    await expect(efforts.status).toContainText(
-      "2 efforts added from northbound-two-laps.gpx",
-    );
+    await expect(efforts.status).toContainText("2 efforts added from northbound-two-laps.gpx");
     await expect(efforts.heading).toContainText("Best 1m 4");
     await expect(efforts.time(0)).toHaveText(/^1m 4\ds$/);
     expect(openMeteo.calls).toEqual({ weather: 1, elevation: 0, archive: 0 });
@@ -32,10 +30,7 @@ test("imported efforts persist across reload", async ({ planner, seed }) => {
   await expect(planner.efforts.rows).toHaveCount(2);
 });
 
-test("importing the same ride twice does not duplicate efforts", async ({
-  planner,
-  seed,
-}) => {
+test("importing the same ride twice does not duplicate efforts", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.efforts.importGpx("northbound-two-laps");
   await expect(planner.efforts.rows).toHaveCount(2);
@@ -46,31 +41,21 @@ test("importing the same ride twice does not duplicate efforts", async ({
   await expect(planner.efforts.rows).toHaveCount(2);
 });
 
-test("a ride in the opposite direction matches nothing", async ({
-  planner,
-  seed,
-}) => {
+test("a ride in the opposite direction matches nothing", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.efforts.importGpx("northbound-reversed");
 
-  await expect(planner.efforts.status).toContainText(
-    "No traversal of this segment found in northbound-reversed.gpx",
-  );
+  await expect(planner.efforts.status).toContainText("No traversal of this segment found in northbound-reversed.gpx");
   await expect(planner.efforts.rows).toHaveCount(0);
 });
 
-test("a file without track points is rejected with a clear message", async ({
-  planner,
-  seed,
-}) => {
+test("a file without track points is rejected with a clear message", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.efforts.importGpx("not-a-track");
 
-  await expect(planner.efforts.status).toContainText(
-    "GPX file contains no track points.",
-  );
+  await expect(planner.efforts.status).toContainText("GPX file contains no track points.");
 });
 
 test("an effort can be removed", async ({ planner, seed }) => {
@@ -83,10 +68,7 @@ test("an effort can be removed", async ({ planner, seed }) => {
   await expect(planner.efforts.rows).toHaveCount(1);
 });
 
-test("a removed effort stays removed after reload", async ({
-  planner,
-  seed,
-}) => {
+test("a removed effort stays removed after reload", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.efforts.importGpx("northbound-two-laps");
   await planner.efforts.remove(0);
@@ -97,10 +79,7 @@ test("a removed effort stays removed after reload", async ({
   await expect(planner.efforts.rows).toHaveCount(1);
 });
 
-test("a geometry edit discards efforts matched to the old line", async ({
-  planner,
-  seed,
-}) => {
+test("a geometry edit discards efforts matched to the old line", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.efforts.importGpx("northbound-two-laps");
   await expect(planner.efforts.rows).toHaveCount(2);
@@ -111,32 +90,22 @@ test("a geometry edit discards efforts matched to the old line", async ({
   await expect(planner.efforts.rows).toHaveCount(0);
 });
 
-test(
-  "efforts panel is keyboard reachable and described",
-  { tag: ["@a11y"] },
-  async ({ planner, seed, aria }) => {
-    await seed(seeded);
+test("efforts panel is keyboard reachable and described", { tag: ["@a11y"] }, async ({ planner, seed, aria }) => {
+  await seed(seeded);
 
-    await planner.efforts.importGpx("northbound-two-laps");
+  await planner.efforts.importGpx("northbound-two-laps");
 
-    await expect(planner.efforts.rows).toHaveCount(2);
-    await aria("efforts-panel-two-laps", planner.efforts.region);
-  },
-);
+  await expect(planner.efforts.rows).toHaveCount(2);
+  await aria("efforts-panel-two-laps", planner.efforts.region);
+});
 
-test("import is disabled until the recording is confirmed as the rider's own", async ({
-  planner,
-  seed,
-}) => {
+test("import is disabled until the recording is confirmed as the rider's own", async ({ planner, seed }) => {
   await seed(seeded);
 
   await expect(planner.efforts.importInput).toBeDisabled();
 });
 
-test("confirming the recording as the rider's own enables import", async ({
-  planner,
-  seed,
-}) => {
+test("confirming the recording as the rider's own enables import", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.efforts.confirmOwnRecording();
@@ -144,11 +113,7 @@ test("confirming the recording as the rider's own enables import", async ({
   await expect(planner.efforts.importInput).toBeEnabled();
 });
 
-test("past wind cannot load before consent", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("past wind cannot load before consent", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
 
   await planner.efforts.importGpx("northbound-two-laps");
@@ -159,11 +124,7 @@ test("past wind cannot load before consent", async ({
   expect(openMeteo.calls.archive).toBe(0);
 });
 
-test("past wind loads after consent and is saved with the effort", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("past wind loads after consent and is saved with the effort", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
   await planner.efforts.importGpx("northbound-two-laps");
   await expect(planner.efforts.rows).toHaveCount(2);
@@ -179,11 +140,7 @@ test("past wind loads after consent and is saved with the effort", async ({
   await expect(efforts.loadPastWindButton).toBeDisabled();
 });
 
-test("saved past wind survives a reload without a new request", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("saved past wind survives a reload without a new request", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
   await planner.efforts.importGpx("northbound-two-laps");
   await expect(planner.efforts.rows).toHaveCount(2);
@@ -196,11 +153,7 @@ test("saved past wind survives a reload without a new request", async ({
   expect(openMeteo.calls.archive).toBe(1);
 });
 
-test("an archive outage leaves efforts without wind and says so", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("an archive outage leaves efforts without wind and says so", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
   await planner.efforts.importGpx("northbound-two-laps");
   await expect(planner.efforts.rows).toHaveCount(2);
@@ -208,8 +161,6 @@ test("an archive outage leaves efforts without wind and says so", async ({
 
   await planner.efforts.loadPastWind();
 
-  await expect(planner.efforts.status).toContainText(
-    "Weather archive unavailable",
-  );
+  await expect(planner.efforts.status).toContainText("Weather archive unavailable");
   await expect(planner.efforts.winds.first()).toHaveText("Not loaded");
 });

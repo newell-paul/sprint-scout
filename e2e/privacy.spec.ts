@@ -1,8 +1,7 @@
 import { aRoute, expect, test } from "./fixtures";
 
 const seeded = { routes: [aRoute({ id: "north", name: "Northbound" })] };
-const hosts = (urls: string[]) =>
-  Array.from(new Set(urls.map((url) => new URL(url).host))).sort();
+const hosts = (urls: string[]) => Array.from(new Set(urls.map((url) => new URL(url).host))).sort();
 const draftPoints: [number, number][] = [
   [-0.31, 51.44],
   [-0.31, 51.45],
@@ -19,11 +18,7 @@ test("no elevation request leaves the page before the consent box is ticked", as
   await expect(planner.terrain.loadButton).toBeDisabled();
   await expect(planner.terrain.automatic).toBeDisabled();
   expect(openMeteo.calls.elevation).toBe(0);
-  expect(
-    externalRequests.filter((url) =>
-      url.includes("api.open-meteo.com/v1/elevation"),
-    ),
-  ).toEqual([]);
+  expect(externalRequests.filter((url) => url.includes("api.open-meteo.com/v1/elevation"))).toEqual([]);
 });
 
 test("no archive request leaves the page before past-wind consent", async ({
@@ -52,9 +47,7 @@ test("no archive request leaves the page before past-wind consent", async ({
 
   await expect(planner.efforts.loadPastWindButton).toBeDisabled();
   expect(openMeteo.calls.archive).toBe(0);
-  expect(externalRequests.filter((url) => url.includes("archive-api"))).toEqual(
-    [],
-  );
+  expect(externalRequests.filter((url) => url.includes("archive-api"))).toEqual([]);
 });
 
 test("only Open-Meteo and the map tiles are contacted during a full ranking", async ({
@@ -83,16 +76,10 @@ test("only Open-Meteo and the map tiles are contacted during a full ranking", as
 
   const allowed = ["api.open-meteo.com", "tile.openstreetmap.org"];
   expect(hosts(externalRequests)).toContain("api.open-meteo.com");
-  expect(
-    hosts(externalRequests).filter((host) => !allowed.includes(host)),
-  ).toEqual([]);
+  expect(hosts(externalRequests).filter((host) => !allowed.includes(host))).toEqual([]);
 });
 
-test("weather requests carry no referrer and no credentials", async ({
-  page,
-  planner,
-  seed,
-}) => {
+test("weather requests carry no referrer and no credentials", async ({ page, planner, seed }) => {
   // A cookie the browser would send if the request ever asked for credentials.
   await page.context().addCookies([
     {
@@ -108,8 +95,7 @@ test("weather requests carry no referrer and no credentials", async ({
   // headers() hides cookie and other security headers; allHeaders() does not.
   const requests: Promise<Record<string, string>>[] = [];
   page.on("request", (request) => {
-    if (request.url().includes("api.open-meteo.com"))
-      requests.push(request.allHeaders());
+    if (request.url().includes("api.open-meteo.com")) requests.push(request.allHeaders());
   });
 
   await seed(seeded);
@@ -143,25 +129,16 @@ test("a weather request only ever carries the segment start, never the whole lin
   expect(forecast).not.toContain("51.505");
 });
 
-test("a drafted route sends nothing before it is saved", async ({
-  planner,
-  openMeteo,
-  externalRequests,
-}) => {
+test("a drafted route sends nothing before it is saved", async ({ planner, openMeteo, externalRequests }) => {
   await planner.open();
 
   await planner.editor.draft("Private draft", draftPoints);
 
   expect(openMeteo.calls).toEqual({ weather: 0, elevation: 0, archive: 0 });
-  expect(externalRequests.filter((url) => url.includes("open-meteo"))).toEqual(
-    [],
-  );
+  expect(externalRequests.filter((url) => url.includes("open-meteo"))).toEqual([]);
 });
 
-test("saving a drafted route sends only its start", async ({
-  planner,
-  openMeteo,
-}) => {
+test("saving a drafted route sends only its start", async ({ planner, openMeteo }) => {
   await planner.open();
   await planner.editor.draft("Private draft", draftPoints);
 

@@ -38,11 +38,7 @@ test.beforeEach(({ openMeteo }) => {
   openMeteo.faults.weather = "outage";
 });
 
-test("a save is refused when another tab changed the segment and the draft stays", async ({
-  page,
-  planner,
-  seed,
-}) => {
+test("a save is refused when another tab changed the segment and the draft stays", async ({ page, planner, seed }) => {
   await seed(original);
   await planner.library.redraw();
   await planner.editor.name("My draft");
@@ -55,11 +51,7 @@ test("a save is refused when another tab changed the segment and the draft stays
   await expect(planner.editor.routeName).toHaveValue("My draft");
 });
 
-test("cancelling after another tab's change shows that tab's version", async ({
-  page,
-  planner,
-  seed,
-}) => {
+test("cancelling after another tab's change shows that tab's version", async ({ page, planner, seed }) => {
   await seed(original);
   await planner.library.redraw();
   await otherTabRenames(page);
@@ -69,11 +61,7 @@ test("cancelling after another tab's change shows that tab's version", async ({
   await expect(planner.library.heading).toContainText("Other tab version");
 });
 
-test("undo delete is refused when another tab replaced the slot", async ({
-  page,
-  planner,
-  seed,
-}) => {
+test("undo delete is refused when another tab replaced the slot", async ({ page, planner, seed }) => {
   await seed(original);
   await planner.library.delete();
   await otherTabReplaces(page);
@@ -83,11 +71,7 @@ test("undo delete is refused when another tab replaced the slot", async ({
   await expect(planner.status).toContainText("Could not save changes");
 });
 
-test("another tab's replacement survives a refused undo delete", async ({
-  page,
-  planner,
-  seed,
-}) => {
+test("another tab's replacement survives a refused undo delete", async ({ page, planner, seed }) => {
   await seed(original);
   await planner.library.delete();
   await otherTabReplaces(page);

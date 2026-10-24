@@ -10,9 +10,7 @@ test.describe("drawing", () => {
     await planner.open();
   });
 
-  test("Tab moves from latitude to longitude @keyboard", async ({
-    planner,
-  }) => {
+  test("Tab moves from latitude to longitude @keyboard", async ({ planner }) => {
     await planner.editor.coordinatesToggle.press("Enter");
 
     await planner.editor.latitude.press("Tab");
@@ -20,23 +18,17 @@ test.describe("drawing", () => {
     await expect(planner.editor.longitude).toBeFocused();
   });
 
-  test("points can be added without a pointer @keyboard", async ({
-    planner,
-  }) => {
+  test("points can be added without a pointer @keyboard", async ({ planner }) => {
     await planner.editor.coordinatesToggle.press("Enter");
 
-    for (const point of northbound)
-      await planner.editor.addPointWithKeyboard(point);
+    for (const point of northbound) await planner.editor.addPointWithKeyboard(point);
 
     await expect(planner.editor.pointCount(2)).toBeVisible();
   });
 
-  test("a segment can be saved without a pointer @keyboard", async ({
-    planner,
-  }) => {
+  test("a segment can be saved without a pointer @keyboard", async ({ planner }) => {
     await planner.editor.coordinatesToggle.press("Enter");
-    for (const point of northbound)
-      await planner.editor.addPointWithKeyboard(point);
+    for (const point of northbound) await planner.editor.addPointWithKeyboard(point);
 
     await planner.editor.routeName.focus();
     await planner.editor.routeName.fill("Keyboard ride");
@@ -52,10 +44,7 @@ test.describe("forecast", () => {
     openMeteo.hours = { 1: { speed: 0 } };
   });
 
-  test("ArrowRight moves to the next hour and the readouts follow @keyboard", async ({
-    planner,
-    seed,
-  }) => {
+  test("ArrowRight moves to the next hour and the readouts follow @keyboard", async ({ planner, seed }) => {
     await seed(seeded);
 
     await planner.timeline.press("ArrowRight");
@@ -64,10 +53,7 @@ test.describe("forecast", () => {
     await expect(planner.cockpit.windSummary).toContainText("Calm");
   });
 
-  test("ArrowLeft moves back and the readouts follow @keyboard", async ({
-    planner,
-    seed,
-  }) => {
+  test("ArrowLeft moves back and the readouts follow @keyboard", async ({ planner, seed }) => {
     await seed(seeded);
     await planner.timeline.press("ArrowRight");
     await expect(planner.cockpit.windSummary).toContainText("Calm");
@@ -79,10 +65,7 @@ test.describe("forecast", () => {
   });
 });
 
-test("Tomorrow works from the keyboard @keyboard", async ({
-  planner,
-  seed,
-}) => {
+test("Tomorrow works from the keyboard @keyboard", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.tomorrowButton.press("Enter");
@@ -90,23 +73,14 @@ test("Tomorrow works from the keyboard @keyboard", async ({
   expect(await planner.timeline.hour()).toBeGreaterThan(0);
 });
 
-test("Best hour works from the keyboard @keyboard", async ({
-  planner,
-  seed,
-}) => {
+test("Best hour works from the keyboard @keyboard", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.timeline.tomorrowButton.press("Enter");
 
   await planner.timeline.bestHourButton.press("Space");
 
-  await expect(planner.timeline.bestHourButton).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-  await expect(planner.timeline.selectedWindow).toHaveAttribute(
-    "data-best",
-    "true",
-  );
+  await expect(planner.timeline.bestHourButton).toHaveAttribute("aria-pressed", "true");
+  await expect(planner.timeline.selectedWindow).toHaveAttribute("data-best", "true");
 });
 
 test("terrain loads from the keyboard: consent with Space, load with Enter @keyboard", async ({
@@ -125,10 +99,7 @@ test("terrain loads from the keyboard: consent with Space, load with Enter @keyb
   await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
 });
 
-test("the hourly times table opens and takes focus from the keyboard @keyboard @a11y", async ({
-  planner,
-  seed,
-}) => {
+test("the hourly times table opens and takes focus from the keyboard @keyboard @a11y", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.hourlyToggle.press("Enter");
@@ -137,10 +108,7 @@ test("the hourly times table opens and takes focus from the keyboard @keyboard @
   await expect(planner.timeline.hourlyTable).toBeFocused();
 });
 
-test("Enter on an hourly row selects that hour @keyboard @a11y", async ({
-  planner,
-  seed,
-}) => {
+test("Enter on an hourly row selects that hour @keyboard @a11y", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.timeline.hourlyToggle.press("Enter");
   // Hour 0 is already selected, so only a later row proves Enter selects.
@@ -153,17 +121,12 @@ test("Enter on an hourly row selects that hour @keyboard @a11y", async ({
 
 // Untagged so only Chromium runs it: Playwright's WebKit does not scroll a
 // focused region on ArrowDown.
-test("arrow keys scroll the focused hourly times table", async ({
-  planner,
-  seed,
-}) => {
+test("arrow keys scroll the focused hourly times table", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.timeline.hourlyToggle.press("Enter");
   const before = await planner.timeline.hourlyScrollTop();
 
   await planner.timeline.hourlyTable.press("ArrowDown");
 
-  await expect
-    .poll(() => planner.timeline.hourlyScrollTop())
-    .toBeGreaterThan(before);
+  await expect.poll(() => planner.timeline.hourlyScrollTop()).toBeGreaterThan(before);
 });

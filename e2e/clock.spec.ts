@@ -9,12 +9,7 @@ test.describe("forecast expiry", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
   });
 
-  test("the forecast is kept for its 30-minute window", async ({
-    page,
-    planner,
-    seed,
-    openMeteo,
-  }) => {
+  test("the forecast is kept for its 30-minute window", async ({ page, planner, seed, openMeteo }) => {
     await seed(seeded);
     await expect(planner.timeline.slider).toBeVisible();
 

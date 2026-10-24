@@ -12,10 +12,7 @@ test.beforeEach(({ openMeteo }) => {
 const seeded = { routes: [aRoute({ id: "north", name: "Northbound" })] };
 const withTarget = { routes: [aRoute({ id: "north", targetTimeS: 90 })] };
 
-test("conditions show sustained wind, gusts and precipitation for the hour", async ({
-  planner,
-  seed,
-}) => {
+test("conditions show sustained wind, gusts and precipitation for the hour", async ({ planner, seed }) => {
   await seed(seeded);
 
   await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
@@ -23,24 +20,16 @@ test("conditions show sustained wind, gusts and precipitation for the hour", asy
   await expect(planner.attempt.conditions).toContainText("0.0 mm · 20% chance");
 });
 
-test("an hour without data reads unavailable in conditions and the target comparison", async ({
-  planner,
-  seed,
-}) => {
+test("an hour without data reads unavailable in conditions and the target comparison", async ({ planner, seed }) => {
   await seed(withTarget);
 
   await planner.timeline.goToHour(3);
 
   await expect(planner.attempt.conditions).toContainText("Unavailable");
-  await expect(planner.attempt.comparison).toContainText(
-    "comparison unavailable",
-  );
+  await expect(planner.attempt.comparison).toContainText("comparison unavailable");
 });
 
-test("a target outside minutes:seconds is refused", async ({
-  planner,
-  seed,
-}) => {
+test("a target outside minutes:seconds is refused", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.attempt.setTarget("1:60");
@@ -49,11 +38,7 @@ test("a target outside minutes:seconds is refused", async ({
   await expect(planner.attempt.comparison).toHaveCount(0);
 });
 
-test("a saved target compares with the estimate without a new request", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("a saved target compares with the estimate without a new request", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
 
   await planner.attempt.setTarget("1:30");
@@ -81,10 +66,7 @@ test("removing the target clears the comparison", async ({ planner, seed }) => {
   await expect(planner.attempt.comparison).toHaveCount(0);
 });
 
-test("a removed target stays removed after reload", async ({
-  planner,
-  seed,
-}) => {
+test("a removed target stays removed after reload", async ({ planner, seed }) => {
   await seed(withTarget);
   await planner.attempt.removeTarget();
   await expect(planner.attempt.comparison).toHaveCount(0);
@@ -94,11 +76,7 @@ test("a removed target stays removed after reload", async ({
   await expect(planner.attempt.comparison).toHaveCount(0);
 });
 
-test("targets can be edited during a weather outage", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("targets can be edited during a weather outage", async ({ planner, seed, openMeteo }) => {
   openMeteo.faults.weather = "outage";
   await seed(seeded);
 
@@ -115,10 +93,7 @@ test("mph converts the conditions", async ({ planner, seed }) => {
   await expect(planner.attempt.conditions).toContainText("22.4 mph");
 });
 
-test("conditions and target stay compact on a phone @mobile-only @mobile", async ({
-  planner,
-  seed,
-}) => {
+test("conditions and target stay compact on a phone @mobile-only @mobile", async ({ planner, seed }) => {
   await seed(withTarget);
 
   await expect(planner.attempt.comparison).toBeVisible();

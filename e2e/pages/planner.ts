@@ -55,10 +55,7 @@ export class Planner {
   /** Opens the planner over a raw stored library, readable or not. */
   async openWithStoredRoutes(raw: string) {
     await this.page.goto("/health");
-    await this.page.evaluate(
-      ([key, value]) => localStorage.setItem(key, value),
-      [routesKey, raw] as const,
-    );
+    await this.page.evaluate(([key, value]) => localStorage.setItem(key, value), [routesKey, raw] as const);
     await this.open();
   }
 

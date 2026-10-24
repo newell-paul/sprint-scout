@@ -9,26 +9,20 @@ const deg = (r: number) => (r * 180) / Math.PI;
 function distance(a: Coordinate, b: Coordinate) {
   const dLat = rad(b[1] - a[1]);
   const dLon = rad(b[0] - a[0]);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(rad(a[1])) * Math.cos(rad(b[1])) * Math.sin(dLon / 2) ** 2;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[1])) * Math.cos(rad(b[1])) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 function bearing(a: Coordinate, b: Coordinate) {
   const y = Math.sin(rad(b[0] - a[0])) * Math.cos(rad(b[1]));
   const x =
-    Math.cos(rad(a[1])) * Math.sin(rad(b[1])) -
-    Math.sin(rad(a[1])) * Math.cos(rad(b[1])) * Math.cos(rad(b[0] - a[0]));
+    Math.cos(rad(a[1])) * Math.sin(rad(b[1])) - Math.sin(rad(a[1])) * Math.cos(rad(b[1])) * Math.cos(rad(b[0] - a[0]));
   return deg(Math.atan2(y, x));
 }
 function destination(origin: Coordinate, d: number, bearingDeg: number) {
   const lat1 = rad(origin[1]);
   const lon1 = rad(origin[0]);
   const bearingRad = rad(bearingDeg);
-  const lat2 = Math.asin(
-    Math.sin(lat1) * Math.cos(d / R) +
-      Math.cos(lat1) * Math.sin(d / R) * Math.cos(bearingRad),
-  );
+  const lat2 = Math.asin(Math.sin(lat1) * Math.cos(d / R) + Math.cos(lat1) * Math.sin(d / R) * Math.cos(bearingRad));
   const lon2 =
     lon1 +
     Math.atan2(
@@ -59,17 +53,9 @@ function along(points: Coordinate[], d: number): Coordinate {
   }
   throw new Error("unreachable");
 }
-function gpx(
-  name: string,
-  points: Coordinate[],
-  speedMps: number,
-  laps: number,
-  reverse = false,
-) {
+function gpx(name: string, points: Coordinate[], speedMps: number, laps: number, reverse = false) {
   const route = reverse ? [...points].reverse() : points;
-  const total = route
-    .slice(1)
-    .reduce((sum, p, i) => sum + distance(route[i]!, p), 0);
+  const total = route.slice(1).reduce((sum, p, i) => sum + distance(route[i]!, p), 0);
   const rows: string[] = [];
   let at = start;
   for (let lap = 0; lap < laps; lap++) {
@@ -84,14 +70,8 @@ function gpx(
   }
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="SprintScout fixtures"><trk><name>${name}</name><trkseg>\n${rows.join("\n")}\n</trkseg></trk></gpx>\n`;
 }
-writeFileSync(
-  "e2e/data/northbound-two-laps.gpx",
-  gpx("Two laps north", northbound, 11, 2),
-);
-writeFileSync(
-  "e2e/data/northbound-reversed.gpx",
-  gpx("Southbound", northbound, 11, 1, true),
-);
+writeFileSync("e2e/data/northbound-two-laps.gpx", gpx("Two laps north", northbound, 11, 2));
+writeFileSync("e2e/data/northbound-reversed.gpx", gpx("Southbound", northbound, 11, 1, true));
 writeFileSync(
   "e2e/data/not-a-track.gpx",
   `<?xml version="1.0"?><gpx version="1.1"><wpt lat="51.5" lon="-0.12"><name>Cafe</name></wpt></gpx>\n`,

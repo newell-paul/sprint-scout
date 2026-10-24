@@ -11,21 +11,12 @@ test.beforeEach(({ openMeteo }) => {
   openMeteo.hours = { 2: { speed: 0 }, 6: { code: 61, isDay: 0 } };
 });
 
-test("cockpit dial and compass at a tailwind hour @visual", async ({
-  planner,
-  seed,
-}) => {
+test("cockpit dial and compass at a tailwind hour @visual", async ({ planner, seed }) => {
   await seed(seeded);
 
   await expect(planner.cockpit.region).toHaveAttribute("data-tone", "gain");
-  await expect(planner.cockpit.dial).toHaveScreenshot(
-    "dial-tailwind.png",
-    options,
-  );
-  await expect(planner.cockpit.compass).toHaveScreenshot(
-    "compass-southerly.png",
-    options,
-  );
+  await expect(planner.cockpit.dial).toHaveScreenshot("dial-tailwind.png", options);
+  await expect(planner.cockpit.compass).toHaveScreenshot("compass-southerly.png", options);
 });
 
 test("cockpit dial at a calm hour @visual", async ({ planner, seed }) => {
@@ -37,27 +28,18 @@ test("cockpit dial at a calm hour @visual", async ({ planner, seed }) => {
   await expect(planner.cockpit.dial).toHaveScreenshot("dial-calm.png", options);
 });
 
-test("timeline with night and rain bands @visual", async ({
-  planner,
-  seed,
-}) => {
+test("timeline with night and rain bands @visual", async ({ planner, seed }) => {
   await seed(seeded);
 
   await expect(planner.timeline.wetBands).toHaveCount(1);
-  await expect(planner.timeline.chart).toHaveScreenshot(
-    "timeline-bands.png",
-    options,
-  );
+  await expect(planner.timeline.chart).toHaveScreenshot("timeline-bands.png", options);
 });
 
 test("demo planner in the light theme @visual", async ({ demo }) => {
   await demo.open();
 
   await expect(demo.map).toHaveAttribute("data-map-ready", "true");
-  await expect(demo.chart).toHaveScreenshot(
-    "demo-hour-chart-light.png",
-    options,
-  );
+  await expect(demo.chart).toHaveScreenshot("demo-hour-chart-light.png", options);
 });
 
 test("demo planner in the dark theme @visual", async ({ demo }) => {
@@ -66,8 +48,5 @@ test("demo planner in the dark theme @visual", async ({ demo }) => {
 
   await demo.useDarkTheme();
 
-  await expect(demo.chart).toHaveScreenshot(
-    "demo-hour-chart-dark.png",
-    options,
-  );
+  await expect(demo.chart).toHaveScreenshot("demo-hour-chart-dark.png", options);
 });

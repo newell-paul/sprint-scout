@@ -104,9 +104,7 @@ export class Timeline {
   }
 
   async centre() {
-    await this.slider.evaluate((element) =>
-      element.scrollIntoView({ block: "center" }),
-    );
+    await this.slider.evaluate((element) => element.scrollIntoView({ block: "center" }));
   }
 
   async tryAgain() {

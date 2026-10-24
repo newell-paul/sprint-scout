@@ -13,9 +13,7 @@ const plannerCalls = (page: Page) => {
   return calls;
 };
 
-test("the demo opens with the banner and a ready map @smoke @a11y", async ({
-  demo,
-}) => {
+test("the demo opens with the banner and a ready map @smoke @a11y", async ({ demo }) => {
   await demo.open();
 
   await expect(demo.heading).toBeVisible();
@@ -23,10 +21,7 @@ test("the demo opens with the banner and a ready map @smoke @a11y", async ({
   await expect(demo.map).toHaveAttribute("data-map-ready", "true");
 });
 
-test("one selected hour shows everywhere without a new request @smoke", async ({
-  page,
-  demo,
-}) => {
+test("one selected hour shows everywhere without a new request @smoke", async ({ page, demo }) => {
   const calls = plannerCalls(page);
   await demo.open();
 
@@ -40,17 +35,12 @@ test("one selected hour shows everywhere without a new request @smoke", async ({
   expect(calls).toHaveLength(0);
 });
 
-test("departure follows the approach time without a new request", async ({
-  page,
-  demo,
-}) => {
+test("departure follows the approach time without a new request", async ({ page, demo }) => {
   const calls = plannerCalls(page);
   await demo.open();
   await demo.pressAttemptHour("Home");
   await expect(demo.departure).toContainText("15:30");
-  await expect(demo.rideEffects.first()).toContainText(
-    /km\/h .*for a reference rider/,
-  );
+  await expect(demo.rideEffects.first()).toContainText(/km\/h .*for a reference rider/);
 
   await demo.setApproach(40);
 
@@ -66,9 +56,7 @@ test("the last attempt hour warns on the north card", async ({ demo }) => {
   await expect(demo.card("demo-north")).toContainText("Caution");
 });
 
-test("the selected segment survives hour and window changes", async ({
-  demo,
-}) => {
+test("the selected segment survives hour and window changes", async ({ demo }) => {
   await demo.open();
   await demo.selectSegment(/Synthetic Bend/, "demo-bend");
   await demo.pressAttemptHour("Home");
@@ -80,9 +68,7 @@ test("the selected segment survives hour and window changes", async ({
   await expect(demo.map).toHaveAttribute("data-segment", "demo-bend");
 });
 
-test("a row picked in the table moves the chart and the card", async ({
-  demo,
-}) => {
+test("a row picked in the table moves the chart and the card", async ({ demo }) => {
   await demo.open();
   await demo.selectSegment(/Synthetic Bend/, "demo-bend");
 
@@ -102,23 +88,17 @@ test("deselecting every route asks for one to compare", async ({ demo }) => {
   await expect(demo.messageHeading("Choose a route to compare")).toBeVisible();
 });
 
-test("incomplete weather marks unknown fields on the card", async ({
-  demo,
-}) => {
+test("incomplete weather marks unknown fields on the card", async ({ demo }) => {
   await demo.open();
 
   await demo.chooseScenario("incomplete");
   await demo.compare();
 
   await expect(demo.card("demo-north")).toContainText("Unknown");
-  await expect(demo.card("demo-north")).toContainText(
-    "Some weather fields are unavailable",
-  );
+  await expect(demo.card("demo-north")).toContainText("Some weather fields are unavailable");
 });
 
-test("a partial failure keeps the good route and names the missing one", async ({
-  demo,
-}) => {
+test("a partial failure keeps the good route and names the missing one", async ({ demo }) => {
   await demo.open();
 
   await demo.chooseScenario("partial");
@@ -126,9 +106,7 @@ test("a partial failure keeps the good route and names the missing one", async (
 
   await expect(demo.card("demo-north")).toBeVisible();
   await expect(demo.card("demo-bend")).toHaveCount(0);
-  await expect(demo.status("Some results are unavailable")).toContainText(
-    "Route geometry unavailable",
-  );
+  await expect(demo.status("Some results are unavailable")).toContainText("Route geometry unavailable");
 });
 
 test("a stale forecast hides the map and says so", async ({ demo }) => {
@@ -161,10 +139,7 @@ test("a network failure keeps the last results", async ({ page, demo }) => {
   await expect(demo.card("demo-north")).toBeVisible();
 });
 
-test("retry after a network failure shows loading, then clears the error", async ({
-  page,
-  demo,
-}) => {
+test("retry after a network failure shows loading, then clears the error", async ({ page, demo }) => {
   await demo.open();
   await page.route("**/api/planner?**", (route) => route.abort());
   await demo.compare();
@@ -181,9 +156,7 @@ test("retry after a network failure shows loading, then clears the error", async
 
   await demo.retry();
 
-  await expect(
-    demo.status("Comparing supplied hourly forecasts"),
-  ).toBeVisible();
+  await expect(demo.status("Comparing supplied hourly forecasts")).toBeVisible();
 
   release();
 
@@ -191,17 +164,10 @@ test("retry after a network failure shows loading, then clears the error", async
   await expect(demo.alert).toHaveCount(0);
 });
 
-test("without WebGL the map steps aside for the table @mobile", async ({
-  page,
-  demo,
-}) => {
+test("without WebGL the map steps aside for the table @mobile", async ({ page, demo }) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (
-      this: HTMLCanvasElement,
-      contextId: string,
-      ...args: unknown[]
-    ) {
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, contextId: string, ...args: unknown[]) {
       if (contextId.startsWith("webgl")) return null;
       return Reflect.apply(original, this, [contextId, ...args]);
     } as typeof original;
@@ -224,9 +190,7 @@ test("the dark theme keeps its contrast @a11y", async ({ page, demo }) => {
   await expect(demo.lightThemeButton).toBeVisible();
 });
 
-test("ArrowRight moves the attempt hour forward @keyboard", async ({
-  demo,
-}) => {
+test("ArrowRight moves the attempt hour forward @keyboard", async ({ demo }) => {
   await demo.open();
   await demo.pressAttemptHour("Home");
 

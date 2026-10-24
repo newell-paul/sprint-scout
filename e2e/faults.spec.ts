@@ -10,8 +10,7 @@ const fillStorage = (page: Page) =>
     for (const size of [512 * 1024, 32 * 1024, 2 * 1024, 128, 8]) {
       const block = "x".repeat(size);
       try {
-        for (let attempt = 0; attempt < 512; attempt++)
-          localStorage.setItem(`filler-${index++}`, block);
+        for (let attempt = 0; attempt < 512; attempt++) localStorage.setItem(`filler-${index++}`, block);
       } catch {
         /* this block size no longer fits; try a smaller one */
       }
@@ -19,8 +18,7 @@ const fillStorage = (page: Page) =>
   });
 const freeStorage = (page: Page) =>
   page.evaluate(() => {
-    for (const key of Object.keys(localStorage))
-      if (key.startsWith("filler-")) localStorage.removeItem(key);
+    for (const key of Object.keys(localStorage)) if (key.startsWith("filler-")) localStorage.removeItem(key);
   });
 
 test.describe("forecast timeout", () => {
@@ -30,27 +28,16 @@ test.describe("forecast timeout", () => {
     openMeteo.faults.weather = "timeout";
   });
 
-  test("a forecast that never answers times out", async ({
-    page,
-    planner,
-    seed,
-  }) => {
+  test("a forecast that never answers times out", async ({ page, planner, seed }) => {
     await seed(seeded);
     await expect(planner.timeline.placeholder).toBeVisible();
 
     await page.clock.runFor(12_500);
 
-    await expect(planner.alert).toContainText(
-      "Forecast request timed out or was cancelled.",
-    );
+    await expect(planner.alert).toContainText("Forecast request timed out or was cancelled.");
   });
 
-  test("try again recovers after a timeout", async ({
-    page,
-    planner,
-    seed,
-    openMeteo,
-  }) => {
+  test("try again recovers after a timeout", async ({ page, planner, seed, openMeteo }) => {
     await seed(seeded);
     await expect(planner.timeline.placeholder).toBeVisible();
     await page.clock.runFor(12_500);
@@ -72,24 +59,14 @@ test.describe("rate limit", () => {
     openMeteo.faults.weather = "rateLimit";
   });
 
-  test("a rate-limited forecast says so and offers a retry", async ({
-    planner,
-    seed,
-  }) => {
+  test("a rate-limited forecast says so and offers a retry", async ({ planner, seed }) => {
     await seed(seeded);
 
-    await expect(planner.alert).toContainText(
-      "Weather service rate limit reached. Try again later.",
-    );
+    await expect(planner.alert).toContainText("Weather service rate limit reached. Try again later.");
     await expect(planner.timeline.tryAgainButton).toBeVisible();
   });
 
-  test("a rate-limited forecast does not retry on its own", async ({
-    page,
-    planner,
-    seed,
-    openMeteo,
-  }) => {
+  test("a rate-limited forecast does not retry on its own", async ({ page, planner, seed, openMeteo }) => {
     await seed(seeded);
     await expect(planner.alert).toBeVisible();
 
@@ -100,11 +77,7 @@ test.describe("rate limit", () => {
   });
 });
 
-test("an empty forecast body is reported as unusable", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
+test("an empty forecast body is reported as unusable", async ({ planner, seed, openMeteo }) => {
   openMeteo.faults.weather = "empty";
 
   await seed(seeded);
@@ -113,21 +86,13 @@ test("an empty forecast body is reported as unusable", async ({
   await expect(planner.timeline.slider).toHaveCount(0);
 });
 
-test("map tiles failing to load leaves the map usable", async ({
-  planner,
-  seed,
-  externalRequests,
-}) => {
+test("map tiles failing to load leaves the map usable", async ({ planner, seed, externalRequests }) => {
   await seed(seeded);
 
   await expect(planner.map.region).toBeVisible();
   await expect(planner.map.overlay).toBeVisible();
   await expect
-    .poll(
-      () =>
-        externalRequests.filter((url) => url.includes("tile.openstreetmap.org"))
-          .length,
-    )
+    .poll(() => externalRequests.filter((url) => url.includes("tile.openstreetmap.org")).length)
     .toBeGreaterThan(0);
 });
 
@@ -136,11 +101,7 @@ test.describe("with the forecast unavailable", () => {
     openMeteo.faults.weather = "outage";
   });
 
-  test("a full storage quota refuses the save", async ({
-    page,
-    planner,
-    seed,
-  }) => {
+  test("a full storage quota refuses the save", async ({ page, planner, seed }) => {
     await seed({ routes: [aRoute({ id: "kept", name: "Kept segment" })] });
     await fillStorage(page);
     await planner.library.selectSlot(2);
@@ -148,16 +109,10 @@ test.describe("with the forecast unavailable", () => {
     await planner.editor.draft("Will not fit");
     await planner.editor.save();
 
-    await expect(planner.status).toContainText(
-      "Could not save changes. Storage may be full",
-    );
+    await expect(planner.status).toContainText("Could not save changes. Storage may be full");
   });
 
-  test("a refused save preserves the existing routes", async ({
-    page,
-    planner,
-    seed,
-  }) => {
+  test("a refused save preserves the existing routes", async ({ page, planner, seed }) => {
     await seed({ routes: [aRoute({ id: "kept", name: "Kept segment" })] });
     await fillStorage(page);
     await planner.library.selectSlot(2);
@@ -168,27 +123,17 @@ test.describe("with the forecast unavailable", () => {
     await freeStorage(page);
     await planner.reload();
 
-    await expect(planner.library.slot(1)).toHaveAttribute(
-      "data-defined",
-      "true",
-    );
-    await expect(planner.library.slot(2)).toHaveAttribute(
-      "data-defined",
-      "false",
-    );
+    await expect(planner.library.slot(1)).toHaveAttribute("data-defined", "true");
+    await expect(planner.library.slot(2)).toHaveAttribute("data-defined", "false");
   });
 
   test("unreadable saved routes are reported", async ({ planner }) => {
     await planner.openWithStoredRoutes("{not json");
 
-    await expect(planner.status).toHaveText(
-      "Cannot read saved routes. Existing data is preserved.",
-    );
+    await expect(planner.status).toHaveText("Cannot read saved routes. Existing data is preserved.");
   });
 
-  test("a save over unreadable routes is refused and leaves them in place", async ({
-    planner,
-  }) => {
+  test("a save over unreadable routes is refused and leaves them in place", async ({ planner }) => {
     await planner.openWithStoredRoutes("{not json");
     await planner.editor.draft("Fresh segment");
     await expect(planner.editor.saveButton).toBeEnabled();
