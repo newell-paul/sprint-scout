@@ -64,7 +64,39 @@ export type WorkflowRun = {
   attempt?: number;
 };
 export type PullRequest = { createdAt: string; mergedAt: string | null };
-export type IntentFile = { slug: string; text: string };
+export type IntentFile = {
+  slug: string;
+  text: string;
+  spec?: boolean;
+  plan?: boolean;
+};
+export type CheckRollupItem = {
+  status?: string;
+  conclusion?: string | null;
+  state?: string;
+};
+export type OpenIntent = IntentFile & {
+  pr: {
+    number: number;
+    url: string;
+    isDraft: boolean;
+    headRefName: string;
+    statusCheckRollup: CheckRollupItem[];
+  };
+};
+export type CheckState = "passing" | "failing" | "running" | "no checks";
+export type BoardColumn =
+  "Draft" | "Accepted" | "In build" | "Done" | "Dropped";
+export type BoardCard = {
+  slug: string;
+  title: string;
+  opened: string;
+  column: BoardColumn;
+  spec: boolean;
+  plan: boolean;
+  folder: string;
+  pr?: { number: number; url: string; draft: boolean; checks: CheckState };
+};
 
 export type Counts = { tests: number; failed: number; durationMs: number };
 export type Snapshot = {
@@ -97,6 +129,7 @@ export type Snapshot = {
     mergesPerWeek: number[];
   } | null;
   intents?: { slug: string; status: string; opened: string }[] | null;
+  board?: BoardCard[] | null;
   review?: ReviewSummary | null;
 };
 export type Inputs = {
@@ -119,6 +152,8 @@ export type Inputs = {
   runs?: WorkflowRun[] | undefined;
   pulls?: PullRequest[] | undefined;
   intents?: IntentFile[] | undefined;
+  openIntents?: OpenIntent[] | undefined;
+  repo?: string | undefined;
   reviews?: ReviewRecord[] | undefined;
   now?: string | undefined;
 };
@@ -244,14 +279,122 @@ export function deliverySummary(pulls: PullRequest[], now: string, weeks = 8) {
   return { medianCycleHours: median, mergesPerWeek };
 }
 
+const intentStatus = (text: string) =>
+  /^Status:\s*(.+)$/m.exec(text)?.[1]?.trim() ?? "unknown";
+const intentOpened = (text: string) =>
+  /^Opened:\s*(.+?)(?: by .*)?$/m.exec(text)?.[1]?.trim() ?? "";
+
 export function intentSummary(files: IntentFile[]) {
   return files
     .map(({ slug, text }) => ({
       slug,
-      status: /^Status:\s*(.+)$/m.exec(text)?.[1]?.trim() ?? "unknown",
-      opened: /^Opened:\s*(.+?)(?: by .*)?$/m.exec(text)?.[1]?.trim() ?? "",
+      status: intentStatus(text),
+      opened: intentOpened(text),
     }))
     .sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
+}
+
+const failedConclusions = new Set([
+  "FAILURE",
+  "CANCELLED",
+  "TIMED_OUT",
+  "ACTION_REQUIRED",
+  "STARTUP_FAILURE",
+]);
+
+export function checkState(rollup: CheckRollupItem[]): CheckState {
+  if (
+    rollup.some(
+      (c) =>
+        failedConclusions.has(c.conclusion ?? "") ||
+        c.state === "FAILURE" ||
+        c.state === "ERROR",
+    )
+  )
+    return "failing";
+  if (
+    rollup.some((c) =>
+      c.state === undefined
+        ? c.status !== "COMPLETED"
+        : c.state === "PENDING" || c.state === "EXPECTED",
+    )
+  )
+    return "running";
+  return rollup.length ? "passing" : "no checks";
+}
+
+const months = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+];
+// "24 October 2026" as 20261024; Date.parse of this form is not standard.
+function openedKey(opened: string) {
+  const m = /^(\d{1,2}) ([A-Za-z]+) (\d{4})$/.exec(opened);
+  const month = m ? months.indexOf(m[2]!.toLowerCase()) : -1;
+  return m && month >= 0 ? +m[3]! * 10_000 + (month + 1) * 100 + +m[1]! : -1;
+}
+
+function boardColumn(status: string, open: boolean, plan: boolean) {
+  const s = status.toLowerCase();
+  if (s === "dropped") return "Dropped";
+  if (open && (plan || s === "in build" || s === "done")) return "In build";
+  if (s === "accepted") return "Accepted";
+  if (s === "in build") return "In build";
+  if (s === "done") return "Done";
+  return "Draft";
+}
+
+// Branch copies replace main ones because an intent lands on main with its
+// code; on an open pull request it is still in flight, whatever it says.
+export function intentBoard(
+  main: IntentFile[],
+  open: OpenIntent[],
+  repo: string,
+): BoardCard[] {
+  const latest = new Map<string, IntentFile | OpenIntent>();
+  for (const file of main) latest.set(file.slug, file);
+  const winners = new Map<string, OpenIntent>();
+  for (const file of open) {
+    const seen = winners.get(file.slug);
+    if (!seen || file.pr.number > seen.pr.number) winners.set(file.slug, file);
+  }
+  for (const [slug, file] of winners) latest.set(slug, file);
+  return [...latest.values()]
+    .map((file) => {
+      const pr = "pr" in file ? file.pr : undefined;
+      const card: BoardCard = {
+        slug: file.slug,
+        title: /^# (.+)$/m.exec(file.text)?.[1]?.trim() || file.slug,
+        opened: intentOpened(file.text),
+        column: boardColumn(intentStatus(file.text), !!pr, !!file.plan),
+        spec: !!file.spec,
+        plan: !!file.plan,
+        folder: `https://github.com/${repo}/tree/${pr?.headRefName ?? "main"}/intent/${file.slug}`,
+      };
+      if (pr)
+        card.pr = {
+          number: pr.number,
+          url: pr.url,
+          draft: pr.isDraft,
+          checks: checkState(pr.statusCheckRollup),
+        };
+      return card;
+    })
+    .sort(
+      (a, b) =>
+        openedKey(b.opened) - openedKey(a.opened) ||
+        (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0),
+    );
 }
 
 export function snapshot(inputs: Inputs): Snapshot {
@@ -299,6 +442,13 @@ export function snapshot(inputs: Inputs): Snapshot {
       ? deliverySummary(inputs.pulls, inputs.now ?? `${inputs.date}T23:59:59Z`)
       : undefined,
     intents: inputs.intents ? intentSummary(inputs.intents) : undefined,
+    board: inputs.intents
+      ? intentBoard(
+          inputs.intents,
+          inputs.openIntents ?? [],
+          inputs.repo ?? "newell-paul/sprint-scout",
+        )
+      : undefined,
     review: inputs.reviews ? reviewSummary(inputs.reviews) : undefined,
   };
   for (const [key, value] of Object.entries(extra)) {
@@ -307,10 +457,17 @@ export function snapshot(inputs: Inputs): Snapshot {
   return base;
 }
 
+// Only the newest entry keeps its board, so history does not grow by one per run.
 export function appendHistory(history: Snapshot[], next: Snapshot, keep = 90) {
-  return [...history.filter((s) => s.date !== next.date), next]
+  const kept = [...history.filter((s) => s.date !== next.date), next]
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
     .slice(-keep);
+  return kept.map((s, i) => {
+    if (i === kept.length - 1 || !("board" in s)) return s;
+    const rest = { ...s };
+    delete rest.board;
+    return rest;
+  });
 }
 
 export function flakeFreeStreak(history: Snapshot[]) {
@@ -527,6 +684,46 @@ function bandsPanel(annotations: Annotation[]) {
   return `<section class="bands" data-level="${worst}" aria-labelledby="bands-h"><h2 id="bands-h">${worst >= 3 ? "Out of band" : "Drifting"}</h2><p class="lead">${worst >= 3 ? "A metric left its 3σ band; this run failed the dashboard job." : "A metric left its 2σ band around the previous runs."} Bands are defined in <code>packages/testing/bands.yaml</code>.</p><ul>${items}</ul></section>`;
 }
 
+const docsText = (c: BoardCard) =>
+  c.spec && c.plan
+    ? "Spec and plan"
+    : c.spec
+      ? "Spec, no plan"
+      : c.plan
+        ? "Plan, no spec"
+        : "No spec or plan";
+
+const boardCard = (c: BoardCard) =>
+  `<li class="intent"><a href="${escapeHtml(c.folder)}"><strong>${escapeHtml(c.title)}</strong></a>` +
+  `<p class="note"><code>${escapeHtml(c.slug)}</code>${c.opened ? ` · ${escapeHtml(c.opened)}` : ""}</p>` +
+  `<p class="note">${docsText(c)}</p>` +
+  (c.pr
+    ? `<p class="note" data-checks="${c.pr.checks}"><a href="${escapeHtml(c.pr.url)}">#${c.pr.number}</a>${c.pr.draft ? " draft" : ""} · ${c.pr.checks}</p>`
+    : "") +
+  `</li>`;
+
+const boardList = (cards: BoardCard[]) =>
+  cards.length
+    ? `<ul>${cards.map(boardCard).join("")}</ul>`
+    : `<p class="note">None</p>`;
+
+function boardHtml(cards: BoardCard[]) {
+  if (!cards.length) return `<p class="muted">No intents</p>`;
+  const columns = (["Draft", "Accepted", "In build", "Done"] as const)
+    .map((name) => {
+      const inColumn = cards.filter((c) => c.column === name);
+      return `<div class="column"><h3>${name} <span class="muted">${inColumn.length}</span></h3>${boardList(inColumn)}</div>`;
+    })
+    .join("");
+  const dropped = cards.filter((c) => c.column === "Dropped");
+  return (
+    `<div class="board">${columns}</div>` +
+    (dropped.length
+      ? `<details class="dropped"><summary>Dropped (${dropped.length})</summary>${boardList(dropped)}</details>`
+      : "")
+  );
+}
+
 export function render(history: Snapshot[], annotations: Annotation[] = []) {
   const latest = history.at(-1);
   if (!latest) return "<p>No test runs recorded yet.</p>";
@@ -686,12 +883,6 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
   const byStatus = new Map<string, number>();
   for (const i of intents)
     byStatus.set(i.status, (byStatus.get(i.status) ?? 0) + 1);
-  const intentRows = intents
-    .map(
-      (i) =>
-        `<tr><td><code>${escapeHtml(i.slug)}</code></td><td>${escapeHtml(i.status)}</td><td>${escapeHtml(i.opened)}</td></tr>`,
-    )
-    .join("");
   const aiCards = [
     card("Eval pass rate", ev ? `${ev.passed} / ${ev.total}` : "n/a", {
       tone:
@@ -796,6 +987,12 @@ figure{margin:8px 0 0;color:var(--accent)}.spark{display:block;max-width:100%;he
 table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:12px}
 th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);font-size:.9rem}tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums}
 code{font-size:.85em;background:var(--soft);padding:1px 5px;border-radius:4px}
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:12px;align-items:start}
+.column{background:var(--soft);border-radius:10px;padding:10px;min-width:0}.column h3{margin:0 0 8px;font-size:.95rem}
+.board ul,.dropped ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.intent{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;overflow-wrap:anywhere}
+.intent a{color:var(--ink)}[data-checks=failing]{color:var(--poor)}[data-checks=passing]{color:var(--gain)}
+.dropped{margin-top:12px}.dropped summary{cursor:pointer;color:var(--muted)}
 footer{margin-top:40px;font-size:.85rem;color:var(--muted)}
 .bands{margin-top:16px;border-radius:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border)}
 p.bands{font-size:.9rem;color:var(--muted)}
@@ -812,7 +1009,8 @@ ${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, un
 ${section("tests", "Tests", "Counts per level from the latest run; trend over the recorded runs.", grid(testCards) + `<table><caption class="muted">Slowest ten end-to-end tests</caption><thead><tr><th>Test</th><th>Project</th><th class="num">Duration</th></tr></thead><tbody>${slowest || '<tr><td colspan="3" class="muted">No end-to-end report</td></tr>'}</tbody></table>`)}
 ${section("quality", "Quality gates", "Coverage from the merged unit shards, mutation score from the last manual Stryker run, type coverage from the static gate.", grid(qualityCards))}
 ${section("performance", "Performance", "The deploy gate runs Lighthouse against the static export and checks client JavaScript against its ceiling.", grid(perfCards))}
-${section("ai", "AI practice", "Evals prove the agent configuration steers an agent; intents are the audit trail of work asked for and delivered.", grid(aiCards) + (intentRows ? `<table><caption class="muted">Intents</caption><thead><tr><th>Intent</th><th>Status</th><th>Opened</th></tr></thead><tbody>${intentRows}</tbody></table>` : ""))}
+${section("ai", "AI practice", "Evals prove the agent configuration steers an agent; intents are the audit trail of work asked for and delivered.", grid(aiCards))}
+${section("board", "Intent board", "Intents on main and on open pull requests, as they stood when this dashboard was built.", boardHtml(latest.board ?? []))}
 ${section("delivery", "Delivery", "Pull requests merged into main, read from the GitHub API by the dashboard job.", grid(deliveryCards))}
 <footer>Built by the Checks workflow after every push to main. No scripts, no external requests. Source: <code>packages/testing/src/dashboard.ts</code>.</footer>
 </main>
