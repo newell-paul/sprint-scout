@@ -1,4 +1,4 @@
-import { display } from "../fonts";
+import { body } from "../fonts";
 function LogoMark({ size = 48 }: { size?: number }) {
   return (
     <svg
@@ -27,7 +27,7 @@ function LogoMark({ size = 48 }: { size?: number }) {
 export default function Logo({ className }: { className?: string }) {
   return (
     <span
-      className={`logo ${display.className}${className ? ` ${className}` : ""}`}
+      className={`logo ${body.className}${className ? ` ${className}` : ""}`}
     >
       <LogoMark />
       <span className="logo-word">
