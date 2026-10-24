@@ -1,6 +1,6 @@
 # Remove the synthetic demo
 
-Status: accepted
+Status: done
 Opened: 24 October 2026 by Paul Newell
 
 ## Problem

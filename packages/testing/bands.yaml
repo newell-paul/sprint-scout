@@ -11,6 +11,8 @@
 #   worse     which direction is a regression
 #   window    previous runs in the baseline (default 20)
 #   minRuns   runs needed before the band is live (default 5)
+#   since     YYYY-MM-DD; runs dated earlier leave the baseline, for an
+#             intended step change (set in the commit that makes it)
 bands:
   - id: e2e-duration
     label: End-to-end duration
@@ -23,29 +25,34 @@ bands:
     path: e2e.tests
     worse: lower
     minSigma: 1
+    since: "2026-10-24"
   - id: unit-count
     label: Unit tests
     path: unit.tests
     worse: lower
     minSigma: 1
+    since: "2026-10-24"
   - id: line-coverage
     label: Line coverage
     path: coverage.lines
     worse: lower
     unit: "%"
     minSigma: 0.5
+    since: "2026-10-24"
   - id: branch-coverage
     label: Branch coverage
     path: coverage.branches
     worse: lower
     unit: "%"
     minSigma: 0.5
+    since: "2026-10-24"
   - id: mutation
     label: Mutation score
     path: mutationScore
     worse: lower
     unit: "%"
     minSigma: 1
+    since: "2026-10-24"
   - id: lighthouse-performance
     label: Lighthouse performance
     path: lighthouse.performance
