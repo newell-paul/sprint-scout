@@ -5,7 +5,7 @@ import Logo from "../components/logo";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as RouteMap, GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { loadMapLibre } from "@scout/ui/maplibre";
+import { clickToActivate, loadMapLibre } from "@scout/ui/maplibre";
 import {
   newId,
   readLibrary,
@@ -65,6 +65,7 @@ export default function Routes() {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<RouteMap | null>(null);
   const [points, setPoints] = useState<Point[]>([]);
+  const drawing = useRef(false);
   const [name, setName] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [routes, setRoutes] = useState<DrawnRoute[]>([]);
@@ -146,6 +147,7 @@ export default function Routes() {
   useEffect(() => {
     let cancelled = false;
     let instance: RouteMap | undefined;
+    let release: (() => void) | undefined;
     void loadMapLibre()
       .then(({ Map, NavigationControl }) => {
         if (cancelled || !container.current) return;
@@ -169,6 +171,11 @@ export default function Routes() {
           },
         });
         map.current = instance;
+        const activation = clickToActivate(instance, container.current, {
+          hint: "Click to use the map",
+          holdOnLeave: () => drawing.current,
+        });
+        release = activation.dispose;
         instance.addControl(new NavigationControl({ showCompass: false }));
         instance.touchZoomRotate.disableRotation();
         instance.keyboard.disableRotation();
@@ -226,7 +233,8 @@ export default function Routes() {
           setReady(true);
         });
         instance.on("click", (e) => {
-          if (viewing.current) return;
+          // The press that hands the map control does not also drop a point.
+          if (activation.takeActivation() || viewing.current) return;
           const p: Point = [e.lngLat.wrap().lng, e.lngLat.lat];
           if (validPoint(p))
             setPoints((old) => (old.length < 500 ? [...old, p] : old));
@@ -240,10 +248,14 @@ export default function Routes() {
       .catch(() => setMapError("Map unavailable. Enter coordinates instead."));
     return () => {
       cancelled = true;
+      release?.();
       instance?.remove();
       map.current = null;
     };
   }, []);
+  useEffect(() => {
+    drawing.current = points.length > 0;
+  }, [points]);
   useEffect(() => {
     if (!ready) return;
     const source = map.current?.getSource("route") as GeoJSONSource | undefined;
