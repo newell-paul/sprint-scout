@@ -2269,8 +2269,7 @@ hr {
   padding: 0.4rem 1rem;
   transition:
     border-color 150ms ease,
-    box-shadow 150ms ease,
-    background-color 150ms ease;
+    box-shadow 150ms ease;
 }
 .forecast-console .forecast-navigation button:first-child,
 .forecast-console .forecast-navigation button:last-child {
@@ -2852,8 +2851,7 @@ hr {
   background: var(--raised);
   transition:
     border-color 150ms ease,
-    box-shadow 150ms ease,
-    background-color 150ms ease;
+    box-shadow 150ms ease;
 }
 .segment-screen button:hover:not(:disabled) {
   border-color: var(--data);
