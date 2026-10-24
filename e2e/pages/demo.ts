@@ -76,10 +76,15 @@ export class DemoPlanner {
     return this.page.getByRole("status").filter({ hasText: text });
   }
 
-  /** The demo is server-rendered; input made before hydration is dropped. */
+  /**
+   * The demo is server-rendered; input made before hydration is dropped. On
+   * a cold dev server the chart's many lazy chunks take seconds and hold every
+   * connection, so a comparison started earlier can queue past the timeout.
+   */
   async open() {
     await this.page.goto("/demo");
     await expect(this.root).toHaveAttribute("data-hydrated", "true");
+    await expect(this.chart).toHaveAttribute("data-chart-ready", "true", { timeout: 15_000 });
   }
 
   async pressAttemptHour(key: string) {
