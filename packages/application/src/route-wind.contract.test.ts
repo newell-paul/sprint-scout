@@ -13,7 +13,7 @@ import { loadTerrain, sampleTerrain } from "./terrain";
 // shared handlers through the real global fetch, not a hand-written stub.
 const config = defaultOpenMeteoConfig();
 const server = openMeteoServer(config);
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
   config.faults = { weather: "ok", elevation: "ok", archive: "ok" };
