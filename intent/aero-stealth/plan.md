@@ -2,10 +2,11 @@
 
 ## Delivery
 
-- `aero-stealth` is the integration branch, cut from `main`. Each stage is a branch from `aero-stealth` and a pull request into it, so Checks runs on every stage.
-- Before a stage PR is opened, the dev server runs and the owner checks it at `http://127.0.0.1:3000` with a short list of what to look at. The PR opens only after the owner's OK, and merges on green Checks when the owner asks.
-- Pages deploys only from `main`. Nothing reaches `main` until the final PR from `aero-stealth`, opened when the owner accepts the full design.
-- When `main` moves, it is merged into `aero-stealth` (no rebase, no force-push).
+- The redesign is design led, so it stays local until the owner accepts the full design. Nothing is pushed to GitHub before then.
+- `aero-stealth` is a local branch cut from `main`. Each stage is one local commit on it, made after the owner checks the stage on the dev server at `http://127.0.0.1:3000` and says it is OK.
+- Before each owner check, `pnpm verify` and `pnpm check:deploy` run locally.
+- When the owner accepts the full design, `aero-stealth` is pushed and one pull request opens into `main`, so Checks runs once on the whole redesign. Pages deploys only after that merges.
+- If `main` moves meanwhile, it is merged into `aero-stealth` (no rebase, no force-push).
 
 ## Stages and files
 

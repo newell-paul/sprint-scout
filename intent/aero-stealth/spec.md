@@ -8,20 +8,21 @@ Nothing the user can do changes. Every control, label, empty state, error state 
 
 Defined once on `:root` in `globals.css`, replacing the light palette. Components use tokens, never raw colours.
 
-| Token            | Value                                                              | Use                               | Contrast on `--bg`              |
-| ---------------- | ------------------------------------------------------------------ | --------------------------------- | ------------------------------- |
-| `--bg`           | `#0B0F19`                                                          | page                              |                                 |
-| `--panel-bg`     | `#131927` at 85 % over `--bg`, 1px `rgba(148,163,184,0.12)` border | cards                             |                                 |
-| `--panel-raised` | `#1E293B`                                                          | controls, capsules                |                                 |
-| `--ink`          | `#FFFFFF`                                                          | headings, values                  | 19.15                           |
-| `--muted`        | `#94A3B8`                                                          | labels, secondary text            | 7.47 (5.71 on `--panel-raised`) |
-| `--wind`         | `#38BDF8`                                                          | wind, "Scout"                     | 8.94                            |
-| `--data`         | `#2DD4BF`                                                          | chart line and points, wind badge | 10.29                           |
-| `--best`         | `#EF4444`                                                          | best hour, segment glow           | 5.09                            |
-| `--route`        | `#F97316`                                                          | route line                        | 6.83                            |
-| `--night`        | `rgba(59,130,246,0.08)`                                            | night bands                       |                                 |
+| Token       | Value                                                                            | Use                                | Contrast on `--bg` / `--raised` |
+| ----------- | -------------------------------------------------------------------------------- | ---------------------------------- | ------------------------------- |
+| `--bg`      | `#1E2A3A`                                                                        | page, sampled from the mock-up     |                                 |
+| `--surface` | `#263345`; cards `rgba(41,54,72,0.85)` with a 1px `rgba(45,212,191,0.22)` border | cards                              |                                 |
+| `--raised`  | `#2E3D52`                                                                        | controls, capsules                 |                                 |
+| `--ink`     | `#FFFFFF`                                                                        | headings, values                   |                                 |
+| `--muted`   | `#A5B4C8`                                                                        | labels, secondary text             | 6.88 / 5.23                     |
+| `--accent`  | `#FC8B8B`                                                                        | links and selected text            | / 4.83                          |
+| `--wind`    | `#38BDF8`                                                                        | wind, "Scout"                      | 6.77 / 5.14                     |
+| `--data`    | `#2DD4BF`                                                                        | chart line and points, wind badge  | 7.79 / 5.92                     |
+| `--best`    | `#EF4444`                                                                        | best hour fills, borders and glows | not used for text               |
+| `--route`   | `#F97316`                                                                        | route line                         | not used for text               |
+| `--night`   | `rgba(59,130,246,0.08)`                                                          | night bands                        |                                 |
 
-- `#64748B` is not used for text (3.07 to 4.02). White on `--best` is 3.76, so text on a crimson fill is `--bg`-coloured or the fill is a border and glow only. Text on `--data` and `--route` fills is `--bg` (10.29 and 6.83).
+- The brief's `#0B0F19` page was dropped after the owner compared it with the mock-up; the mock-up's slate navy is lighter, so muted and accent text are lighter too to hold AA on `--raised`. Text on a `--best` or `--route` fill is `--bg`-coloured or the fill is a border and glow only.
 - Radii: 16px cards, 12px inner panels, 8px controls, full for pills. Glows are `box-shadow` with the accent at 35 % or less.
 - Type: Inter (`--font-body`) for text; JetBrains Mono (`--font-mono`) with tabular figures for every number, time and unit. The display font becomes Inter at heavier weight; Outfit and DM Sans are removed.
 
