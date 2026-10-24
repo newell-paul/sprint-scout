@@ -29,7 +29,7 @@ A GitHub Project board would need a personal access token with project scope, wh
 
 ## Constraints
 
-- No new secrets; the dashboard job's existing read-only token only.
+- No new secrets; the dashboard job's existing token only. Accepted on 24 October 2026: the job gains `checks: read` and `statuses: read`, both read-only, for each pull request's check state.
 - No schedules. The board refreshes when the dashboard does, on a push to `main`.
 - Static HTML with no scripts, light and dark, as the rest of the dashboard.
 - Deterministic and tested; card order is stable.
