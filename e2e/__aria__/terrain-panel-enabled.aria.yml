@@ -76,17 +76,5 @@
             - cell /\d+ m/
             - cell /\d+ m/
     - paragraph: /Retrieved 9\/\d+\/\d+, 8:\d+:\d+ AM\. Stored with this segment until removed\. Editing geometry invalidates elevation\./
-  - paragraph: "/\\d+ m surface grid: bridges, trees and short hills may be wrong\\. Steady effort; acceleration, braking and detailed local airflow excluded\\. Range covers assumed wind errors only, not elevation errors\\. Not a validated personal prediction\\./"
-  - link "Open-Meteo":
-    - /url: https://open-meteo.com/en/docs/elevation-api
-  - text: /
-  - link /Copernicus DEM GLO-\d+ \(\d+\)/:
-    - /url: https://doi.org/10.5270/ESA-c5d3d65
-  - text: ·
-  - link "CC BY 4.0":
-    - /url: https://creativecommons.org/licenses/by/4.0/
-  - text: /· Resampled and smoothed\. Requests may be logged for \d+ days;/
-  - link "terms & privacy":
-    - /url: https://open-meteo.com/en/terms
-  - text: /\. Elevation © DLR e\.V\. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA; all rights reserved\. The organisations in charge of the Copernicus programme do not incur any liability for any use of the Copernicus DEM\./
+  - group: Elevation source and limits
   - status: Terrain loaded and saved in this browser.

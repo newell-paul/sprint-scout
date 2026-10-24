@@ -91,6 +91,9 @@
   font-size: var(--type-caption, 0.8125rem);
   color: var(--muted);
 }
+.shelter-settings button[aria-pressed="true"] span {
+  color: var(--ink);
+}
 .terrain-heading,
 .terrain-modes,
 .terrain-stats {
@@ -112,6 +115,15 @@
 .efforts-panel :is(p, small) {
   color: var(--muted);
   font-size: var(--type-caption, 0.8125rem);
+}
+:is(.terrain-notes, .shelter-notes) summary {
+  color: var(--muted);
+  font-size: var(--type-caption, 0.8125rem);
+  margin-top: 8px;
+}
+:is(.terrain-notes, .shelter-notes) small {
+  display: block;
+  margin-top: 6px;
 }
 .terrain-consent {
   display: flex;
@@ -272,7 +284,7 @@
   --wind: #38bdf8;
   --soft: #2e3d52;
   --route: #f97316;
-  --night: rgba(59, 130, 246, 0.08);
+  --night: rgba(59, 130, 246, 0.1);
   --gain: #2dd4bf;
   --loss: #fb923c;
   --amber: #fbbf24;
@@ -2257,9 +2269,19 @@ hr {
   gap: 6px;
 }
 .forecast-console .forecast-navigation button {
-  background: transparent;
+  background: var(--raised);
   border-color: var(--border);
+  border-radius: 999px;
   min-height: 38px;
+  padding: 0.4rem 1rem;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+.forecast-console .forecast-navigation button:first-child,
+.forecast-console .forecast-navigation button:last-child {
+  border-radius: var(--radius-sm);
 }
 .forecast-console .forecast-navigation button:nth-last-child(2) {
   border-color: var(--accent);
@@ -2320,7 +2342,7 @@ hr {
   border-radius: 4px;
 }
 .time-grid {
-  stroke: var(--soft);
+  stroke: rgba(148, 163, 184, 0.12);
   stroke-width: 0.6;
 }
 .still-air-line {
@@ -2330,31 +2352,34 @@ hr {
 }
 .time-curve {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  stroke: var(--data);
+  stroke-width: 2;
   vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.55));
 }
 .time-point {
-  fill: var(--ink);
+  fill: var(--data);
 }
 .missing-hour {
   stroke: var(--muted);
   stroke-width: 1;
 }
 .best-hour-point {
-  stroke: var(--teal);
-  stroke-width: 2;
-  fill: #ffffff;
+  stroke: var(--best);
+  stroke-width: 2.5;
+  fill: var(--ink);
+  filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.7));
 }
 .selected-hour-line {
-  stroke: var(--teal);
-  stroke-width: 1;
-  opacity: 0.5;
+  stroke: var(--data);
+  stroke-width: 1.5;
+  opacity: 0.6;
 }
 .selected-hour-point {
-  fill: var(--teal);
-  stroke: #ffffff;
+  fill: var(--data);
+  stroke: var(--ink);
   stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.9));
 }
 .time-chart-ticks {
   position: relative;
@@ -2668,11 +2693,10 @@ hr {
 }
 .condition-night {
   fill: var(--night);
-  opacity: 0.55;
 }
 .condition-wet {
-  fill: #527da9;
-  opacity: 0.85;
+  fill: var(--wind);
+  opacity: 0.7;
 }
 .time-chart-key .key-night::before,
 .time-chart-key .key-wet::before {
@@ -2689,7 +2713,8 @@ hr {
   border: 1px solid var(--border, #dde2e6);
 }
 .time-chart-key .key-wet::before {
-  background: #527da9;
+  background: var(--wind);
+  opacity: 0.7;
 }
 .daylight-filter {
   display: inline-flex;
@@ -2705,14 +2730,14 @@ hr {
   color: inherit;
 }
 .forecast-console .forecast-navigation .best-hour-button {
-  border-color: var(--accent);
-  color: var(--teal);
+  border-color: var(--best);
+  color: var(--accent);
 }
 .segment-screen button[aria-pressed="true"]:not(.segment-slot) {
-  background: color-mix(in srgb, var(--teal) 22%, transparent);
-  border-color: var(--teal);
+  background: color-mix(in srgb, var(--data) 18%, var(--raised));
+  border-color: var(--data);
   color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--teal);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
 }
 .segment-screen .unit-switch button[aria-pressed="true"] {
   background: var(--data);
@@ -2726,7 +2751,10 @@ hr {
   min-height: 38px;
 }
 .forecast-console .forecast-navigation .best-hour-button[aria-pressed="true"] {
-  color: var(--teal);
+  background: color-mix(in srgb, var(--best) 28%, var(--raised));
+  border-color: var(--best);
+  color: var(--ink);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
 }
 .best-window[data-best="true"] strong {
   color: var(--gain);

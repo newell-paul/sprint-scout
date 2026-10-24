@@ -275,25 +275,30 @@ export default function TerrainPanel({
           )}
         </p>
       )}
-      <p className="terrain-note">
-        90 m surface grid: bridges, trees and short hills may be wrong. Steady
-        effort; acceleration, braking and detailed local airflow excluded. Range
-        covers assumed wind errors only, not elevation errors. Not a validated
-        personal prediction.
-      </p>
-      <small>
-        <a href="https://open-meteo.com/en/docs/elevation-api">Open-Meteo</a> /{" "}
-        <a href="https://doi.org/10.5270/ESA-c5d3d65">
-          Copernicus DEM GLO-90 (2021)
-        </a>{" "}
-        · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> ·
-        Resampled and smoothed. Requests may be logged for 90 days;{" "}
-        <a href="https://open-meteo.com/en/terms">terms & privacy</a>. Elevation
-        © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018,
-        provided under COPERNICUS by the European Union and ESA; all rights
-        reserved. The organisations in charge of the Copernicus programme do not
-        incur any liability for any use of the Copernicus DEM.
-      </small>
+      <details className="terrain-notes">
+        <summary>Elevation source and limits</summary>
+        <p className="terrain-note">
+          90 m surface grid: bridges, trees and short hills may be wrong. Steady
+          effort; acceleration, braking and detailed local airflow excluded.
+          Range covers assumed wind errors only, not elevation errors. Not a
+          validated personal prediction.
+        </p>
+        <small>
+          <a href="https://open-meteo.com/en/docs/elevation-api">Open-Meteo</a>{" "}
+          /{" "}
+          <a href="https://doi.org/10.5270/ESA-c5d3d65">
+            Copernicus DEM GLO-90 (2021)
+          </a>{" "}
+          · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>{" "}
+          · Resampled and smoothed. Requests may be logged for 90 days;{" "}
+          <a href="https://open-meteo.com/en/terms">terms & privacy</a>.
+          Elevation © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH
+          2014–2018, provided under COPERNICUS by the European Union and ESA;
+          all rights reserved. The organisations in charge of the Copernicus
+          programme do not incur any liability for any use of the Copernicus
+          DEM.
+        </small>
+      </details>
       {message && <p role="status">{message}</p>}
     </section>
   );
