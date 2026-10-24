@@ -54,6 +54,7 @@ Every stage: `pnpm verify` and `pnpm check:deploy` green before the owner's chec
 - The demo's two theme baselines are orphaned and removed by hand, since `pnpm test:visual:update` only writes.
 - Night bands use `rgba(59, 130, 246, 0.1)`, not the spec's 0.08; 0.08 vanished on the lighter mock-up navy.
 - The demo legend copy changed with its colours ("Dashed orange: headwind", "Amber: riding direction"); copy that names a colour must follow it.
+- Panels dropped their 18 px `backdrop-filter` blur after review: it blurred only the flat page colour, and in the Linux WebKit runner it made Playwright checks on the efforts, terrain and timeline controls exceed 30 seconds.
 - MapLibre paint, the arrow canvases and ECharts cannot read CSS variables, so `route-map.tsx`, `route-drawer.tsx` and `hour-chart.tsx` repeat token values as hex.
 
 ## Follow-up

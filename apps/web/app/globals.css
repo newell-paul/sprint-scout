@@ -13,8 +13,6 @@
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
 }
 .target-settings h3 {
   margin: 0;
@@ -38,8 +36,6 @@
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   padding: 14px;
   min-width: 0;
   font-size: var(--type-body, 0.875rem);
@@ -51,8 +47,6 @@
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   min-width: 0;
 }
 .shelter-settings h3 {
@@ -298,7 +292,6 @@
   --panel-bg: rgba(41, 54, 72, 0.85);
   --panel-border: 1px solid rgba(45, 212, 191, 0.22);
   --panel-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  --panel-blur: blur(18px);
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
@@ -2074,8 +2067,6 @@ hr {
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
 }
 .ride-cockpit[data-tone="gain"] {
   --time-tone: var(--gain);
@@ -2253,8 +2244,6 @@ hr {
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   min-width: 0;
 }
 .forecast-console .forecast-navigation {
@@ -2630,8 +2619,6 @@ hr {
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   padding: 10px 16px;
 }
 .rider-settings summary {
@@ -2753,8 +2740,6 @@ hr {
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
 }
 .board-heading {
   display: flex;
