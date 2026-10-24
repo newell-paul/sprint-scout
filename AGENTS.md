@@ -49,6 +49,8 @@ Add a line whenever the same thing happens twice.
 - An emptied library is stored as `[]`; only an absent key counts as a first visit.
 - `next/font/google` fetches at compile time and fails whole e2e shards when Google blips; fonts come from `apps/web/app/fonts.ts` (`next/font/local`).
 - A page that reloads itself in a loop under `next dev` (e2e stuck on `data-hydrated="false"`, "[Fast Refresh] rebuilding" over and over) is a stale Turbopack cache; delete all of `apps/web/.next`, never just part of it.
+- Local e2e reuses any server on :3000 and its `.next` cache; after stopping or restarting a dev server, delete `apps/web/.next` before `pnpm verify` or `pnpm test:e2e`, or the run hits that reload loop.
+- A WebKit failure that never reproduces on macOS ("element is not stable", actions hanging to the timeout) needs the Linux Playwright container CI uses; `scripts/visual-baselines.sh` shows how to run it.
 - An e2e step that acts before the app is ready passes locally and fails on slower CI runners; wait for the visible precondition first (the forecast placeholder before `page.clock.runFor`, hydration and `data-chart-ready` before acting on `/demo`).
 
 ## Docs
