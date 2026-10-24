@@ -35,18 +35,9 @@ test("timeline with night and rain bands @visual", async ({ planner, seed }) => 
   await expect(planner.timeline.chart).toHaveScreenshot("timeline-bands.png", options);
 });
 
-test("demo planner in the light theme @visual", async ({ demo }) => {
+test("demo planner chart @visual", async ({ demo }) => {
   await demo.open();
 
   await expect(demo.map).toHaveAttribute("data-map-ready", "true");
-  await expect(demo.chart).toHaveScreenshot("demo-hour-chart-light.png", options);
-});
-
-test("demo planner in the dark theme @visual", async ({ demo }) => {
-  await demo.open();
-  await expect(demo.map).toHaveAttribute("data-map-ready", "true");
-
-  await demo.useDarkTheme();
-
-  await expect(demo.chart).toHaveScreenshot("demo-hour-chart-dark.png", options);
+  await expect(demo.chart).toHaveScreenshot("demo-hour-chart.png", options);
 });

@@ -10,5 +10,4 @@
     - button "Dense 65% wind reduction":
       - strong: Dense
       - text: 65% wind reduction
-  - paragraph: Manual what-if setting for the whole segment, saved in this browser. Reduces both headwind penalty and tailwind benefit. These percentages are assumptions—not measured tree protection.
-  - text: Forecast wind and gusts stay unchanged. The time range includes the exposed scenario, not validated shelter confidence. Gaps, wind direction, foliage and turbulence are not modelled.
+  - group: How shelter is applied

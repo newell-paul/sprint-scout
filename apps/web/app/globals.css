@@ -13,8 +13,6 @@
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
 }
 .target-settings h3 {
   margin: 0;
@@ -38,8 +36,6 @@
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   padding: 14px;
   min-width: 0;
   font-size: var(--type-body, 0.875rem);
@@ -51,8 +47,6 @@
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   min-width: 0;
 }
 .shelter-settings h3 {
@@ -91,6 +85,9 @@
   font-size: var(--type-caption, 0.8125rem);
   color: var(--muted);
 }
+.shelter-settings button[aria-pressed="true"] span {
+  color: var(--ink);
+}
 .terrain-heading,
 .terrain-modes,
 .terrain-stats {
@@ -112,6 +109,15 @@
 .efforts-panel :is(p, small) {
   color: var(--muted);
   font-size: var(--type-caption, 0.8125rem);
+}
+:is(.terrain-notes, .shelter-notes) summary {
+  color: var(--muted);
+  font-size: var(--type-caption, 0.8125rem);
+  margin-top: 8px;
+}
+:is(.terrain-notes, .shelter-notes) small {
+  display: block;
+  margin-top: 6px;
 }
 .terrain-consent {
   display: flex;
@@ -257,39 +263,62 @@
   }
 }
 :root {
-  --bg: #f6f2f9;
-  --surface: #ffffff;
-  --ink: #241d33;
-  --muted: #6b6480;
-  --border: #9b92ad;
-  --accent: #c2301f;
+  --bg: #1e2a3a;
+  --surface: #263345;
+  --raised: #2e3d52;
+  --ink: #ffffff;
+  --muted: #a5b4c8;
+  --border: rgba(148, 163, 184, 0.28);
+  --best: #ef4444;
+  --accent: #fc8b8b;
   --teal: var(--accent);
-  --coral: #ff5c4d;
-  --violet: #5b4dff;
-  --wind: var(--violet);
-  --soft: #efe9f6;
-  --route: #ff5c4d;
-  --gain: #087359;
-  --loss: #9e5400;
-  --amber: #9e5400;
-  --gain-soft: #d6f5ec;
-  --loss-soft: #ffe9cc;
-  --map-bg: #eef3ff;
+  --coral: #f97316;
+  --data: #2dd4bf;
+  --violet: #38bdf8;
+  --wind: #38bdf8;
+  --soft: #2e3d52;
+  --route: #f97316;
+  --night: rgba(59, 130, 246, 0.1);
+  --gain: #2dd4bf;
+  --loss: #fb923c;
+  --amber: #fbbf24;
+  --gain-soft: rgba(45, 212, 191, 0.14);
+  --loss-soft: rgba(251, 146, 60, 0.14);
+  --map-bg: #1e2a3a;
   --wind-veil: transparent;
   --particle-filter: none;
-  --focus: #5b4dff;
-  --ctrl-icon-filter: none;
-  --panel-bg: rgba(255, 255, 255, 0.72);
-  --panel-border: 1px solid rgba(255, 255, 255, 0.9);
-  --panel-shadow: 0 12px 40px rgba(91, 66, 120, 0.1);
-  --panel-blur: blur(18px);
-  --radius-lg: 22px;
-  --radius-md: 14px;
-  color-scheme: light;
-  font-family: var(--font-body, "DM Sans"), "Helvetica Neue", Arial, sans-serif;
+  --focus: #38bdf8;
+  --ctrl-icon-filter: invert(1);
+  --panel-bg: rgba(41, 54, 72, 0.85);
+  --panel-border: 1px solid rgba(45, 212, 191, 0.22);
+  --panel-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  color-scheme: dark;
+  font-family: var(--font-body, "Inter"), "Helvetica Neue", Arial, sans-serif;
   color: var(--ink);
   background: var(--bg);
   font-synthesis: none;
+}
+:is(
+  .conditions-detail dd,
+  .ride-effect-value,
+  .segment-time-value,
+  .wind-compass text,
+  .dial-readout,
+  .cockpit-time,
+  .timing-facts dd,
+  .cockpit-wind strong,
+  .best-window strong,
+  .rider-input input,
+  .board-gain,
+  .planner .metrics > div:not(.metrics-wide) dd,
+  .planner .index-line strong,
+  .planner .coverage strong,
+  .planner .departure-time
+) {
+  font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
 * {
   box-sizing: border-box;
@@ -302,18 +331,8 @@ body:has(.segment-screen) {
   background:
     radial-gradient(
       900px 520px at 8% -10%,
-      #ffd2b8 0%,
-      rgba(255, 210, 184, 0) 60%
-    ),
-    radial-gradient(
-      820px 560px at 100% 0%,
-      #c9d8ff 0%,
-      rgba(201, 216, 255, 0) 60%
-    ),
-    radial-gradient(
-      700px 500px at 60% 110%,
-      #ffe1ec 0%,
-      rgba(255, 225, 236, 0) 60%
+      rgba(56, 189, 248, 0.08),
+      transparent 60%
     ),
     var(--bg);
 }
@@ -330,7 +349,7 @@ summary {
 button {
   min-height: 44px;
   border: 1px solid var(--border, #b6c8c5);
-  border-radius: 12px;
+  border-radius: var(--radius-sm, 8px);
   background: var(--surface, #fff);
   color: inherit;
   padding: 0.6rem 0.85rem;
@@ -364,34 +383,11 @@ aside[aria-label="Demo mode"] {
   z-index: 10;
 }
 .planner {
-  --bg: #f4f6f3;
-  --surface: #fff;
-  --ink: #172e33;
-  --muted: #506368;
-  --border: #d1dcd8;
-  --teal: #006d61;
-  --soft: #e6f2ec;
-  --amber: #835000;
-  --caution: #fff0d8;
-  --gain: #0b6e4f;
-  --loss: #b3261e;
+  --teal: var(--data);
+  --caution: #493719;
   background: var(--bg);
   color: var(--ink);
   min-height: 100vh;
-}
-.planner[data-theme="dark"] {
-  --bg: #101d22;
-  --surface: #1a2c32;
-  --ink: #e8f1ef;
-  --muted: #b5c7c8;
-  --border: #496169;
-  --teal: #76d5be;
-  --soft: #254440;
-  --amber: #ffd084;
-  --caution: #493719;
-  --gain: #6df2c0;
-  --loss: #ff8c84;
-  color-scheme: dark;
 }
 .topbar {
   max-width: 1400px;
@@ -412,16 +408,6 @@ aside[aria-label="Demo mode"] {
   letter-spacing: 0.08em;
   color: var(--ink);
 }
-.brand-icon {
-  border: 1px solid var(--teal);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  color: var(--teal);
-  font-size: 1.3rem;
-}
 .top-actions {
   display: flex;
   align-items: center;
@@ -431,10 +417,6 @@ aside[aria-label="Demo mode"] {
   font-size: 0.65rem;
   letter-spacing: 0.13em;
   color: var(--muted);
-}
-.quiet {
-  background: transparent;
-  font-size: 0.8rem;
 }
 main {
   max-width: 1400px;
@@ -772,8 +754,8 @@ summary {
 }
 .map-shell {
   position: relative;
-  background: #e2ece8;
-  color: #17383e;
+  background: #1e2a3a;
+  color: var(--ink);
 }
 .map-canvas {
   height: 330px;
@@ -785,7 +767,7 @@ summary {
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.65rem;
-  background: #fffffff0;
+  background: rgba(30, 42, 58, 0.92);
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
   white-space: nowrap;
@@ -799,8 +781,8 @@ summary {
   justify-content: center;
   text-align: center;
   padding: 2rem;
-  background: #e2ece8;
-  color: #17383e;
+  background: #1e2a3a;
+  color: var(--ink);
   font-size: 0.85rem;
 }
 .map-message button {
@@ -829,17 +811,17 @@ summary {
   display: inline-block;
 }
 .swatch.assist {
-  background: #00796d;
+  background: #2dd4bf;
 }
 .swatch.head {
   background: repeating-linear-gradient(
     90deg,
-    #a85d00 0 5px,
+    #f97316 0 5px,
     transparent 5px 7px
   );
 }
 .swatch.neutral {
-  background: #566b72;
+  background: #94a3b8;
 }
 .timeline {
   padding: 1rem 1.1rem;
@@ -888,8 +870,8 @@ input[type="range"] {
 }
 .chart-canvas {
   height: 230px;
-  background: #fff;
-  border-radius: 6px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
 }
 .table-scroll {
   position: relative;
@@ -1246,9 +1228,9 @@ hr {
   display: block;
   width: 56px;
   height: 56px;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
 }
 .logo-word {
-  font-family: var(--font-display, "Outfit"), "Avenir Next", sans-serif;
   font-weight: 800;
   font-size: 38px;
   line-height: 1;
@@ -1256,7 +1238,8 @@ hr {
   color: var(--ink);
 }
 .logo-word-accent {
-  color: var(--teal);
+  color: var(--wind);
+  margin-left: 0.18em;
 }
 .segment-slots {
   display: flex;
@@ -1280,6 +1263,13 @@ hr {
   padding: 0;
   font-size: 26px;
   height: 44px;
+  background: var(--raised);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+.segment-scroll:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 .segment-slot {
   position: relative;
@@ -1292,12 +1282,15 @@ hr {
   align-items: center;
   gap: 8px;
   padding: 8px;
-  border-radius: 12px;
-  border: 2px solid transparent;
-  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--raised);
   color: var(--slot);
-  --slot: color-mix(in srgb, var(--segment-line) 38%, var(--surface));
-  --segment-line: var(--teal);
+  --slot: color-mix(in srgb, var(--segment-line) 45%, var(--raised));
+  --segment-line: var(--data);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
   --segment-dot: var(--ink);
 }
 .segment-slot.defined {
@@ -1321,12 +1314,15 @@ hr {
   gap: 8px;
   font-size: 12px;
 }
+.unit-control > span:first-child {
+  color: var(--muted);
+}
 .unit-switch {
   display: inline-flex;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 2px;
-  background: var(--panel-bg);
+  padding: 3px;
+  background: var(--raised);
 }
 .unit-switch button {
   min-height: 30px;
@@ -1338,9 +1334,10 @@ hr {
   color: var(--muted);
 }
 .unit-switch button[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--teal) 22%, transparent);
-  border-color: var(--teal);
-  color: var(--ink);
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  font-weight: 600;
 }
 .drawing-steps {
   display: flex;
@@ -1367,13 +1364,14 @@ hr {
   margin: 8px 0;
 }
 .route-end-label {
-  background: #fff;
-  color: #172e33;
+  background: #e2e8f0;
+  color: var(--bg);
   font-size: 12px;
-  font-weight: bold;
-  padding: 3px 6px;
-  border: 1px solid #172e33;
-  border-radius: 4px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   pointer-events: none;
 }
 .wind-map-key {
@@ -1383,9 +1381,11 @@ hr {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: rgba(30, 42, 58, 0.88);
+  color: var(--data);
+  border: 1px solid var(--data);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
+  border-radius: var(--radius-sm);
   padding: 6px 10px;
   pointer-events: none;
 }
@@ -1393,7 +1393,7 @@ hr {
   display: inline-block;
   font-size: 28px;
   line-height: 1;
-  color: var(--teal);
+  color: var(--data);
 }
 .wind-map-key .wind-speed-badge {
   font-size: 14px;
@@ -1410,14 +1410,20 @@ hr {
   color: var(--muted);
 }
 .segment-slot.active {
-  border-color: var(--teal);
-  background: color-mix(in srgb, var(--teal) 8%, var(--surface));
+  border-color: var(--best);
+  background: color-mix(in srgb, var(--best) 10%, var(--raised));
+  box-shadow:
+    0 0 0 1px var(--best),
+    0 0 14px rgba(239, 68, 68, 0.35);
 }
 .segment-slot:focus-visible {
-  outline-color: var(--teal);
+  outline-color: var(--focus);
 }
 .segment-slot:hover {
-  border-color: var(--teal);
+  border-color: var(--data);
+}
+.segment-slot.active:hover {
+  border-color: var(--best);
 }
 .segment-slot-number {
   position: absolute;
@@ -1708,7 +1714,7 @@ hr {
 }
 @media (max-width: 600px) {
   .segment-screen {
-    padding: 20px 12px 12px;
+    padding: 20px 16px 16px;
   }
   .segment-toolbar {
     gap: 8px;
@@ -1717,14 +1723,14 @@ hr {
     flex-basis: auto;
   }
   .segment-logo {
-    gap: 10px;
+    gap: 8px;
   }
   .segment-logo .logo-mark {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
   }
   .logo-word {
-    font-size: 34px;
+    font-size: 27px;
   }
   .unit-control {
     margin-left: auto;
@@ -1849,18 +1855,32 @@ hr {
   padding: 2px 8px;
 }
 .segment-map .maplibregl-ctrl-group,
-.segment-map .maplibregl-ctrl-attrib {
+.segment-map .maplibregl-ctrl-attrib,
+.map-shell .maplibregl-ctrl-group,
+.map-shell .maplibregl-ctrl-scale {
   background: var(--surface);
   color: var(--ink);
 }
-.segment-map .maplibregl-ctrl-group button {
+.segment-map .maplibregl-ctrl-group button,
+.map-shell .maplibregl-ctrl-group button {
   background: var(--surface);
 }
-.segment-map .maplibregl-ctrl-icon {
+.segment-map .maplibregl-ctrl-icon,
+.map-shell .maplibregl-ctrl-icon {
   filter: var(--ctrl-icon-filter);
 }
 .segment-map .maplibregl-ctrl-attrib a {
   color: var(--teal);
+}
+.segment-screen .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  background: var(--surface);
+  color: var(--muted);
+}
+.segment-screen .maplibregl-ctrl-attrib a {
+  color: var(--ink);
+}
+.segment-screen .maplibregl-ctrl-attrib-button {
+  filter: var(--ctrl-icon-filter);
 }
 
 .ride-effect {
@@ -2034,19 +2054,19 @@ hr {
 .ride-cockpit {
   display: grid;
   grid-template-columns: minmax(190px, 0.85fr) minmax(280px, 1.5fr) minmax(
-      140px,
+      160px,
       0.65fr
     );
-  align-items: center;
-  gap: 28px;
-  padding: 26px 28px;
+  align-items: stretch;
+  gap: 16px;
+  --time-tone: var(--ink);
+}
+.ride-cockpit > div {
+  padding: 22px 24px;
   background: var(--panel-bg);
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
-  --time-tone: var(--ink);
 }
 .ride-cockpit[data-tone="gain"] {
   --time-tone: var(--gain);
@@ -2080,8 +2100,16 @@ hr {
 }
 .dial-track {
   fill: none;
-  stroke: var(--soft);
-  stroke-width: 2;
+  stroke: var(--raised);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+.dial-progress {
+  fill: none;
+  stroke: var(--data);
+  stroke-width: 10;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.6));
 }
 .dial-tick {
   stroke: var(--muted);
@@ -2089,13 +2117,13 @@ hr {
 }
 .dial-range {
   fill: none;
-  stroke: var(--teal);
-  stroke-width: 8;
-  opacity: 0.3;
+  stroke: var(--wind);
+  stroke-width: 6;
+  opacity: 0.35;
 }
 .dial-baseline {
   fill: var(--surface);
-  stroke: var(--teal);
+  stroke: var(--ink);
   stroke-width: 2;
 }
 .dial-needle {
@@ -2108,7 +2136,6 @@ hr {
 }
 .dial-readout {
   display: block;
-  font-family: var(--font-display, "Outfit"), "Avenir Next", sans-serif;
   font-size: 25px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -2121,20 +2148,17 @@ hr {
   margin-top: 6px;
 }
 .cockpit-timing {
-  padding-left: 28px;
-  border-left: 1px solid var(--border);
   min-width: 0;
 }
 .cockpit-time {
   display: block;
+  color: var(--data);
   font-size: clamp(34px, 4.5vw, 62px);
   line-height: 1.2;
   letter-spacing: -0.045em;
   font-variant-numeric: tabular-nums;
   margin: 10px 0;
-  font-family: var(--font-display, "Outfit"), "Avenir Next", sans-serif;
   font-weight: 800;
-  color: var(--ink);
 }
 .time-delta {
   display: inline-block;
@@ -2172,24 +2196,37 @@ hr {
   height: 120px;
   margin: 8px 0;
 }
+.compass-face {
+  fill: rgba(56, 189, 248, 0.1);
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.45));
+}
 .compass-ring {
-  stroke: var(--muted);
+  stroke: var(--wind);
+  stroke-width: 1.5;
   fill: none;
 }
+.compass-tick {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+.compass-tick.major {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
 .compass-grid {
-  stroke: var(--soft);
+  stroke: rgba(148, 163, 184, 0.25);
   fill: none;
   stroke-dasharray: 2 4;
 }
 .compass-arrow {
   stroke: var(--wind);
   fill: none;
-  stroke-width: 2.5;
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.8));
 }
 .cockpit-wind strong {
-  font-family: var(--font-display, "Outfit"), "Avenir Next", sans-serif;
   font-weight: 700;
   font-size: 18px;
   font-weight: 500;
@@ -2207,8 +2244,6 @@ hr {
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   min-width: 0;
 }
 .forecast-console .forecast-navigation {
@@ -2216,9 +2251,18 @@ hr {
   gap: 6px;
 }
 .forecast-console .forecast-navigation button {
-  background: transparent;
+  background: var(--raised);
   border-color: var(--border);
+  border-radius: 999px;
   min-height: 38px;
+  padding: 0.4rem 1rem;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.forecast-console .forecast-navigation button:first-child,
+.forecast-console .forecast-navigation button:last-child {
+  border-radius: var(--radius-sm);
 }
 .forecast-console .forecast-navigation button:nth-last-child(2) {
   border-color: var(--accent);
@@ -2279,7 +2323,7 @@ hr {
   border-radius: 4px;
 }
 .time-grid {
-  stroke: var(--soft);
+  stroke: rgba(148, 163, 184, 0.12);
   stroke-width: 0.6;
 }
 .still-air-line {
@@ -2289,31 +2333,34 @@ hr {
 }
 .time-curve {
   fill: none;
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  stroke: var(--data);
+  stroke-width: 2;
   vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.55));
 }
 .time-point {
-  fill: var(--ink);
+  fill: var(--data);
 }
 .missing-hour {
   stroke: var(--muted);
   stroke-width: 1;
 }
 .best-hour-point {
-  stroke: var(--teal);
-  stroke-width: 2;
-  fill: #ffffff;
+  stroke: var(--best);
+  stroke-width: 2.5;
+  fill: var(--ink);
+  filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.7));
 }
 .selected-hour-line {
-  stroke: var(--teal);
-  stroke-width: 1;
-  opacity: 0.5;
+  stroke: var(--data);
+  stroke-width: 1.5;
+  opacity: 0.6;
 }
 .selected-hour-point {
-  fill: var(--teal);
-  stroke: #ffffff;
+  fill: var(--data);
+  stroke: var(--ink);
   stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.9));
 }
 .time-chart-ticks {
   position: relative;
@@ -2363,16 +2410,16 @@ hr {
 @media (max-width: 800px) {
   .ride-cockpit {
     grid-template-columns: minmax(130px, 0.8fr) minmax(180px, 1.2fr);
-    gap: 16px;
-    padding: 20px;
+    gap: 12px;
+  }
+  .ride-cockpit > div {
+    padding: 16px;
   }
   .cockpit-wind {
     grid-column: 1 / -1;
     grid-template-columns: auto auto 1fr;
     text-align: left;
     justify-items: start;
-    border-top: 1px solid var(--border);
-    padding-top: 14px;
   }
   .cockpit-wind .instrument-label {
     grid-column: 1 / -1;
@@ -2421,17 +2468,12 @@ hr {
   }
   .cockpit-timing {
     grid-row: 1;
-    border: 0;
-    border-bottom: 1px solid var(--border);
-    padding: 0 0 18px;
   }
   .cockpit-time {
     font-size: 48px;
   }
-  .cockpit-speed {
+  .cockpit-speed .speed-dial {
     max-width: 230px;
-    justify-self: center;
-    width: 100%;
   }
   .forecast-console .forecast-navigation {
     gap: 4px;
@@ -2577,8 +2619,6 @@ hr {
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
   padding: 10px 16px;
 }
 .rider-settings summary {
@@ -2626,12 +2666,11 @@ hr {
   pointer-events: none;
 }
 .condition-night {
-  fill: #d6dde4;
-  opacity: 0.55;
+  fill: var(--night);
 }
 .condition-wet {
-  fill: #527da9;
-  opacity: 0.85;
+  fill: var(--wind);
+  opacity: 0.7;
 }
 .time-chart-key .key-night::before,
 .time-chart-key .key-wet::before {
@@ -2644,11 +2683,12 @@ hr {
   vertical-align: -1px;
 }
 .time-chart-key .key-night::before {
-  background: #d6dde4;
-  border: 1px solid #dde2e6;
+  background: var(--night);
+  border: 1px solid var(--border, #dde2e6);
 }
 .time-chart-key .key-wet::before {
-  background: #527da9;
+  background: var(--wind);
+  opacity: 0.7;
 }
 .daylight-filter {
   display: inline-flex;
@@ -2664,17 +2704,20 @@ hr {
   color: inherit;
 }
 .forecast-console .forecast-navigation .best-hour-button {
-  border-color: var(--accent);
-  color: var(--teal);
+  border-color: var(--best);
+  color: var(--accent);
 }
 .segment-screen button[aria-pressed="true"]:not(.segment-slot) {
-  background: color-mix(in srgb, var(--teal) 22%, transparent);
-  border-color: var(--teal);
+  background: color-mix(in srgb, var(--data) 18%, var(--raised));
+  border-color: var(--data);
   color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--teal);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
 }
-.unit-switch button[aria-pressed="true"] {
-  box-shadow: none;
+.segment-screen .unit-switch button[aria-pressed="true"] {
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.35);
 }
 .wind-display-controls button {
   background: transparent;
@@ -2682,7 +2725,10 @@ hr {
   min-height: 38px;
 }
 .forecast-console .forecast-navigation .best-hour-button[aria-pressed="true"] {
-  color: var(--teal);
+  background: color-mix(in srgb, var(--best) 28%, var(--raised));
+  border-color: var(--best);
+  color: var(--ink);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
 }
 .best-window[data-best="true"] strong {
   color: var(--gain);
@@ -2694,8 +2740,6 @@ hr {
   border: var(--panel-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--panel-shadow);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
 }
 .board-heading {
   display: flex;
@@ -2787,4 +2831,156 @@ hr {
   .forecast-placeholder {
     min-height: 720px;
   }
+}
+.segment-screen button {
+  background: var(--raised);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+.segment-screen button:hover:not(:disabled) {
+  border-color: var(--data);
+}
+.segment-screen button:disabled {
+  opacity: 0.5;
+}
+.segment-screen .primary {
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
+}
+.segment-screen .primary:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.segment-screen input:not([type="checkbox"]):not([type="range"]),
+.segment-screen select {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+.segment-screen input:not([type="checkbox"]):not([type="range"]):focus-visible,
+.segment-screen select:focus-visible {
+  border-color: var(--focus);
+}
+.segment-screen input[type="checkbox"] {
+  accent-color: var(--data);
+}
+.segment-screen
+  :is(
+    .target-settings,
+    .shelter-settings,
+    .terrain-panel,
+    .efforts-panel,
+    .opportunity-board
+  )
+  h3 {
+  font-size: var(--type-heading);
+  font-weight: 600;
+}
+.segment-screen
+  :is(
+    .target-settings,
+    .shelter-settings,
+    .terrain-panel,
+    .efforts-panel,
+    .rider-settings,
+    .opportunity-board
+  ) {
+  padding: 16px 20px;
+}
+.segment-screen :is(input, select, summary, a) {
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+.segment-screen button,
+.segment-slot.defined {
+  transition-duration: 180ms;
+  transition-property: border-color, box-shadow;
+}
+.segment-screen summary:hover {
+  color: var(--ink);
+}
+.dial-progress {
+  transition: d 200ms ease;
+}
+@media (max-width: 600px) {
+  .segment-screen .forecast-console .forecast-navigation button {
+    padding: 4px 7px;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 13px;
+  }
+}
+
+/* Demo planner on the Aero Stealth look. */
+aside[aria-label="Demo mode"] {
+  background: rgba(45, 212, 191, 0.12);
+  border-bottom: 1px solid rgba(45, 212, 191, 0.22);
+  color: var(--ink);
+}
+.planner .topbar {
+  border-bottom-color: rgba(148, 163, 184, 0.16);
+}
+.planner .demo-logo .logo-mark {
+  width: 40px;
+  height: 40px;
+}
+.planner .demo-logo .logo-word {
+  font-size: 26px;
+}
+.planner h1 {
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+.planner .panel {
+  background: var(--panel-bg);
+  border: var(--panel-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--panel-shadow);
+}
+.planner .route-card.selected {
+  border: 1px solid var(--data);
+  padding: 1rem 1.1rem;
+  box-shadow:
+    0 0 0 1px var(--data),
+    0 0 24px rgba(45, 212, 191, 0.2);
+}
+.planner button {
+  background: var(--raised);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.planner button:hover:not(:disabled) {
+  border-color: var(--data);
+}
+.planner :is(.card-select, .best-time button, td button, th button) {
+  background: transparent;
+}
+.planner .primary {
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
+}
+.planner .primary:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.planner input:not([type="checkbox"]):not([type="range"]),
+.planner select {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+.planner input[type="checkbox"],
+.planner input[type="range"] {
+  accent-color: var(--data);
+}
+.planner .best-time {
+  border-radius: var(--radius-sm);
+}
+.planner .chart-canvas {
+  border: 1px solid rgba(148, 163, 184, 0.16);
 }

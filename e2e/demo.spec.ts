@@ -217,16 +217,6 @@ test("without WebGL the map steps aside for the table @mobile", async ({ page, d
   expect(await demo.horizontalOverflow()).toBeLessThanOrEqual(0);
 });
 
-test("the dark theme keeps its contrast @a11y", async ({ page, demo }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await demo.open();
-
-  await demo.useDarkTheme();
-
-  await expect(demo.root).toHaveAttribute("data-theme", "dark");
-  await expect(demo.lightThemeButton).toBeVisible();
-});
-
 test("ArrowRight moves the attempt hour forward @keyboard", async ({ demo }) => {
   await demo.open();
   await demo.pressAttemptHour("Home");
@@ -261,7 +251,7 @@ test("the directed map paints the selected route", async ({ demo }) => {
 
   await expect(demo.map).toHaveAttribute("data-map-ready", "true");
   await expect
-    .poll(() => demo.painted(["#00796d", "#a85d00", "#566b72"]), {
+    .poll(() => demo.painted(["#2dd4bf", "#f97316", "#94a3b8"]), {
       timeout: 10000,
     })
     .toBeGreaterThan(300);

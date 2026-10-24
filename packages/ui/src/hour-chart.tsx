@@ -74,13 +74,13 @@ export default function HourChart({
         xAxis: {
           type: "category",
           data: rows.map((r) => label(r.attemptAt)),
-          axisLabel: { color: "#53636b", fontSize: 10 },
+          axisLabel: { color: "#a5b4c8", fontSize: 10 },
         },
         yAxis: {
           type: "value",
           name: "m/s",
-          axisLabel: { color: "#53636b" },
-          splitLine: { lineStyle: { color: "#dbe3e5" } },
+          axisLabel: { color: "#a5b4c8" },
+          splitLine: { lineStyle: { color: "#2e3d52" } },
         },
         series: [
           {
@@ -88,8 +88,8 @@ export default function HourChart({
             type: "line",
             smooth: false,
             symbolSize: 9,
-            lineStyle: { width: 3, color: "#00796d" },
-            itemStyle: { color: "#00796d" },
+            lineStyle: { width: 3, color: "#2dd4bf" },
+            itemStyle: { color: "#2dd4bf" },
             data: rows.map((r) => ({
               value: Number(r.tailwindMps.toFixed(2)),
               at: r.attemptAt,
@@ -98,7 +98,7 @@ export default function HourChart({
               silent: true,
               symbol: "none",
               label: { show: false },
-              lineStyle: { color: "#53636b", type: "dashed" },
+              lineStyle: { color: "#a5b4c8", type: "dashed" },
               data: [{ xAxis: label(attemptAt) }],
             },
           },
@@ -108,8 +108,8 @@ export default function HourChart({
             smooth: false,
             symbol: "diamond",
             symbolSize: 7,
-            lineStyle: { color: "#ad6600", type: "dashed" },
-            itemStyle: { color: "#ad6600" },
+            lineStyle: { color: "#fbbf24", type: "dashed" },
+            itemStyle: { color: "#fbbf24" },
             data: rows.map((r) => ({
               value: Number(r.meanAbsCrosswindMps.toFixed(2)),
               at: r.attemptAt,

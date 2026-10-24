@@ -52,16 +52,19 @@ export default function ShelterSettings({
           </button>
         ))}
       </div>
-      <p>
-        Manual what-if setting for the whole segment, saved in this browser.
-        Reduces both headwind penalty and tailwind benefit. These percentages
-        are assumptions—not measured tree protection.
-      </p>
-      <small>
-        Forecast wind and gusts stay unchanged. The time range includes the
-        exposed scenario, not validated shelter confidence. Gaps, wind
-        direction, foliage and turbulence are not modelled.
-      </small>
+      <details className="shelter-notes">
+        <summary>How shelter is applied</summary>
+        <p>
+          Manual what-if setting for the whole segment, saved in this browser.
+          Reduces both headwind penalty and tailwind benefit. These percentages
+          are assumptions—not measured tree protection.
+        </p>
+        <small>
+          Forecast wind and gusts stay unchanged. The time range includes the
+          exposed scenario, not validated shelter confidence. Gaps, wind
+          direction, foliage and turbulence are not modelled.
+        </small>
+      </details>
       {error && <p role="alert">{error}</p>}
     </section>
   );

@@ -1,7 +1,7 @@
-DM Sans: Copyright 2014 The DM Sans Project Authors (https://github.com/googlefonts/dm-fonts)
-Outfit: Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts)
+Inter: Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
+JetBrains Mono: Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
 
-Latin variable files as served by Google Fonts (DM Sans v17, Outfit v15).
+Latin variable files as served by Google Fonts (Inter v20, JetBrains Mono v24).
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

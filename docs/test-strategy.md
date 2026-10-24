@@ -98,7 +98,7 @@ Configuration:
 New scenario families:
 
 - **ARIA snapshots** of the cockpit, terrain panel, board and forecast strip in each state.
-- **Visual regression** with `toHaveScreenshot` for the dial, compass, legend and both themes, map tiles masked, fixed clock, deterministic fonts. Baselines are generated in CI containers only.
+- **Visual regression** with `toHaveScreenshot` for the dial, compass, legend and the demo chart (one dark theme since the Aero Stealth redesign, 24 Oct 2026), map tiles masked, fixed clock, deterministic fonts. Baselines are generated in CI containers only.
 - **Keyboard-only journeys**: draw, save, change hour, switch shelter, load terrain, without a pointer.
 - **Fault injection**: one test each for forecast timeout, 429 with retry, elevation partial nulls, tile failure, storage quota exceeded, storage changed in another tab.
 - **Clock edge cases**: DST gap, DST overlap, forecast expiry triggering the refresh.
