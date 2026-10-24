@@ -1256,6 +1256,7 @@ hr {
   display: block;
   width: 56px;
   height: 56px;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
 }
 .logo-word {
   font-weight: 800;
@@ -1265,7 +1266,8 @@ hr {
   color: var(--ink);
 }
 .logo-word-accent {
-  color: var(--teal);
+  color: var(--wind);
+  margin-left: 0.18em;
 }
 .segment-slots {
   display: flex;
@@ -1289,6 +1291,13 @@ hr {
   padding: 0;
   font-size: 26px;
   height: 44px;
+  background: var(--raised);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+}
+.segment-scroll:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 .segment-slot {
   position: relative;
@@ -1301,12 +1310,15 @@ hr {
   align-items: center;
   gap: 8px;
   padding: 8px;
-  border-radius: 12px;
-  border: 2px solid transparent;
-  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--raised);
   color: var(--slot);
-  --slot: color-mix(in srgb, var(--segment-line) 38%, var(--surface));
-  --segment-line: var(--teal);
+  --slot: color-mix(in srgb, var(--segment-line) 45%, var(--raised));
+  --segment-line: var(--data);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
   --segment-dot: var(--ink);
 }
 .segment-slot.defined {
@@ -1330,12 +1342,15 @@ hr {
   gap: 8px;
   font-size: 12px;
 }
+.unit-control > span:first-child {
+  color: var(--muted);
+}
 .unit-switch {
   display: inline-flex;
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 2px;
-  background: var(--panel-bg);
+  padding: 3px;
+  background: var(--raised);
 }
 .unit-switch button {
   min-height: 30px;
@@ -1347,9 +1362,10 @@ hr {
   color: var(--muted);
 }
 .unit-switch button[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--teal) 22%, transparent);
-  border-color: var(--teal);
-  color: var(--ink);
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  font-weight: 600;
 }
 .drawing-steps {
   display: flex;
@@ -1419,14 +1435,20 @@ hr {
   color: var(--muted);
 }
 .segment-slot.active {
-  border-color: var(--teal);
-  background: color-mix(in srgb, var(--teal) 8%, var(--surface));
+  border-color: var(--best);
+  background: color-mix(in srgb, var(--best) 10%, var(--raised));
+  box-shadow:
+    0 0 0 1px var(--best),
+    0 0 14px rgba(239, 68, 68, 0.35);
 }
 .segment-slot:focus-visible {
-  outline-color: var(--teal);
+  outline-color: var(--focus);
 }
 .segment-slot:hover {
-  border-color: var(--teal);
+  border-color: var(--data);
+}
+.segment-slot.active:hover {
+  border-color: var(--best);
 }
 .segment-slot-number {
   position: absolute;
@@ -2689,8 +2711,11 @@ hr {
   color: var(--ink);
   box-shadow: inset 0 0 0 1px var(--teal);
 }
-.unit-switch button[aria-pressed="true"] {
-  box-shadow: none;
+.segment-screen .unit-switch button[aria-pressed="true"] {
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.35);
 }
 .wind-display-controls button {
   background: transparent;
