@@ -1,4 +1,5 @@
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -82,6 +83,15 @@ function readIntents(dir: string | undefined) {
     }));
 }
 
+// The planner's committed font files, served next to the page so it makes
+// no request beyond its own origin.
+const fonts = "apps/web/app/fonts";
+function copyFonts(dir: string) {
+  mkdirSync(join(dir, "fonts"), { recursive: true });
+  for (const file of readdirSync(fonts).filter((f) => /\.(woff2|txt)$/.test(f)))
+    copyFileSync(join(fonts, file), join(dir, "fonts", file));
+}
+
 const refreshDir = option("--refresh-board");
 if (refreshDir) {
   const history = readJson<Snapshot[]>(join(refreshDir, "history.json")) ?? [];
@@ -108,6 +118,7 @@ if (refreshDir) {
     join(refreshDir, "index.html"),
     render(refreshed, readJson(join(refreshDir, "bands.json")) ?? []),
   );
+  copyFonts(refreshDir);
   console.log(`Intent board refreshed in ${resolve(refreshDir)}/index.html`);
   process.exit(0);
 }
@@ -145,6 +156,7 @@ writeFileSync(
   JSON.stringify(merged, null, 2) + "\n",
 );
 writeFileSync(join(out, "index.html"), render(merged, bands));
+copyFonts(out);
 if (bandsPath) {
   writeFileSync(join(out, "bands.json"), JSON.stringify(bands, null, 2) + "\n");
   writeFileSync(join(out, "bands.md"), bandsMarkdown(bands));

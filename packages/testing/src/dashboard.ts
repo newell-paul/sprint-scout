@@ -994,14 +994,16 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 <meta name="color-scheme" content="light dark">
 <title>SprintScout engineering dashboard</title>
 <style>
-:root{--bg:#f6f2f9;--surface:#fff;--ink:#241d33;--muted:#6b6480;--border:#d9d2e4;--accent:#c2301f;--soft:#efe9f6;--gain:#087359;--loss:#9e5400;--poor:#b3261e;--gain-soft:#d6f5ec;--loss-soft:#ffe9cc;--poor-soft:#fde2df}
-@media (prefers-color-scheme:dark){:root{--bg:#101d22;--surface:#1a2c32;--ink:#e8f1ef;--muted:#b5c7c8;--border:#2f454c;--accent:#ff8c84;--soft:#254440;--gain:#6df2c0;--loss:#ffd084;--poor:#ff8c84;--gain-soft:#1b3a33;--loss-soft:#3b2f18;--poor-soft:#3f2321}}
+:root{--brand-data:#0f766e;--brand-wind:#0369a1;--bg:#f6f2f9;--surface:#fff;--ink:#241d33;--muted:#6b6480;--border:#d9d2e4;--accent:#c2301f;--soft:#efe9f6;--gain:#087359;--loss:#9e5400;--poor:#b3261e;--gain-soft:#d6f5ec;--loss-soft:#ffe9cc;--poor-soft:#fde2df}
+@media (prefers-color-scheme:dark){:root{--brand-data:#2dd4bf;--brand-wind:#38bdf8;--bg:#101d22;--surface:#1a2c32;--ink:#e8f1ef;--muted:#b5c7c8;--border:#2f454c;--accent:#ff8c84;--soft:#254440;--gain:#6df2c0;--loss:#ffd084;--poor:#ff8c84;--gain-soft:#1b3a33;--loss-soft:#3b2f18;--poor-soft:#3f2321}}
+@font-face{font-family:Inter;src:url("fonts/inter-latin-variable.woff2") format("woff2");font-weight:400 800;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("fonts/jetbrains-mono-latin-variable.woff2") format("woff2");font-weight:400 700;font-display:swap}
 *{box-sizing:border-box}
-body{font:15px/1.5 "DM Sans","Helvetica Neue",Arial,system-ui,sans-serif;margin:0;padding:24px 16px 48px;color:var(--ink);background:var(--bg)}
+body{font:15px/1.5 Inter,"Helvetica Neue",Arial,system-ui,sans-serif;margin:0;padding:24px 16px 48px;color:var(--ink);background:var(--bg)}
 main{max-width:72rem;margin-inline:auto}
 header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:8px}
-h1{font:800 1.6rem/1.2 Outfit,"Avenir Next","DM Sans",sans-serif;margin:0}
-h2{font:700 1.1rem/1.3 Outfit,"Avenir Next","DM Sans",sans-serif;margin:32px 0 2px}
+h1{font:800 2.1rem/1.2 Inter,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.02em;margin:0}
+h2{font:700 1.1rem/1.3 Inter,"Helvetica Neue",Arial,sans-serif;margin:32px 0 2px}
 .lead,.muted,.note{color:var(--muted)}.lead{margin:0 0 12px;font-size:.9rem}
 nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.9rem;margin:8px 0 0}nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:12px;margin:0}
@@ -1012,6 +1014,7 @@ dt{font-size:.8rem;color:var(--muted)}dd{margin:0;font-size:1.5rem;font-weight:7
 figure{margin:8px 0 0;color:var(--accent)}.spark{display:block;max-width:100%;height:auto}
 table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:12px}
 th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);font-size:.9rem}tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums}
+code,dd,td.num{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
 code{font-size:.85em;background:var(--soft);padding:1px 5px;border-radius:4px}
 .board{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:12px;align-items:start}
 .column{background:var(--soft);border-radius:10px;padding:10px;min-width:0}.column h3{margin:0 0 8px;font-size:.95rem}
@@ -1019,6 +1022,8 @@ code{font-size:.85em;background:var(--soft);padding:1px 5px;border-radius:4px}
 .intent{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;overflow-wrap:anywhere}
 .intent a{color:var(--ink)}[data-checks=failing]{color:var(--poor)}[data-checks=passing]{color:var(--gain)}
 .dropped,.more{margin-top:12px}.more{margin-top:8px}.dropped summary,.more summary{cursor:pointer;color:var(--muted)}.more ul{margin-top:8px}
+.brand{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;color:var(--ink);text-decoration:none}.brand svg{display:block}.brand span{font-weight:800;font-size:2.4rem;line-height:1;letter-spacing:-.035em}.brand b{font-weight:800;color:var(--brand-wind);margin-left:.18em}
+@media (max-width:600px){.brand{gap:8px}.brand svg{width:40px;height:40px}.brand span{font-size:1.7rem}h1{font-size:1.6rem}}
 footer{margin-top:40px;font-size:.85rem;color:var(--muted)}
 .bands{margin-top:16px;border-radius:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border)}
 p.bands{font-size:.9rem;color:var(--muted)}
@@ -1028,7 +1033,8 @@ p.bands{font-size:.9rem;color:var(--muted)}
 </head>
 <body>
 <main>
-<header><h1>SprintScout engineering dashboard</h1><p class="muted">Run on main of ${escapeHtml(latest.date)}${commit} · ${history.length} run${history.length === 1 ? "" : "s"} recorded</p></header>
+<a class="brand" href="../" aria-label="SprintScout planner"><svg viewBox="0 0 48 48" width="56" height="56" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12 L20 24 L6 36" stroke="var(--brand-data)" stroke-opacity="0.55" stroke-width="5"/><path d="M20 12 L34 24 L20 36" stroke="var(--brand-data)" stroke-width="5"/><path d="M34 24 H44" stroke="var(--brand-wind)" stroke-width="3"/></svg><span>Sprint<b>Scout</b></span></a>
+<header><h1>Engineering dashboard</h1><p class="muted">Run on main of ${escapeHtml(latest.date)}${commit} · ${history.length} run${history.length === 1 ? "" : "s"} recorded</p></header>
 <nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a></nav>
 ${bandsPanel(annotations)}
 ${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, deploy gate.", grid(pipelineCards))}
