@@ -206,7 +206,7 @@ test("a saved segment is painted on the map @smoke", async ({ page, planner }) =
 
   await planner.editor.drawSegment("Painted ride");
 
-  await expect.poll(() => planner.map.painted("#ff5c4d"), { timeout: 10000 }).toBeGreaterThan(300);
+  await expect.poll(() => planner.map.painted("#f97316"), { timeout: 10000 }).toBeGreaterThan(300);
 });
 
 test.describe("first visit", () => {

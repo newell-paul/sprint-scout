@@ -37,7 +37,7 @@ function bearingDegrees(a: Point, b: Point) {
     Math.sin(a[1] * toRad) * Math.cos(b[1] * toRad) * Math.cos(dLon);
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
 }
-// Red chevron pointing north with a white halo; rotated by leg bearing.
+// White chevron pointing north with a dark halo; rotated by leg bearing.
 function directionArrow() {
   const size = 40;
   const canvas = document.createElement("canvas");
@@ -48,8 +48,8 @@ function directionArrow() {
   c.lineCap = "round";
   c.lineJoin = "round";
   for (const [color, width] of [
-    ["#ffffff", 11],
-    ["#ff5c4d", 6],
+    ["#0b0f19", 10],
+    ["#ffffff", 5],
   ] as const) {
     c.strokeStyle = color;
     c.lineWidth = width;
@@ -165,7 +165,7 @@ export default function Routes() {
               {
                 id: "background",
                 type: "background",
-                paint: { "background-color": "#eef3ff" },
+                paint: { "background-color": "#1e2a3a" },
               },
             ],
           },
@@ -190,14 +190,21 @@ export default function Routes() {
             type: "line",
             source: "route",
             filter: ["==", "$type", "LineString"],
-            paint: { "line-color": "#ffffff", "line-width": 9 },
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": "#f97316",
+              "line-width": 22,
+              "line-blur": 10,
+              "line-opacity": 0.75,
+            },
           });
           instance.addLayer({
             id: "route-line",
             type: "line",
             source: "route",
             filter: ["==", "$type", "LineString"],
-            paint: { "line-color": "#ff5c4d", "line-width": 5 },
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": "#f97316", "line-width": 5 },
           });
           instance.addImage("route-arrow", directionArrow());
           instance.addLayer({
@@ -224,7 +231,7 @@ export default function Routes() {
               ["!=", ["get", "kind"], "arrow"],
             ],
             paint: {
-              "circle-color": "#ff5c4d",
+              "circle-color": "#f97316",
               "circle-radius": 6,
               "circle-stroke-color": "#ffffff",
               "circle-stroke-width": 1.5,
@@ -309,11 +316,20 @@ export default function Routes() {
         id: "streets",
         type: "raster",
         source: "streets",
-        paint: { "raster-saturation": -0.2, "raster-contrast": 0.05 },
+        // Inverted and hue-turned so streets read light on dark; the
+        // navy background shows through the slight transparency.
+        paint: {
+          "raster-brightness-min": 0.82,
+          "raster-brightness-max": 0.08,
+          "raster-hue-rotate": 180,
+          "raster-saturation": -0.55,
+          "raster-contrast": 0.1,
+          "raster-opacity": 0.82,
+        },
       },
       "route-outline",
     );
-    m.setPaintProperty("background", "background-color", "#eef3ff");
+    m.setPaintProperty("background", "background-color", "#1e2a3a");
   }, [ready]);
   useEffect(() => {
     if (!ready || !selectedRoute || !map.current) return;
@@ -326,7 +342,13 @@ export default function Routes() {
           [Math.min(...lon), Math.min(...lat)],
           [Math.max(...lon), Math.max(...lat)],
         ],
-        { padding: 50, maxZoom: 16, duration: 0 },
+        // Clear of the wind badge (top left), the zoom buttons (top right)
+        // and the Start and Finish labels that sit above their points.
+        {
+          padding: { top: 80, right: 100, bottom: 40, left: 60 },
+          maxZoom: 16,
+          duration: 0,
+        },
       );
     fit();
     instance.on("resize", fit);
