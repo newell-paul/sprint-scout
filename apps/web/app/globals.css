@@ -319,7 +319,11 @@
   .cockpit-wind strong,
   .best-window strong,
   .rider-input input,
-  .board-gain
+  .board-gain,
+  .planner .metrics > div:not(.metrics-wide) dd,
+  .planner .index-line strong,
+  .planner .coverage strong,
+  .planner .departure-time
 ) {
   font-family: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
@@ -386,34 +390,11 @@ aside[aria-label="Demo mode"] {
   z-index: 10;
 }
 .planner {
-  --bg: #f4f6f3;
-  --surface: #fff;
-  --ink: #172e33;
-  --muted: #506368;
-  --border: #d1dcd8;
-  --teal: #006d61;
-  --soft: #e6f2ec;
-  --amber: #835000;
-  --caution: #fff0d8;
-  --gain: #0b6e4f;
-  --loss: #b3261e;
+  --teal: var(--data);
+  --caution: #493719;
   background: var(--bg);
   color: var(--ink);
   min-height: 100vh;
-}
-.planner[data-theme="dark"] {
-  --bg: #101d22;
-  --surface: #1a2c32;
-  --ink: #e8f1ef;
-  --muted: #b5c7c8;
-  --border: #496169;
-  --teal: #76d5be;
-  --soft: #254440;
-  --amber: #ffd084;
-  --caution: #493719;
-  --gain: #6df2c0;
-  --loss: #ff8c84;
-  color-scheme: dark;
 }
 .topbar {
   max-width: 1400px;
@@ -434,16 +415,6 @@ aside[aria-label="Demo mode"] {
   letter-spacing: 0.08em;
   color: var(--ink);
 }
-.brand-icon {
-  border: 1px solid var(--teal);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  color: var(--teal);
-  font-size: 1.3rem;
-}
 .top-actions {
   display: flex;
   align-items: center;
@@ -453,10 +424,6 @@ aside[aria-label="Demo mode"] {
   font-size: 0.65rem;
   letter-spacing: 0.13em;
   color: var(--muted);
-}
-.quiet {
-  background: transparent;
-  font-size: 0.8rem;
 }
 main {
   max-width: 1400px;
@@ -794,8 +761,8 @@ summary {
 }
 .map-shell {
   position: relative;
-  background: #e2ece8;
-  color: #17383e;
+  background: #1e2a3a;
+  color: var(--ink);
 }
 .map-canvas {
   height: 330px;
@@ -807,7 +774,7 @@ summary {
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.65rem;
-  background: #fffffff0;
+  background: rgba(30, 42, 58, 0.92);
   padding: 0.4rem 0.6rem;
   border-radius: 4px;
   white-space: nowrap;
@@ -821,8 +788,8 @@ summary {
   justify-content: center;
   text-align: center;
   padding: 2rem;
-  background: #e2ece8;
-  color: #17383e;
+  background: #1e2a3a;
+  color: var(--ink);
   font-size: 0.85rem;
 }
 .map-message button {
@@ -851,17 +818,17 @@ summary {
   display: inline-block;
 }
 .swatch.assist {
-  background: #00796d;
+  background: #2dd4bf;
 }
 .swatch.head {
   background: repeating-linear-gradient(
     90deg,
-    #a85d00 0 5px,
+    #f97316 0 5px,
     transparent 5px 7px
   );
 }
 .swatch.neutral {
-  background: #566b72;
+  background: #94a3b8;
 }
 .timeline {
   padding: 1rem 1.1rem;
@@ -910,8 +877,8 @@ input[type="range"] {
 }
 .chart-canvas {
   height: 230px;
-  background: #fff;
-  border-radius: 6px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
 }
 .table-scroll {
   position: relative;
@@ -1895,14 +1862,18 @@ hr {
   padding: 2px 8px;
 }
 .segment-map .maplibregl-ctrl-group,
-.segment-map .maplibregl-ctrl-attrib {
+.segment-map .maplibregl-ctrl-attrib,
+.map-shell .maplibregl-ctrl-group,
+.map-shell .maplibregl-ctrl-scale {
   background: var(--surface);
   color: var(--ink);
 }
-.segment-map .maplibregl-ctrl-group button {
+.segment-map .maplibregl-ctrl-group button,
+.map-shell .maplibregl-ctrl-group button {
   background: var(--surface);
 }
-.segment-map .maplibregl-ctrl-icon {
+.segment-map .maplibregl-ctrl-icon,
+.map-shell .maplibregl-ctrl-icon {
   filter: var(--ctrl-icon-filter);
 }
 .segment-map .maplibregl-ctrl-attrib a {
@@ -2945,6 +2916,9 @@ hr {
 .segment-slot.defined {
   transition-duration: 180ms;
 }
+.segment-screen button[aria-pressed] {
+  transition-property: border-color, box-shadow;
+}
 .segment-screen summary:hover {
   color: var(--ink);
 }
@@ -2958,4 +2932,74 @@ hr {
     min-height: 36px;
     font-size: 13px;
   }
+}
+
+/* Demo planner on the Aero Stealth look. */
+aside[aria-label="Demo mode"] {
+  background: rgba(45, 212, 191, 0.12);
+  border-bottom: 1px solid rgba(45, 212, 191, 0.22);
+  color: var(--ink);
+}
+.planner .topbar {
+  border-bottom-color: rgba(148, 163, 184, 0.16);
+}
+.planner .demo-logo .logo-mark {
+  width: 40px;
+  height: 40px;
+}
+.planner .demo-logo .logo-word {
+  font-size: 26px;
+}
+.planner h1 {
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+.planner .panel {
+  background: var(--panel-bg);
+  border: var(--panel-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--panel-shadow);
+}
+.planner .route-card.selected {
+  border: 1px solid var(--data);
+  padding: 1rem 1.1rem;
+  box-shadow:
+    0 0 0 1px var(--data),
+    0 0 24px rgba(45, 212, 191, 0.2);
+}
+.planner button {
+  background: var(--raised);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.planner button:hover:not(:disabled) {
+  border-color: var(--data);
+}
+.planner :is(.card-select, .best-time button, td button, th button) {
+  background: transparent;
+}
+.planner .primary {
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
+}
+.planner .primary:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.planner input:not([type="checkbox"]):not([type="range"]),
+.planner select {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+.planner input[type="checkbox"],
+.planner input[type="range"] {
+  accent-color: var(--data);
+}
+.planner .best-time {
+  border-radius: var(--radius-sm);
+}
+.planner .chart-canvas {
+  border: 1px solid rgba(148, 163, 184, 0.16);
 }

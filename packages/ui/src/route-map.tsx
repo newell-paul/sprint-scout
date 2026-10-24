@@ -9,13 +9,12 @@ function arrow(color: string) {
   canvas.height = 40;
   const c = canvas.getContext("2d");
   if (!c) throw new Error("Canvas unavailable");
-  c.strokeStyle = "#ffffff";
   c.lineWidth = 8;
   c.lineCap = "round";
   c.lineJoin = "round";
   for (const width of [8, 4]) {
     c.lineWidth = width;
-    c.strokeStyle = width === 8 ? "#ffffff" : color;
+    c.strokeStyle = width === 8 ? "#0b0f19" : color;
     c.beginPath();
     c.moveTo(20, 33);
     c.lineTo(20, 7);
@@ -56,7 +55,7 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
                 {
                   id: "background",
                   type: "background",
-                  paint: { "background-color": "#e2ece8" },
+                  paint: { "background-color": "#1e2a3a" },
                 },
               ],
             },
@@ -90,8 +89,8 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
             .addEventListener("webglcontextlost", onContextLost);
           instance.on("load", () => {
             if (disposed || !instance) return;
-            instance.addImage("wind-arrow", arrow("#163d5c"));
-            instance.addImage("ride-arrow", arrow("#754300"));
+            instance.addImage("wind-arrow", arrow("#38bdf8"));
+            instance.addImage("ride-arrow", arrow("#fbbf24"));
             instance.addSource("legs", {
               type: "geojson",
               data: { type: "FeatureCollection", features: [] },
@@ -104,7 +103,7 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
               id: "outline",
               type: "line",
               source: "legs",
-              paint: { "line-color": "#ffffff", "line-width": 12 },
+              paint: { "line-color": "#0b0f19", "line-width": 12 },
             });
             instance.addLayer({
               id: "route",
@@ -114,10 +113,10 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
                 "line-color": [
                   "case",
                   [">", ["get", "tail"], 0.5],
-                  "#00796d",
+                  "#2dd4bf",
                   ["<", ["get", "tail"], -0.5],
-                  "#a85d00",
-                  "#566b72",
+                  "#f97316",
+                  "#94a3b8",
                 ],
                 "line-width": 6,
               },
@@ -128,7 +127,7 @@ export default function RouteMap({ row }: { row: PlannerHour }) {
               source: "legs",
               filter: ["<", ["get", "tail"], -0.5],
               paint: {
-                "line-color": "#ffffff",
+                "line-color": "#0b0f19",
                 "line-width": 2,
                 "line-dasharray": [1, 3],
               },

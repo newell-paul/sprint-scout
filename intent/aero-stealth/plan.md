@@ -36,6 +36,8 @@
    - Owner checks: phone width in the browser and on a device on the LAN, reduced motion on.
 7. `/demo`
    - `packages/ui/src/route-map.tsx`, demo CSS; remove the light theme and its tests.
+   - After the owner's first look the demo also took the planner's logo, panels, buttons and mono numbers, so it no longer looks like a different app.
+   - Toggle buttons (`aria-pressed`) switch their background instantly; a fading background under instantly changed text failed axe contrast mid-transition.
    - Owner checks: `/demo` end to end.
 8. Finish
    - Regenerate visual baselines with `pnpm test:visual:update` and ARIA snapshots through the runner; commit `docs/images/new-design.png`; `docs/design.md` entry; intent status done; PR from `aero-stealth` into `main`.
@@ -43,3 +45,7 @@
 ## Proof
 
 Every stage: `pnpm verify` and `pnpm check:deploy` green before the owner's check. Finish: `pnpm verify`, `pnpm check:deploy`, `pnpm test:visual`, and the verifier agent on the full `aero-stealth` diff.
+
+## Follow-up
+
+`/demo` is unlinked, absent from the Pages build, and lost its MCP role on 22 Sep 2026. The owner asked (24 Oct 2026) to remove it, with its tests, synthetic API and docs, as a separate intent after this redesign merges.

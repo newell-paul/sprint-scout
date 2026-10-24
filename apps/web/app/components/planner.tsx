@@ -17,6 +17,7 @@ import RouteMap from "./route-map";
 import HourChart from "./hour-chart";
 import RideEffect from "./ride-effect";
 import { formatZonedTime } from "./time";
+import Logo from "./logo";
 // False while the server HTML is showing, true once React has hydrated, so
 // browser tests know their input will not be dropped.
 const noSubscription = () => () => {};
@@ -82,7 +83,6 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
     [attemptAt, setAttemptAt] = useState(initial.best[0]?.attemptAt ?? ""),
     [loading, setLoading] = useState(false),
     [error, setError] = useState(""),
-    [theme, setTheme] = useState<"light" | "dark">("light"),
     [approach, setApproach] = useState("20"),
     [warmup, setWarmup] = useState("10");
   const requestRef = useRef<AbortController | null>(null);
@@ -179,7 +179,7 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
     }
   }
   return (
-    <div className="planner" data-theme={theme} data-hydrated={hydrated}>
+    <div className="planner" data-hydrated={hydrated}>
       <a className="skip-link" href="#results">
         Skip to results
       </a>
@@ -189,19 +189,10 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
           href="/"
           aria-label="Segment and wind planner home"
         >
-          <span aria-hidden="true" className="brand-icon">
-            ↗
-          </span>{" "}
-          SEGMENT / WIND
+          <Logo className="segment-logo demo-logo" />
         </a>
         <div className="top-actions">
           <span className="private-label">PERSONAL PLANNER</span>
-          <button
-            className="quiet"
-            onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
-          >
-            {theme === "light" ? "Dark theme" : "Light theme"}
-          </button>
         </div>
       </header>
       <main>
@@ -549,13 +540,13 @@ export default function Planner({ initial }: { initial: PlannerResponse }) {
                           </span>
                           <span>
                             <i className="swatch head" />
-                            Dashed amber: headwind &gt;0.5 m/s
+                            Dashed orange: headwind &gt;0.5 m/s
                           </span>
                           <span>
                             <i className="swatch neutral" />
                             Grey: near neutral
                           </span>
-                          <span>↗ Brown: riding direction</span>
+                          <span>↗ Amber: riding direction</span>
                           <span>↑ Blue: wind travels toward</span>
                         </div>
                       </details>

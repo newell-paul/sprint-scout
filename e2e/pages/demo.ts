@@ -23,8 +23,6 @@ export class DemoPlanner {
   readonly alert: Locator;
   readonly retryButton: Locator;
   readonly retryForecastButton: Locator;
-  readonly darkThemeButton: Locator;
-  readonly lightThemeButton: Locator;
   readonly mapUnavailable: Locator;
 
   constructor(private readonly page: Page) {
@@ -55,8 +53,6 @@ export class DemoPlanner {
       name: "Retry forecast",
       exact: true,
     });
-    this.darkThemeButton = page.getByRole("button", { name: "Dark theme" });
-    this.lightThemeButton = page.getByRole("button", { name: "Light theme" });
     this.mapUnavailable = page.getByText("Map unavailable", { exact: true });
   }
 
@@ -170,10 +166,6 @@ export class DemoPlanner {
 
   async retry() {
     await this.retryButton.click();
-  }
-
-  async useDarkTheme() {
-    await this.darkThemeButton.click();
   }
 
   /** Pixels the page is wider than the viewport; 0 means no sideways scroll. */
