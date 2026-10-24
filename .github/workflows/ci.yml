@@ -447,6 +447,13 @@ jobs:
         with:
           name: dashboard
           path: reports/dashboard
+      - name: Keep only data from main
+        # The intent board carries text from open pull request branches; the
+        # model must not read it. Only bands.json and history.json are inputs.
+        run: |
+          jq 'map(del(.board))' reports/dashboard/history.json > history.tmp
+          mv history.tmp reports/dashboard/history.json
+          find reports/dashboard -type f ! -name bands.json ! -name history.json -delete
       - name: Draft the intent and open or update the issue
         env:
           GH_TOKEN: ${{ github.token }}

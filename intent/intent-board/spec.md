@@ -43,7 +43,7 @@ A new dashboard section, **Intent board**, follows AI practice. It shows four co
 
 ## Data and privacy
 
-Nothing changes for the planner or its users. The dashboard job reads pull request metadata and intent files from this public repository with its existing `github.token`. The job gains `checks: read` and `statuses: read` so the token can see each pull request's check rollup; both are read-only. No new secret or schedule. Pull request text is escaped like every other value on the page.
+Nothing changes for the planner or its users. The dashboard job reads pull request metadata and intent files from this public repository with its existing `github.token`. The job gains `checks: read` and `statuses: read` so the token can see each pull request's check rollup; both are read-only. No new secret or schedule. Pull request text is escaped like every other value on the page. The band-issue job, whose model reads the dashboard artifact and whose inputs must come from `main` only, strips the board from `history.json` and deletes every other artifact file except `bands.json` before the model runs.
 
 ## Calculations
 

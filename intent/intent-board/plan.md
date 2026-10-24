@@ -15,7 +15,7 @@ From [spec.md](spec.md).
 - `packages/testing/src/dashboard.test.ts`: the cases in the spec. The page-wide no-URL assertion now allows GitHub anchor links, the board's only URLs; the page still loads nothing external.
 - `scripts/collect-intents.mjs`: new; writes `reports/github/open-intents.json`, `[]` on any failure.
 - `package.json`: the `dashboard` script passes `--open-intents reports/github/open-intents.json`.
-- `.github/workflows/ci.yml`: a dashboard job step "Collect intents on open pull requests" after the review tallies, `GH_TOKEN: ${{ github.token }}`, `|| true`; the job gains `checks: read` and `statuses: read` for the check rollup.
+- `.github/workflows/ci.yml`: a dashboard job step "Collect intents on open pull requests" after the review tallies, `GH_TOKEN: ${{ github.token }}`, `|| true`; the job gains `checks: read` and `statuses: read` for the check rollup. The band-issue job strips the board and keeps only `bands.json` and `history.json` before its model runs.
 - `docs/design.md`, `docs/sdlc.md`: as in the spec.
 - `intent/intent-board/intent.md`: status `done` at the end.
 
