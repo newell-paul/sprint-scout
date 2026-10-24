@@ -139,6 +139,8 @@ jobs:
         with:
           node-version: 26
       - name: Scan
+        # An explicit bash adds pipefail, so tee cannot hide the diff's exit 1.
+        shell: bash
         run: |
           # osv-scanner exits 1 when it finds advisories; anything else is an error.
           scan() {
