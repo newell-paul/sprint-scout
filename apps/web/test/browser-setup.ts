@@ -2,26 +2,26 @@ import "../app/globals.css";
 import { afterAll, afterEach, beforeAll, beforeEach, expect, vi } from "vitest";
 import { cleanup } from "vitest-browser-react/pure";
 import axe from "axe-core";
-import { openMeteoWorker } from "@scout/testing/msw-browser";
+import { blockExternal, openMeteoWorker } from "@scout/testing/msw-browser";
 import { fixedTime, openMeteo } from "./fixtures";
+import { recordUnhandled, takeUnhandled } from "./unhandled";
 
 // Real Chromium, real CSS, recorded Open-Meteo through msw, frozen clock,
 // and axe on the final state of every passing test. Mirrors e2e/fixtures.ts.
-export const worker = openMeteoWorker(openMeteo);
-const unhandled: string[] = [];
+const worker = openMeteoWorker(openMeteo);
 
 beforeAll(() =>
   worker.start({
-    // Local modules and assets pass through; anything external fails the test.
-    onUnhandledRequest: (request) => {
-      if (new URL(request.url).origin !== location.origin)
-        unhandled.push(request.url);
-    },
+    onUnhandledFrame: blockExternal(location.origin, recordUnhandled),
     quiet: true,
     serviceWorker: { url: "/mockServiceWorker.js" },
   }),
 );
-afterAll(() => worker.stop());
+// Not awaited: msw 3 waits for requests in flight, and the timeout fixtures
+// never answer (`delay("infinite")`).
+afterAll(() => {
+  void worker.stop();
+});
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
@@ -31,10 +31,9 @@ beforeEach(() => {
 afterEach(async (context) => {
   try {
     if (context.task.result?.state === "pass") await checkAccessibility();
-    expect(
-      unhandled.splice(0),
-      "requests that would reach the internet",
-    ).toEqual([]);
+    expect(takeUnhandled(), "requests that would reach the internet").toEqual(
+      [],
+    );
   } finally {
     await cleanup();
     vi.useRealTimers();

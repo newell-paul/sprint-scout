@@ -1,7 +1,16 @@
+import { createRequire } from "node:module";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 import { ariaSnapshot } from "@scout/testing/vitest-commands";
+// Components are served msw's own worker script, so it always matches the
+// installed client; msw 3 no longer copies it into a public folder on install.
+const mswWorkerDirectory = path.dirname(
+  createRequire(
+    new URL("./packages/testing/package.json", import.meta.url),
+  ).resolve("msw/mockServiceWorker.js"),
+);
 // Shards upload raw coverage; the gate runs once on the merged report.
 const gate = process.env.COVERAGE_GATE !== "off";
 export default defineConfig({
@@ -41,10 +50,10 @@ export default defineConfig({
         // Components render in real Chromium: apps/web is the Vite root so
         // its PostCSS (Tailwind) config and globals.css apply as in the app.
         root: "apps/web",
-        publicDir: "test/public",
+        publicDir: mswWorkerDirectory,
         test: {
           name: "browser",
-          include: ["app/**/*.browser.test.tsx"],
+          include: ["app/**/*.browser.test.tsx", "test/**/*.browser.test.tsx"],
           setupFiles: [
             fileURLToPath(
               new URL("./apps/web/test/browser-setup.ts", import.meta.url),
