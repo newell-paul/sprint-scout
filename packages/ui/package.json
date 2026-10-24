@@ -3,19 +3,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.tsx",
-    "./route-map": "./src/route-map.tsx",
-    "./hour-chart": "./src/hour-chart.tsx",
-    "./map.css": "./src/map.css",
     "./maplibre": "./src/maplibre.ts"
   },
   "dependencies": {
-    "@scout/contracts": "workspace:*",
-    "echarts": "^6.1.0",
-    "maplibre-gl": "^6.15.0",
-    "react": "^19.3.1"
-  },
-  "devDependencies": {
-    "react-dom": "^19.3.1"
+    "maplibre-gl": "^6.15.0"
   }
 }

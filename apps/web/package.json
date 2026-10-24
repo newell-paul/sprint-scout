@@ -12,7 +12,6 @@
   "dependencies": {
     "@scout/analysis": "workspace:*",
     "@scout/application": "workspace:*",
-    "@scout/contracts": "workspace:*",
     "@scout/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.2.0",
     "maplibre-gl": "^6.15.0",

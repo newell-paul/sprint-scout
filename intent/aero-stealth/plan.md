@@ -59,4 +59,4 @@ Every stage: `pnpm verify` and `pnpm check:deploy` green before the owner's chec
 
 ## Follow-up
 
-`/demo` is unlinked, absent from the Pages build, and lost its MCP role on 22 Sep 2026. The owner asked (24 Oct 2026) to remove it, with its tests, synthetic API and docs, as a separate intent after this redesign merges.
+`/demo` is unlinked, absent from the Pages build, and lost its MCP role on 22 Sep 2026. The owner asked (24 Oct 2026) to remove it, with its tests, synthetic API and docs, as a separate intent after this redesign merges: [`intent/remove-demo/`](../remove-demo/intent.md).

@@ -20,10 +20,10 @@ Healthy output ends with lines like `Test Files  44 passed`, `127 passed`, `ESLi
 
 - `apps/web`: Next 16 static export. The planner is `app/routes`: `route-drawer.tsx` is the screen, `library.ts` is storage and validation, `example-segment.ts` seeds the first visit.
 - `packages/analysis`: pure deterministic maths (wind projection, ride effect, effort matching). No I/O, 100 % coverage, property tests with a fixed seed.
-- `packages/application`: loaders and policies around providers: Open-Meteo forecast, archive and elevation, GPX parsing, route wind.
-- `packages/contracts`, `providers`, `testing`, `database`, `ui`: schemas, provider adapters, shared fixtures and msw handlers, foundation Postgres, map loader.
-- `apps/api` and `apps/worker`: synthetic demo API and a reserved boundary. Not needed for the planner.
-- Data flows one way: UI, then application, then providers and analysis. The UI never does ranking maths; dependency-cruiser enforces the boundaries.
+- `packages/application`: Open-Meteo loaders for forecast, archive and elevation, GPX parsing, route wind, terrain and shelter.
+- `packages/contracts`, `testing`, `ui`: Zod schemas, shared fixtures and msw handlers, map loader.
+- `apps/worker`: a reserved boundary with no runtime.
+- Data flows one way: UI, then application, then analysis. The UI never does the maths itself; dependency-cruiser enforces the boundaries.
 
 ## Rules
 
@@ -51,7 +51,7 @@ Add a line whenever the same thing happens twice.
 - A page that reloads itself in a loop under `next dev` (e2e stuck on `data-hydrated="false"`, "[Fast Refresh] rebuilding" over and over) is a stale Turbopack cache; delete all of `apps/web/.next`, never just part of it.
 - Local e2e reuses any server on :3000 and its `.next` cache; after stopping or restarting a dev server, delete `apps/web/.next` before `pnpm verify` or `pnpm test:e2e`, or the run hits that reload loop.
 - A WebKit failure that never reproduces on macOS ("element is not stable", actions hanging to the timeout) needs the Linux Playwright container CI uses; `scripts/visual-baselines.sh` shows how to run it.
-- An e2e step that acts before the app is ready passes locally and fails on slower CI runners; wait for the visible precondition first (the forecast placeholder before `page.clock.runFor`, hydration and `data-chart-ready` before acting on `/demo`).
+- An e2e step that acts before the app is ready passes locally and fails on slower CI runners; wait for the visible precondition first (the forecast placeholder before `page.clock.runFor`, hydration before acting on the page).
 
 ## Docs
 

@@ -18,7 +18,6 @@ const config: NextConfig = {
     "@scout/analysis",
     "@scout/ui",
     "@scout/application",
-    "@scout/providers",
     "@scout/contracts",
   ],
   pageExtensions: isStatic

@@ -60,3 +60,19 @@ Each step leaves `pnpm typecheck` and the unit tests passing.
 - **Deploy gate:** `pnpm check:deploy` stays within the size and Lighthouse budgets, with the bundle expected to shrink.
 - **Grep:** `git grep -i -e demo -e fastify -e testcontainers -e echarts` finds only dated history, the env-refusal canary and this intent.
 - **Final check:** `pnpm verify` green through the verifier agent; on the pull request, Checks green, including the dashboard job.
+
+## As built
+
+- The perf project went too: its only test, `wind.perf.test.ts`, timed the removed ranking path. So did `pnpm test:perf`, its step in the deploy gate job, and ", perf" in that job's name.
+- The `main` ruleset lists "Database (testcontainers)" and the old deploy gate name as required checks. The owner updates the ruleset before merge, because a required check that no longer runs blocks the pull request.
+- `since` is a date (`YYYY-MM-DD`), not a timestamp: dashboard snapshots are dated by day. It is set to the day of the removal; runs earlier that day stay in the baseline, but there are too few of them to make a band live.
+- `.primary` stayed where it was instead of moving, since the rules around it were removed and it is already shared. `.empty` went: `.segment-slot` sets its own padding later in the file, and the slots are flex buttons, so `text-align` had no effect.
+- `configureMapLibre` went with the demo's self-contained host; the loader always uses the served worker.
+- `analysis-errors.test.ts` keeps its geometry case; only the case for the removed hour evaluation went.
+- `.prettierignore` lost its `apps/api/fixtures` line. `README.md` lost its "Beyond the planner" section.
+- After the owner's edit, the env example holds only a comment naming `compose.yaml`. Agents may not open or remove it, so deleting it is an owner step.
+- `docs/validation.md`, `docs/integration-decisions.md` and `docs/lessons.md` are dated records and stay as written.
+- `utcInstant` stays in `packages/contracts`: `provenance` uses it for `retrievedAt` and `expiresAt`.
+- `packages/analysis/fixtures/ranking.golden.json` went too; nothing read it once the ranking tests were gone.
+- The dependency-cruiser rule naming `providers` and `database` became `app-code-never-ships-test-helpers`: planner code reaches `@scout/testing` only from tests.
+- `docs/sdlc.md` needed no change. In `docs/design.md`, the stack table rows for the HTTP API, storage and charts are marked removed, the same way as the withdrawn MCP rows.

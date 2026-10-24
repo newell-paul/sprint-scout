@@ -9,9 +9,6 @@
       "entry": ["app/**/*.server.{ts,tsx}"],
       "project": ["app/**/*.{ts,tsx}", "test/**/*.{ts,tsx}"]
     },
-    "apps/api": {
-      "project": ["src/**/*.ts"]
-    },
     "packages/*": {
       "entry": ["src/*.{ts,tsx}"],
       "project": ["src/**/*.{ts,tsx}"]

@@ -15,7 +15,6 @@ packages/analysis/fixtures
 e2e/__aria__
 e2e/__screenshots__
 blob-report
-apps/api/fixtures
 packages/testing/fixtures
 apps/web/test/public
 apps/web/public/maplibre
