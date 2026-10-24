@@ -707,12 +707,19 @@ const boardList = (cards: BoardCard[]) =>
     ? `<ul>${cards.map(boardCard).join("")}</ul>`
     : `<p class="note">None</p>`;
 
+const shownPerColumn = 6;
+const columnList = (cards: BoardCard[]) =>
+  cards.length > shownPerColumn
+    ? boardList(cards.slice(0, shownPerColumn)) +
+      `<details class="more"><summary>Show ${cards.length - shownPerColumn} more</summary>${boardList(cards.slice(shownPerColumn))}</details>`
+    : boardList(cards);
+
 function boardHtml(cards: BoardCard[]) {
   if (!cards.length) return `<p class="muted">No intents</p>`;
   const columns = (["Draft", "Accepted", "In build", "Done"] as const)
     .map((name) => {
       const inColumn = cards.filter((c) => c.column === name);
-      return `<div class="column"><h3>${name} <span class="muted">${inColumn.length}</span></h3>${boardList(inColumn)}</div>`;
+      return `<div class="column"><h3>${name} <span class="muted">${inColumn.length}</span></h3>${columnList(inColumn)}</div>`;
     })
     .join("");
   const dropped = cards.filter((c) => c.column === "Dropped");
@@ -992,7 +999,7 @@ code{font-size:.85em;background:var(--soft);padding:1px 5px;border-radius:4px}
 .board ul,.dropped ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .intent{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;overflow-wrap:anywhere}
 .intent a{color:var(--ink)}[data-checks=failing]{color:var(--poor)}[data-checks=passing]{color:var(--gain)}
-.dropped{margin-top:12px}.dropped summary{cursor:pointer;color:var(--muted)}
+.dropped,.more{margin-top:12px}.more{margin-top:8px}.dropped summary,.more summary{cursor:pointer;color:var(--muted)}.more ul{margin-top:8px}
 footer{margin-top:40px;font-size:.85rem;color:var(--muted)}
 .bands{margin-top:16px;border-radius:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border)}
 p.bands{font-size:.9rem;color:var(--muted)}

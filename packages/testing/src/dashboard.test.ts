@@ -791,6 +791,25 @@ describe("intent board", () => {
     expect(html).not.toContain(">Intents</caption>");
   });
 
+  it("shows the newest six cards in a column and folds the rest", () => {
+    const done = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({
+        slug: `s${i}`,
+        text: intentText(`Intent ${i}`, "done", `${i + 1} October 2026`),
+      }));
+    const html = render([snapshot({ date: "2026-10-10", intents: done(8) })]);
+    const board = html.slice(html.indexOf('<section id="board"'));
+    const shown = board.slice(0, board.indexOf("<details"));
+    expect(shown).toContain("Intent 7");
+    expect(shown).toContain("Intent 2");
+    expect(shown).not.toContain("Intent 1<");
+    expect(board).toContain("<summary>Show 2 more</summary>");
+    expect(board.slice(board.indexOf("Show 2 more"))).toContain("Intent 0");
+
+    const six = render([snapshot({ date: "2026-10-10", intents: done(6) })]);
+    expect(six).not.toContain("more</summary>");
+  });
+
   it("omits the dropped fold when nothing is dropped and says when there are no intents", () => {
     const some = render([
       snapshot({
