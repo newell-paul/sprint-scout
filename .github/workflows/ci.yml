@@ -126,12 +126,47 @@ jobs:
     permissions:
       contents: read
       security-events: write
+    # A pull request fails only on advisories it adds, so one published
+    # overnight does not block unrelated work; main reports everything.
+    # Shipped dependencies stay gated by `pnpm audit:prod` in the static job.
+    env:
+      OSV_IMAGE: ghcr.io/google/osv-scanner-action:v2.7.0
     steps:
       - uses: actions/checkout@v7
-      - uses: google/osv-scanner-action/osv-scanner-action@v2.7.0
         with:
-          scan-args: |
-            --lockfile=pnpm-lock.yaml
+          fetch-depth: 2
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+      - name: Scan
+        # An explicit bash adds pipefail, so tee cannot hide the diff's exit 1.
+        shell: bash
+        run: |
+          # osv-scanner exits 1 when it finds advisories; anything else is an error.
+          scan() {
+            docker run --rm -v "$PWD:/src" -w /src --entrypoint osv-scanner "$OSV_IMAGE" \
+              scan --config=osv-scanner.toml "--format=$1" --lockfile="$2" --output-file="$3" || [ $? -eq 1 ]
+          }
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            if git diff --quiet HEAD^1 HEAD -- pnpm-lock.yaml; then
+              printf '### OSV scan\n\nLockfile unchanged.\n' >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            mkdir -p .osv-base
+            git show HEAD^1:pnpm-lock.yaml > .osv-base/pnpm-lock.yaml
+            scan json .osv-base/pnpm-lock.yaml base.json
+            scan json pnpm-lock.yaml head.json
+            node scripts/osv-diff.mjs head.json base.json | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            scan json pnpm-lock.yaml head.json
+            scan sarif pnpm-lock.yaml osv.sarif
+            node scripts/osv-diff.mjs head.json | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: github.event_name == 'push'
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: osv.sarif
+          category: osv-scanner
   integration:
     name: Database (testcontainers)
     runs-on: ubuntu-latest

@@ -116,3 +116,4 @@ The `intent` skill holds the template. One file per idea under `intent/<slug>/in
 - 10 October 2026: step 12 done. Triage proved locally on a captured failing log: Haiku named the step, the word and the fix in three lines for under a cent.
 - 22 October 2026: step 13 done. Spec drafts and band issues behind `SPEC_ENABLED`, switched on 23 October.
 - 23 October 2026: step 14 done. Eight skill and hook evals, 8/8 on Sonnet for $0.97; writing them found and closed a shell route around the guard's test and baseline rules. Every step in the plan is now built.
+- 24 October 2026: the OSV check blocks only advisories a pull request adds; shipped dependencies stay gated by `pnpm audit:prod`, and Dependabot security fixes arrive grouped ([intent](../intent/advisory-gate/intent.md)).
