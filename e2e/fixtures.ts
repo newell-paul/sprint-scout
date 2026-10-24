@@ -3,13 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { installOpenMeteo, type OpenMeteo } from "@scout/testing/playwright";
 import { writeFile } from "node:fs/promises";
 import allowlist from "./a11y-allowlist.json" with { type: "json" };
-import {
-  DemoPlanner,
-  northbound,
-  Planner,
-  routesKey,
-  type Point,
-} from "./pages";
+import { DemoPlanner, northbound, Planner, routesKey, type Point } from "./pages";
 
 export { expect };
 
@@ -42,9 +36,7 @@ export const aRoute = (overrides: Partial<SeedRoute> = {}): SeedRoute => ({
 export type { OpenMeteo } from "@scout/testing/playwright";
 
 type Allow = { rule: string; owner: string; expires: string; reason: string };
-const activeAllowlist = (allowlist as Allow[]).filter(
-  (entry) => Date.parse(entry.expires) > Date.now(),
-);
+const activeAllowlist = (allowlist as Allow[]).filter((entry) => Date.parse(entry.expires) > Date.now());
 
 type Fixtures = {
   /** ISO instant the page clock is frozen at before navigation. */
@@ -80,8 +72,7 @@ export const test = base.extend<Fixtures>({
       if (!firstVisit)
         await page.addInitScript((key) => {
           try {
-            if (localStorage.getItem(key) === null)
-              localStorage.setItem(key, "[]");
+            if (localStorage.getItem(key) === null) localStorage.setItem(key, "[]");
           } catch {
             /* Opaque origin. */
           }
@@ -111,9 +102,7 @@ export const test = base.extend<Fixtures>({
     async ({ page }, use) => {
       const meteo = await installOpenMeteo(page);
       await use(meteo);
-      expect(meteo.unhandled, "requests that would reach the internet").toEqual(
-        [],
-      );
+      expect(meteo.unhandled, "requests that would reach the internet").toEqual([]);
     },
     { auto: true },
   ],
@@ -122,15 +111,10 @@ export const test = base.extend<Fixtures>({
       await page.goto("/health");
       await page.evaluate(
         ([routesJson, riderJson]) => {
-          if (routesJson)
-            localStorage.setItem("sprint-scout.drawn-routes.v1", routesJson);
-          if (riderJson)
-            localStorage.setItem("sprint-scout.rider.v1", riderJson);
+          if (routesJson) localStorage.setItem("sprint-scout.drawn-routes.v1", routesJson);
+          if (riderJson) localStorage.setItem("sprint-scout.rider.v1", riderJson);
         },
-        [
-          routes ? JSON.stringify(routes) : null,
-          rider ? JSON.stringify(rider) : null,
-        ],
+        [routes ? JSON.stringify(routes) : null, rider ? JSON.stringify(rider) : null],
       );
       await page.goto("/");
     });
@@ -138,12 +122,7 @@ export const test = base.extend<Fixtures>({
   a11y: [
     async ({ page, a11yCheck }, use, testInfo) => {
       await use();
-      if (
-        !a11yCheck ||
-        testInfo.status !== testInfo.expectedStatus ||
-        page.isClosed()
-      )
-        return;
+      if (!a11yCheck || testInfo.status !== testInfo.expectedStatus || page.isClosed()) return;
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
         .disableRules(activeAllowlist.map((entry) => entry.rule))
@@ -155,8 +134,7 @@ export const test = base.extend<Fixtures>({
       });
       await writeFile(testInfo.outputPath("axe.json"), report);
       const blocking = results.violations.filter(
-        (violation) =>
-          violation.impact === "serious" || violation.impact === "critical",
+        (violation) => violation.impact === "serious" || violation.impact === "critical",
       );
       expect(
         blocking.map((violation) => ({

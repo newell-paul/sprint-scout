@@ -1,0 +1,3 @@
+{
+  "overrides": [{ "files": "e2e/**/*.ts", "options": { "printWidth": 120 } }]
+}

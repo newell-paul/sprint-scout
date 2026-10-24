@@ -28,26 +28,17 @@ test("a growing library scrolls on a phone without widening the page @mobile-onl
   expect(await planner.horizontalOverflow()).toBe(0);
 });
 
-test("the sixth segment saves into slot 6 and leaves slot 7 empty", async ({
-  planner,
-  seed,
-}) => {
+test("the sixth segment saves into slot 6 and leaves slot 7 empty", async ({ planner, seed }) => {
   await seed({ routes: fiveSaved() });
 
   await planner.library.selectSlot(6);
   await planner.editor.drawSegment("Sixth sprint");
 
   await expect(planner.library.slot(6)).toHaveAttribute("aria-pressed", "true");
-  await expect(planner.library.slot(7)).toHaveAttribute(
-    "data-defined",
-    "false",
-  );
+  await expect(planner.library.slot(7)).toHaveAttribute("data-defined", "false");
 });
 
-test("a sixth segment persists and the strip offers seven slots", async ({
-  planner,
-  seed,
-}) => {
+test("a sixth segment persists and the strip offers seven slots", async ({ planner, seed }) => {
   await seed({ routes: fiveSaved() });
   await planner.library.selectSlot(6);
   await planner.editor.drawSegment("Sixth sprint");
@@ -59,10 +50,7 @@ test("a sixth segment persists and the strip offers seven slots", async ({
   await expect(planner.library.slotButtons()).toHaveCount(7);
 });
 
-test("the planner opens on the lowest saved slot", async ({
-  planner,
-  seed,
-}) => {
+test("the planner opens on the lowest saved slot", async ({ planner, seed }) => {
   const routes = [aRoute({ id: "later", name: "Later slot", slot: 3 })];
 
   await seed({ routes });

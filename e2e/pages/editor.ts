@@ -123,8 +123,6 @@ export class SegmentEditor {
   async drawSegment(name: string, points: Point[] = northbound) {
     await this.draft(name, points);
     await this.save();
-    await expect(this.page.locator("p[role=status]")).toHaveText(
-      "Route saved on this browser.",
-    );
+    await expect(this.page.locator("p[role=status]")).toHaveText("Route saved on this browser.");
   }
 }

@@ -21,10 +21,7 @@ export class Attempt {
       exact: true,
     });
     this.comparison = page.getByTestId("target-comparison");
-    this.targetError = page.getByText(
-      "Enter minutes:seconds, from 0:01 to 1440:00.",
-      { exact: true },
-    );
+    this.targetError = page.getByText("Enter minutes:seconds, from 0:01 to 1440:00.", { exact: true });
   }
 
   targetHeading(target: string) {
