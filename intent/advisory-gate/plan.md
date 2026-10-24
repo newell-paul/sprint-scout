@@ -8,13 +8,14 @@ From [spec.md](spec.md).
 - `scripts/osv-diff.mjs`: new; compares two osv-scanner JSON results and prints the summary.
 - `.github/workflows/ci.yml`: the `OSV scan` job runs the scanner image directly, scans base and head on a pull request that changes the lockfile, runs the script into the job summary, and uploads SARIF on `main`.
 - `.github/dependabot.yml`: the `security` group for npm.
+- `cspell.json`: `ghsa` and `sarif` for the new script, tests and docs.
 - `docs/test-strategy.md`, `docs/sdlc.md`, `docs/design.md`: as in the spec.
 
 ## Order
 
 1. Tests first; confirm they fail with the script absent.
 2. The script, until the tests pass.
-3. Workflow and Dependabot changes. Run the job's shell locally against the lockfile from `3183d13` as base and today's as head, with the local `osv-scanner` 2.7.0.
+3. Workflow and Dependabot changes. Run the job's `Scan` script locally with the same scanner image for the three cases: lockfile unchanged, the lockfile from `3183d13` as head, and a push to `main`. The scanner image's wrapper prints its exit code to stdout, so the job calls `osv-scanner` as the entrypoint and writes results with `--output-file`.
 4. Docs; intent status `done`.
 
 ## Proof

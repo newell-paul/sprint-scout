@@ -1,6 +1,6 @@
 # Advisory gate that blocks only what a pull request changes
 
-Status: accepted
+Status: done
 Opened: 23 October 2026 by the owner
 
 ## Problem

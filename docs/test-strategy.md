@@ -110,7 +110,7 @@ New scenario families:
 - Lighthouse CI against the static export on every PR: performance, accessibility and best practices at 90 or above, with a budget file for total JavaScript and largest contentful paint.
 - `size-limit` on the web client bundle with a hard ceiling and a diff comment on PRs.
 - The wind benchmark becomes a `vitest bench` run with a p95 assertion so ranking cannot regress silently.
-- `pnpm audit --prod` and `osv-scanner` in CI.
+- `pnpm audit --prod` in the static job fails any pull request with a high or critical advisory in a shipped dependency. The OSV scan fails a pull request only for an advisory it adds to the lockfile, and reports the rest; on `main` it reports everything to the job summary and code scanning.
 
 ### L7 · Exploratory and test health
 
