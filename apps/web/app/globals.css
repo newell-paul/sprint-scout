@@ -2860,3 +2860,60 @@ hr {
     min-height: 720px;
   }
 }
+.segment-screen button {
+  background: var(--raised);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+.segment-screen button:hover:not(:disabled) {
+  border-color: var(--data);
+}
+.segment-screen button:disabled {
+  opacity: 0.5;
+}
+.segment-screen .primary {
+  background: var(--data);
+  border-color: var(--data);
+  color: var(--bg);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
+}
+.segment-screen .primary:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.segment-screen input:not([type="checkbox"]):not([type="range"]),
+.segment-screen select {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+.segment-screen input:not([type="checkbox"]):not([type="range"]):focus-visible,
+.segment-screen select:focus-visible {
+  border-color: var(--focus);
+}
+.segment-screen input[type="checkbox"] {
+  accent-color: var(--data);
+}
+.segment-screen
+  :is(
+    .target-settings,
+    .shelter-settings,
+    .terrain-panel,
+    .efforts-panel,
+    .opportunity-board
+  )
+  h3 {
+  font-size: var(--type-heading);
+  font-weight: 600;
+}
+.segment-screen
+  :is(
+    .target-settings,
+    .shelter-settings,
+    .terrain-panel,
+    .efforts-panel,
+    .rider-settings,
+    .opportunity-board
+  ) {
+  padding: 16px 20px;
+}
