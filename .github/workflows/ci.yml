@@ -313,6 +313,9 @@ jobs:
       contents: read
       actions: read
       pull-requests: read
+      # The intent board shows each open pull request's check state.
+      checks: read
+      statuses: read
     outputs:
       breach: ${{ steps.breach.outputs.breach }}
     steps:
@@ -380,6 +383,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/collect-reviews.mjs || true
+      - name: Collect intents on open pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/collect-intents.mjs || true
       - id: build
         run: pnpm dashboard --history previous/history.json --sha "$GITHUB_SHA"
         continue-on-error: true

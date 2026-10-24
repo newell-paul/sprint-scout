@@ -30,7 +30,8 @@ import {
 //   [--type-coverage reports/type-coverage.json] [--lighthouse .lighthouseci]
 //   [--size reports/size.json] [--evals reports/evals/results.json]
 //   [--runs reports/github/runs.json] [--pulls reports/github/pulls.json]
-//   [--intents intent] [--reviews reports/review/reviews.json]
+//   [--intents intent] [--open-intents reports/github/open-intents.json]
+//   [--repo owner/name] [--reviews reports/review/reviews.json]
 //   [--bands packages/testing/bands.yaml]
 //   [--date YYYY-MM-DD] [--sha <commit>]
 // Every input is optional: a missing file leaves its cards at n/a. With
@@ -70,6 +71,8 @@ function readIntents(dir: string | undefined) {
     .map((file) => ({
       slug: dirname(file).split(/[\\/]/).pop()!,
       text: readFileSync(file, "utf8"),
+      spec: existsSync(join(dirname(file), "spec.md")),
+      plan: existsSync(join(dirname(file), "plan.md")),
     }));
 }
 
@@ -90,6 +93,8 @@ const next = snapshot({
   runs: readJson(option("--runs")),
   pulls: readJson(option("--pulls")),
   intents: readIntents(option("--intents")),
+  openIntents: readJson(option("--open-intents")),
+  repo: option("--repo") ?? process.env.GITHUB_REPOSITORY,
   reviews: readJson(option("--reviews")),
 });
 const merged = appendHistory(history, next);

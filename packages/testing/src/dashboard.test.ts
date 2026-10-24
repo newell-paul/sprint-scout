@@ -3,8 +3,10 @@ import {
   appendHistory,
   badges,
   bars,
+  checkState,
   deliverySummary,
   flakeFreeStreak,
+  intentBoard,
   intentSummary,
   lighthouseSummary,
   mutationScore,
@@ -13,6 +15,7 @@ import {
   snapshot,
   sparkline,
   summariseVitest,
+  type OpenIntent,
   type Snapshot,
 } from "./dashboard";
 
@@ -471,7 +474,10 @@ describe("render", () => {
     );
     expect(html).toContain("Not collected yet");
     expect(html).not.toContain("<script");
-    expect(html).not.toMatch(/https?:\/\//);
+    // The page loads nothing external; the board's GitHub links are the only URLs.
+    expect(
+      html.replace(/<a href="https:\/\/github\.com\/[^"]*">/g, ""),
+    ).not.toMatch(/https?:\/\//);
     expect(html).toContain("prefers-color-scheme:dark");
   });
 
@@ -557,5 +563,246 @@ describe("render", () => {
 
   it("explains an empty history", () => {
     expect(render([])).toContain("No test runs recorded yet.");
+  });
+});
+
+const intentText = (title: string, status: string, opened = "1 October 2026") =>
+  `# ${title}\n\nStatus: ${status}\nOpened: ${opened} by the owner\n`;
+const pr = (
+  number: number,
+  statusCheckRollup: OpenIntent["pr"]["statusCheckRollup"] = [],
+  isDraft = false,
+) => ({
+  number,
+  url: `https://github.com/o/r/pull/${number}`,
+  isDraft,
+  headRefName: `branch-${number}`,
+  statusCheckRollup,
+});
+const passed = { status: "COMPLETED", conclusion: "SUCCESS" };
+
+describe("intent board", () => {
+  it("reads the check state, failing first, then running, then passing", () => {
+    expect(checkState([])).toBe("no checks");
+    expect(
+      checkState([passed, { status: "COMPLETED", conclusion: "SKIPPED" }]),
+    ).toBe("passing");
+    expect(
+      checkState([passed, { status: "IN_PROGRESS", conclusion: null }]),
+    ).toBe("running");
+    expect(checkState([passed, { state: "PENDING" }])).toBe("running");
+    expect(
+      checkState([
+        { status: "IN_PROGRESS", conclusion: null },
+        { status: "COMPLETED", conclusion: "TIMED_OUT" },
+      ]),
+    ).toBe("failing");
+    expect(checkState([passed, { state: "ERROR" }])).toBe("failing");
+    expect(checkState([{ state: "SUCCESS" }])).toBe("passing");
+  });
+
+  it("places intents on main by their status line", () => {
+    const board = intentBoard(
+      [
+        { slug: "a", text: intentText("A", "draft") },
+        { slug: "b", text: intentText("B", "Accepted") },
+        { slug: "c", text: intentText("C", "in build") },
+        { slug: "d", text: intentText("D", "done") },
+        { slug: "e", text: intentText("E", "dropped") },
+        { slug: "f", text: "# F\n" },
+      ],
+      [],
+      "o/r",
+    );
+    expect(Object.fromEntries(board.map((c) => [c.slug, c.column]))).toEqual({
+      a: "Draft",
+      b: "Accepted",
+      c: "In build",
+      d: "Done",
+      e: "Dropped",
+      f: "Draft",
+    });
+  });
+
+  it("moves an open pull request's intent to In build once it has a plan", () => {
+    const open = (slug: string, status: string, plan: boolean): OpenIntent => ({
+      slug,
+      text: intentText(slug, status),
+      spec: plan,
+      plan,
+      pr: pr(1),
+    });
+    const board = intentBoard(
+      [],
+      [
+        open("draft-no-plan", "draft", false),
+        open("draft-plan", "draft", true),
+        open("accepted-no-plan", "accepted", false),
+        open("accepted-plan", "accepted", true),
+        open("done-on-branch", "done", true),
+        open("dropped", "dropped", true),
+      ],
+      "o/r",
+    );
+    expect(Object.fromEntries(board.map((c) => [c.slug, c.column]))).toEqual({
+      "draft-no-plan": "Draft",
+      "draft-plan": "In build",
+      "accepted-no-plan": "Accepted",
+      "accepted-plan": "In build",
+      "done-on-branch": "In build",
+      dropped: "Dropped",
+    });
+  });
+
+  it("lets the branch copy replace main, the highest pull request winning", () => {
+    const board = intentBoard(
+      [
+        {
+          slug: "x",
+          text: intentText("Old title", "done"),
+          spec: true,
+          plan: true,
+        },
+      ],
+      [
+        { slug: "x", text: intentText("From 7", "accepted"), pr: pr(7) },
+        {
+          slug: "x",
+          text: intentText("From 9", "accepted"),
+          spec: true,
+          pr: pr(9, [passed], true),
+        },
+      ],
+      "o/r",
+    );
+    expect(board).toEqual([
+      {
+        slug: "x",
+        title: "From 9",
+        opened: "1 October 2026",
+        column: "Accepted",
+        spec: true,
+        plan: false,
+        folder: "https://github.com/o/r/tree/branch-9/intent/x",
+        pr: {
+          number: 9,
+          url: "https://github.com/o/r/pull/9",
+          draft: true,
+          checks: "passing",
+        },
+      },
+    ]);
+  });
+
+  it("falls back to the slug for the title and links main folders", () => {
+    const [card] = intentBoard(
+      [{ slug: "bare", text: "Status: done\n" }],
+      [],
+      "o/r",
+    );
+    expect(card).toEqual({
+      slug: "bare",
+      title: "bare",
+      opened: "",
+      column: "Done",
+      spec: false,
+      plan: false,
+      folder: "https://github.com/o/r/tree/main/intent/bare",
+    });
+  });
+
+  it("sorts newest opened first, then by slug, undated last", () => {
+    const board = intentBoard(
+      [
+        { slug: "undated", text: "# U\nStatus: done\n" },
+        { slug: "b", text: intentText("B", "done", "2 October 2026") },
+        { slug: "a", text: intentText("A", "done", "2 October 2026") },
+        { slug: "c", text: intentText("C", "done", "30 September 2026") },
+        { slug: "d", text: intentText("D", "done", "1 November 2026") },
+      ],
+      [],
+      "o/r",
+    );
+    expect(board.map((c) => c.slug)).toEqual(["d", "a", "b", "c", "undated"]);
+  });
+
+  it("keeps the board on the newest history entry only", () => {
+    const at = (date: string) =>
+      snapshot({
+        date,
+        intents: [{ slug: "a", text: intentText("A", "done") }],
+        openIntents: [],
+        repo: "o/r",
+      });
+    const first = at("2026-10-01");
+    expect(first.board).toHaveLength(1);
+    const history = appendHistory(appendHistory([], first), at("2026-10-02"));
+    expect(history.map((s) => s.board?.length)).toEqual([undefined, 1]);
+  });
+
+  it("renders the columns, cards and folded dropped intents", () => {
+    const latest = snapshot({
+      date: "2026-10-10",
+      intents: [
+        {
+          slug: "shipped",
+          text: intentText("Shipped <it>", "done"),
+          spec: true,
+          plan: true,
+        },
+        { slug: "gone", text: intentText("Gone", "dropped") },
+      ],
+      openIntents: [
+        {
+          slug: "wip",
+          text: intentText("Work in progress", "accepted"),
+          spec: true,
+          plan: true,
+          pr: pr(32, [{ status: "COMPLETED", conclusion: "FAILURE" }], true),
+        },
+      ],
+      repo: "o/r",
+    });
+    const html = render([latest]);
+    const board = html.slice(html.indexOf('<section id="board"'));
+    const headings = [...board.matchAll(/<h3>([^<]+)/g)].map((m) =>
+      m[1]!.trim(),
+    );
+    expect(headings.slice(0, 4)).toEqual([
+      "Draft",
+      "Accepted",
+      "In build",
+      "Done",
+    ]);
+    expect(board).toContain("None");
+    expect(board).toContain("Shipped &lt;it&gt;");
+    expect(board).toContain(
+      'href="https://github.com/o/r/tree/main/intent/shipped"',
+    );
+    expect(board).toContain(
+      'href="https://github.com/o/r/tree/branch-32/intent/wip"',
+    );
+    expect(board).toContain(
+      '<a href="https://github.com/o/r/pull/32">#32</a> draft · failing',
+    );
+    expect(board).toContain("Spec and plan");
+    expect(board).toContain("No spec or plan");
+    expect(board).toContain("<summary>Dropped (1)</summary>");
+    expect(html).not.toContain(">Intents</caption>");
+  });
+
+  it("omits the dropped fold when nothing is dropped and says when there are no intents", () => {
+    const some = render([
+      snapshot({
+        date: "2026-10-10",
+        intents: [{ slug: "a", text: intentText("A", "done") }],
+      }),
+    ]);
+    expect(some).toContain('<section id="board"');
+    expect(some).not.toContain("<summary>Dropped");
+    const none = render([snapshot({ date: "2026-10-10", intents: [] })]);
+    expect(none.slice(none.indexOf('<section id="board"'))).toContain(
+      "No intents",
+    );
   });
 });

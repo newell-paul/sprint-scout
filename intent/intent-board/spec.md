@@ -23,7 +23,7 @@ A new dashboard section, **Intent board**, follows AI practice. It shows four co
   An intent marked `done` on its branch stays In build until the pull request merges, because each intent lands with its code.
 
 - **Card.**
-  - The title is the first `# ` heading, or the slug when there is none.
+  - The title is the first level-one heading, or the slug when there is none.
   - The opened date comes from the `Opened:` line, without the "by" part.
   - Two markers say whether `spec.md` and `plan.md` exist next to the intent.
   - With a pull request: a link `#N` to it, "draft" when it is a draft, and its check state: passing, failing, running or no checks.
@@ -43,7 +43,7 @@ A new dashboard section, **Intent board**, follows AI practice. It shows four co
 
 ## Data and privacy
 
-Nothing changes for the planner or its users. The dashboard job reads pull request metadata and intent files from this public repository with its existing read-only `github.token`. No new secret, permission or schedule. Pull request text is escaped like every other value on the page.
+Nothing changes for the planner or its users. The dashboard job reads pull request metadata and intent files from this public repository with its existing `github.token`. The job gains `checks: read` and `statuses: read` so the token can see each pull request's check rollup; both are read-only. No new secret or schedule. Pull request text is escaped like every other value on the page.
 
 ## Calculations
 

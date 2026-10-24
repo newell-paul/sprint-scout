@@ -23,7 +23,7 @@
     "test:component": "vitest run --project browser",
     "test:perf": "vitest run --project perf",
     "test:integration": "vitest run --project integration",
-    "dashboard": "tsx packages/testing/src/dashboard.cli.ts --out reports/dashboard --history reports/dashboard/history.json --playwright reports/e2e/report.json --unit reports/unit/report.json --component reports/component/report.json --coverage coverage/coverage-summary.json --mutation reports/mutation/mutation.json --type-coverage reports/type-coverage.json --lighthouse .lighthouseci --size reports/size.json --evals reports/evals/results.json --runs reports/github/runs.json --pulls reports/github/pulls.json --intents intent --reviews reports/review/reviews.json --bands packages/testing/bands.yaml",
+    "dashboard": "tsx packages/testing/src/dashboard.cli.ts --out reports/dashboard --history reports/dashboard/history.json --playwright reports/e2e/report.json --unit reports/unit/report.json --component reports/component/report.json --coverage coverage/coverage-summary.json --mutation reports/mutation/mutation.json --type-coverage reports/type-coverage.json --lighthouse .lighthouseci --size reports/size.json --evals reports/evals/results.json --runs reports/github/runs.json --pulls reports/github/pulls.json --intents intent --open-intents reports/github/open-intents.json --reviews reports/review/reviews.json --bands packages/testing/bands.yaml",
     "test:changed": "vitest run --project unit --changed",
     "test:mutation": "stryker run",
     "test:contract:drift": "tsx packages/testing/src/drift.ts",
