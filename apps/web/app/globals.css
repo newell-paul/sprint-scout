@@ -2915,8 +2915,6 @@ hr {
 .segment-screen button,
 .segment-slot.defined {
   transition-duration: 180ms;
-}
-.segment-screen button[aria-pressed] {
   transition-property: border-color, box-shadow;
 }
 .segment-screen summary:hover {

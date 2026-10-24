@@ -37,7 +37,7 @@
 7. `/demo`
    - `packages/ui/src/route-map.tsx`, demo CSS; remove the light theme and its tests.
    - After the owner's first look the demo also took the planner's logo, panels, buttons and mono numbers, so it no longer looks like a different app.
-   - Toggle buttons (`aria-pressed`) switch their background instantly; a fading background under instantly changed text failed axe contrast mid-transition.
+   - Buttons switch their background instantly and fade only border and glow; a fading background under instantly changed text failed axe contrast mid-transition (the units toggle, then the board's Rank button that React reuses as Refresh).
    - Owner checks: `/demo` end to end.
 8. Finish
    - Regenerate visual baselines with `pnpm test:visual:update` and ARIA snapshots through the runner; commit `docs/images/new-design.png`; `docs/design.md` entry; intent status done; PR from `aero-stealth` into `main`.
