@@ -48,7 +48,7 @@ Add a line whenever the same thing happens twice.
 - `Intl` patterns differ between Node and browser ICU, so server-rendered text hydrates wrong; format with `formatZonedTime` from `components/time.ts`.
 - An emptied library is stored as `[]`; only an absent key counts as a first visit.
 - `next/font/google` fetches at compile time and fails whole e2e shards when Google blips; fonts come from `apps/web/app/fonts.ts` (`next/font/local`).
-- An e2e step that acts before the app is ready passes locally and fails on slower CI runners; wait for the visible precondition first (the forecast placeholder before `page.clock.runFor`, hydration before typing on `/demo`).
+- An e2e step that acts before the app is ready passes locally and fails on slower CI runners; wait for the visible precondition first (the forecast placeholder before `page.clock.runFor`, hydration and `data-chart-ready` before acting on `/demo`).
 
 ## Docs
 

@@ -2,6 +2,14 @@
 
 One entry per bug that reached `main` or a shipped build, newest first. Each names the test that now catches it. When a class of mistake appears twice, it also becomes a line under "Known mistakes" in `AGENTS.md`.
 
+## 24 October 2026: demo comparisons timed out on a cold dev server
+
+- What broke: `demo.spec.ts` tests that compare ("a forecast outage offers a retry", "retry after a network failure…", "a partial failure…") failed about 2 runs in 60 locally, waiting more than 5 s for the "Compare windows →" button to come back from "Comparing…". Never seen in CI.
+- Found by: local `pnpm verify` runs. The trace shows the `/api/planner` request never answered while 33 echarts chunks were still pending. The dev server splits echarts into dozens of lazy chunks; on a cold server they take seconds and fill Chrome's six connections per host, so the comparison queued behind them. CI serves the production build, which bundles echarts into a few files.
+- Fix: the hour chart exposes `data-chart-ready`, like the map's `data-map-ready`. `DemoPlanner.open()` waits for it, with 15 s for the cold first load, before any test acts.
+- Test: the existing `demo.spec.ts` tests: 5 cold dev-server runs and 380 warm runs (`--repeat-each 20`) all pass, against 1 failure in 3 cold runs before.
+- Rule: the existing known mistake (wait for the visible precondition) now also names the chart on `/demo`.
+
 ## 22 October 2026: the reduced-motion particle test timed out on WebKit
 
 - What broke: `forecast.spec.ts`, "reduced motion keeps the particle field static", failed on the `webkit-a11y` project in Checks for PR #14, which changed only `AGENTS.md`. Both attempts timed out waiting for `wind-particle-field`.
