@@ -531,6 +531,16 @@ describe("render", () => {
     expect(html).not.toContain("Not collected yet");
   });
 
+  it("carries the planner's logo and fonts from its own origin", () => {
+    const html = render([snapshot({ date: "2026-10-24" })]);
+    expect(html).toContain('url("fonts/inter-latin-variable.woff2")');
+    expect(html).toContain('url("fonts/jetbrains-mono-latin-variable.woff2")');
+    expect(html).toMatch(
+      /<a class="brand" href="\.\.\/" aria-label="SprintScout planner"><svg[^>]*aria-hidden="true"/,
+    );
+    expect(html.match(/<style>[\s\S]*<\/style>/)![0]).not.toMatch(/https?:/);
+  });
+
   it("renders an old history entry without the new fields", () => {
     const old = {
       date: "2026-09-14",
