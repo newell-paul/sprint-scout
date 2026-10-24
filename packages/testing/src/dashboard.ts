@@ -130,6 +130,8 @@ export type Snapshot = {
   } | null;
   intents?: { slug: string; status: string; opened: string }[] | null;
   board?: BoardCard[] | null;
+  boardAt?: string;
+  repo?: string;
   review?: ReviewSummary | null;
 };
 export type Inputs = {
@@ -398,6 +400,7 @@ export function intentBoard(
 }
 
 export function snapshot(inputs: Inputs): Snapshot {
+  const repo = inputs.repo ?? "newell-paul/sprint-scout";
   const base: Snapshot = {
     date: inputs.date,
     e2e: inputs.playwright ? summarise(inputs.playwright) : null,
@@ -443,12 +446,10 @@ export function snapshot(inputs: Inputs): Snapshot {
       : undefined,
     intents: inputs.intents ? intentSummary(inputs.intents) : undefined,
     board: inputs.intents
-      ? intentBoard(
-          inputs.intents,
-          inputs.openIntents ?? [],
-          inputs.repo ?? "newell-paul/sprint-scout",
-        )
+      ? intentBoard(inputs.intents, inputs.openIntents ?? [], repo)
       : undefined,
+    boardAt: inputs.intents ? inputs.date : undefined,
+    repo: inputs.intents ? repo : undefined,
     review: inputs.reviews ? reviewSummary(inputs.reviews) : undefined,
   };
   for (const [key, value] of Object.entries(extra)) {
@@ -466,8 +467,21 @@ export function appendHistory(history: Snapshot[], next: Snapshot, keep = 90) {
     if (i === kept.length - 1 || !("board" in s)) return s;
     const rest = { ...s };
     delete rest.board;
+    delete rest.boardAt;
     return rest;
   });
+}
+
+// A manual Pages run rebuilds only the board; the rest of the newest entry
+// stays as the last Checks run on main left it.
+export function refreshBoard(
+  history: Snapshot[],
+  board: BoardCard[],
+  date: string,
+) {
+  return history.map((s, i) =>
+    i === history.length - 1 ? { ...s, board, boardAt: date } : s,
+  );
 }
 
 export function flakeFreeStreak(history: Snapshot[]) {
@@ -714,8 +728,12 @@ const columnList = (cards: BoardCard[]) =>
       `<details class="more"><summary>Show ${cards.length - shownPerColumn} more</summary>${boardList(cards.slice(shownPerColumn))}</details>`
     : boardList(cards);
 
-function boardHtml(cards: BoardCard[]) {
-  if (!cards.length) return `<p class="muted">No intents</p>`;
+function boardHtml(latest: Snapshot) {
+  const cards = latest.board ?? [];
+  const rebuild = latest.repo
+    ? `<p class="note">Built on ${escapeHtml(latest.boardAt ?? latest.date)}. <a href="https://github.com/${escapeHtml(latest.repo)}/actions/workflows/pages.yml">Rebuild now</a></p>`
+    : "";
+  if (!cards.length) return rebuild + `<p class="muted">No intents</p>`;
   const columns = (["Draft", "Accepted", "In build", "Done"] as const)
     .map((name) => {
       const inColumn = cards.filter((c) => c.column === name);
@@ -724,6 +742,7 @@ function boardHtml(cards: BoardCard[]) {
     .join("");
   const dropped = cards.filter((c) => c.column === "Dropped");
   return (
+    rebuild +
     `<div class="board">${columns}</div>` +
     (dropped.length
       ? `<details class="dropped"><summary>Dropped (${dropped.length})</summary>${boardList(dropped)}</details>`
@@ -1017,7 +1036,7 @@ ${section("tests", "Tests", "Counts per level from the latest run; trend over th
 ${section("quality", "Quality gates", "Coverage from the merged unit shards, mutation score from the last manual Stryker run, type coverage from the static gate.", grid(qualityCards))}
 ${section("performance", "Performance", "The deploy gate runs Lighthouse against the static export and checks client JavaScript against its ceiling.", grid(perfCards))}
 ${section("ai", "AI practice", "Evals prove the agent configuration steers an agent; intents are the audit trail of work asked for and delivered.", grid(aiCards))}
-${section("board", "Intent board", "Intents on main and on open pull requests, as they stood when this dashboard was built.", boardHtml(latest.board ?? []))}
+${section("board", "Intent board", "Intents on main and on open pull requests, as they stood when this dashboard was built.", boardHtml(latest))}
 ${section("delivery", "Delivery", "Pull requests merged into main, read from the GitHub API by the dashboard job.", grid(deliveryCards))}
 <footer>Built by the Checks workflow after every push to main. No scripts, no external requests. Source: <code>packages/testing/src/dashboard.ts</code>.</footer>
 </main>

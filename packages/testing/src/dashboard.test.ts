@@ -11,6 +11,7 @@ import {
   lighthouseSummary,
   mutationScore,
   pipelineSummary,
+  refreshBoard,
   render,
   snapshot,
   sparkline,
@@ -808,6 +809,43 @@ describe("intent board", () => {
 
     const six = render([snapshot({ date: "2026-10-10", intents: done(6) })]);
     expect(six).not.toContain("more</summary>");
+  });
+
+  it("refreshes the board on the newest entry only", () => {
+    const first = snapshot({ date: "2026-10-01", intents: [] });
+    const latest = snapshot({
+      date: "2026-10-02",
+      intents: [{ slug: "a", text: intentText("A", "done") }],
+      repo: "o/r",
+    });
+    const board = intentBoard(
+      [{ slug: "b", text: intentText("B", "draft") }],
+      [],
+      "o/r",
+    );
+
+    const refreshed = refreshBoard([first, latest], board, "2026-10-05");
+
+    expect(refreshed[0]).toBe(first);
+    expect(refreshed[1]).toEqual({ ...latest, board, boardAt: "2026-10-05" });
+    expect(latest.boardAt).toBe("2026-10-02");
+    expect(refreshBoard([], board, "2026-10-05")).toEqual([]);
+  });
+
+  it("dates the board and links to the rebuild workflow", () => {
+    const latest = snapshot({
+      date: "2026-10-02",
+      intents: [{ slug: "a", text: intentText("A", "done") }],
+      repo: "o/r",
+    });
+    const built = render([latest]);
+    expect(built).toContain(
+      'Built on 2026-10-02. <a href="https://github.com/o/r/actions/workflows/pages.yml">Rebuild now</a>',
+    );
+    const refreshed = render(
+      refreshBoard([latest], latest.board!, "2026-10-05"),
+    );
+    expect(refreshed).toContain("Built on 2026-10-05.");
   });
 
   it("omits the dropped fold when nothing is dropped and says when there are no intents", () => {
