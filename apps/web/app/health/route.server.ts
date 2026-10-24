@@ -1,3 +1,3 @@
 export function GET() {
-  return Response.json({ status: "ok", mode: "demo" });
+  return Response.json({ status: "ok" });
 }

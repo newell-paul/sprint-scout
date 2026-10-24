@@ -102,26 +102,26 @@ Each result shows:
 - History status and optional observed best time.
 - A short explanation, limitations, and forecast retrieval timestamp.
 
-Provide keyboard access, non-colour map legends, accessible table equivalents, loading skeletons, empty states, and retry actions. Do not silently substitute synthetic data when real data fails. Demo mode has a persistent banner.
+Provide keyboard access, non-colour map legends, accessible table equivalents, loading skeletons, empty states, and retry actions. Do not silently substitute synthetic data when real data fails.
 
 ## 6. Proposed stack and boundaries
 
 These are project choices, not claims about required or latest versions. During scaffolding select compatible stable releases from official documentation and commit the lockfile.
 
-| Area                  | Choice                                      | Purpose                                          |
-| --------------------- | ------------------------------------------- | ------------------------------------------------ |
-| Language/tooling      | TypeScript strict, pnpm workspaces          | Shared types and reproducible builds             |
-| Web                   | Next.js, React, Tailwind CSS                | Standalone responsive application                |
-| Accessible components | Hand-written React controls                 | Forms and controls, roles and names first        |
-| HTTP API              | Fastify, Zod                                | Authenticated endpoints and validation           |
-| MCP                   | Withdrawn 22 September 2026                 | No MCP code remains                              |
-| Embedded UI           | Withdrawn 22 September 2026                 | The web planner is the only surface              |
-| Storage               | PostgreSQL, PostGIS, Drizzle                | Permitted geometry, configuration and caches     |
-| Jobs                  | None                                        | Worker boundary reserved; Strava refresh blocked |
-| Geography             | Turf.js                                     | Geometry validation and bearings                 |
-| Maps                  | MapLibre GL JS; configurable licensed tiles | Route and wind visualisation                     |
-| Charts                | ECharts                                     | Hourly wind and effort plots                     |
-| Tests                 | Vitest, Playwright                          | Calculation, integration and UI checks           |
+| Area                  | Choice                                          | Purpose                                          |
+| --------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| Language/tooling      | TypeScript strict, pnpm workspaces              | Shared types and reproducible builds             |
+| Web                   | Next.js, React, Tailwind CSS                    | Standalone responsive application                |
+| Accessible components | Hand-written React controls                     | Forms and controls, roles and names first        |
+| HTTP API              | Removed 24 October 2026                         | The planner is a static export with no server    |
+| MCP                   | Withdrawn 22 September 2026                     | No MCP code remains                              |
+| Embedded UI           | Withdrawn 22 September 2026                     | The web planner is the only surface              |
+| Storage               | Browser storage; Postgres removed 24 Oct 2026   | Saved segments stay in the browser               |
+| Jobs                  | None                                            | Worker boundary reserved; Strava refresh blocked |
+| Geography             | Turf.js                                         | Geometry validation and bearings                 |
+| Maps                  | MapLibre GL JS; configurable licensed tiles     | Route and wind visualisation                     |
+| Charts                | Hand-written React; ECharts removed 24 Oct 2026 | Hourly wind timeline                             |
+| Tests                 | Vitest, Playwright                              | Calculation, integration and UI checks           |
 
 One repository, not a fleet of microservices:
 
@@ -649,3 +649,7 @@ The deploy gate runs Lighthouse 13 directly instead of through `@lhci/cli`. Ligh
 ## Aero Stealth redesign — 24 October 2026
 
 The planner and `/demo` move to one dark theme after the owner's mock-up (`docs/images/new-design.png`; intent `intent/aero-stealth/`). Tokens live on `:root`: slate navy surfaces (`#1e2a3a`, `#263345`, `#2e3d52`), teal for data and primary actions, crimson for the best hour and the active segment, sky blue for wind, and a token test holds every text colour at 4.5:1 or better on each surface. Inter and JetBrains Mono replace DM Sans and Outfit, served locally; numbers use the mono face. The OpenStreetMap raster is inverted and hue-turned in MapLibre paint, so there is no new tile provider. The header has a chevron logo, segment pills and a units switch; panels are translucent cards with a teal hairline; the timeline uses capsule buttons and a glowing selected point; the analytics row is a radial speed dial, an estimated time card and a ticked compass. Terrain and shelter notes fold under a summary. Hover, focus and selection fade over 150 to 200 ms and stop under `prefers-reduced-motion`; buttons switch their background instantly, because a fading background under instantly changed text fails contrast mid-transition. Panels carry no `backdrop-filter`: they sit on the flat page colour, so a blur changed nothing visible, and in Linux WebKit it stalled pointer actions on the page for longer than the 30-second test timeout. Phones from 360 px wide keep the logo and units on one row with 16 px gutters. `/demo` loses its light theme and the switch for it. The work was built in nine local stages, each checked by the owner on the dev server and on a phone before its commit, and pushed only once the whole design was accepted. `/demo` itself is to be removed by a separate intent.
+
+## Synthetic demo removed — 24 October 2026
+
+`/demo` was a synthetic planner from the first milestones: invented segments, fixed-clock weather, an hourly ranking, an ECharts chart, a Fastify API and a Postgres table that stored only the demo segments. It was never in the Pages build, it lost its MCP role on 22 September 2026, and after the Aero Stealth redesign the owner could not tell what it was for. It is removed with everything only it used (`intent/remove-demo/`): the page and `/api/planner`, the demo components and CSS, `packages/providers`, `packages/database`, `apps/api`, `compose.yaml`, the root entry of `packages/application` (the provenance policy, time resolution and forecast sampling), the hourly ranking in `packages/analysis` with its golden fixtures, the planner schemas in `packages/contracts`, the database CI job and the perf budgets of the ranking path. `apps/worker` stays as a reserved boundary. `/` is unchanged. The dependency-cruiser rule that kept the UI away from providers and the database now keeps planner code away from the test helpers in `packages/testing`. Dashboard bands gained an optional `since` date, so the intended drop in test counts restarts their baselines instead of failing the dashboard job.

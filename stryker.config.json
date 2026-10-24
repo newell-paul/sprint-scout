@@ -8,10 +8,7 @@
   "mutate": [
     "packages/analysis/src/**/*.ts",
     "packages/application/src/**/*.ts",
-    "!**/*.test.ts",
-    "!**/*.benchmark.ts",
-    "!**/*.smoke.ts",
-    "!packages/application/src/weather-demo.ts"
+    "!**/*.test.ts"
   ],
   "ignoreStatic": true,
   "ignorePatterns": [

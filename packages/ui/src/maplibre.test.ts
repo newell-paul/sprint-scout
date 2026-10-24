@@ -27,23 +27,6 @@ describe("loadMapLibre", () => {
   });
 });
 
-describe("configureMapLibre", () => {
-  it("applies a worker URL configured before the load", async () => {
-    const { configureMapLibre, loadMapLibre } = await import("./maplibre");
-    configureMapLibre({ workerUrl: "blob:worker" });
-    await loadMapLibre();
-    expect(setWorkerUrl).toHaveBeenLastCalledWith("blob:worker");
-  });
-
-  it("applies a worker URL configured after the load", async () => {
-    const { configureMapLibre, loadMapLibre } = await import("./maplibre");
-    await loadMapLibre();
-    configureMapLibre({ workerUrl: "blob:late" });
-    expect(setWorkerUrl).toHaveBeenLastCalledWith("blob:late");
-    expect(setWorkerUrl).toHaveBeenCalledTimes(2);
-  });
-});
-
 describe("clickToActivate", () => {
   const handler = () => ({
     enabled: true,

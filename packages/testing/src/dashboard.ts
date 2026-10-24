@@ -1031,7 +1031,7 @@ p.bands{font-size:.9rem;color:var(--muted)}
 <header><h1>SprintScout engineering dashboard</h1><p class="muted">Run on main of ${escapeHtml(latest.date)}${commit} · ${history.length} run${history.length === 1 ? "" : "s"} recorded</p></header>
 <nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a></nav>
 ${bandsPanel(annotations)}
-${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, database, deploy gate.", grid(pipelineCards))}
+${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, deploy gate.", grid(pipelineCards))}
 ${section("tests", "Tests", "Counts per level from the latest run; trend over the recorded runs.", grid(testCards) + `<table><caption class="muted">Slowest ten end-to-end tests</caption><thead><tr><th>Test</th><th>Project</th><th class="num">Duration</th></tr></thead><tbody>${slowest || '<tr><td colspan="3" class="muted">No end-to-end report</td></tr>'}</tbody></table>`)}
 ${section("quality", "Quality gates", "Coverage from the merged unit shards, mutation score from the last manual Stryker run, type coverage from the static gate.", grid(qualityCards))}
 ${section("performance", "Performance", "The deploy gate runs Lighthouse against the static export and checks client JavaScript against its ceiling.", grid(perfCards))}

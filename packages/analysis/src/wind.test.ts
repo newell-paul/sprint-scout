@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  prepareGeometry,
-  projectWind,
-  weatherIndex,
-  rankOpportunities,
-  validateOptions,
-  type Opportunity,
-} from "./index";
+import { prepareGeometry, projectWind } from "./index";
 const line = (coordinates: number[][]) => ({ type: "LineString", coordinates });
 describe("wind-v1 numerical acceptance (1e-8 m/s projection tolerance)", () => {
   it.each([
@@ -28,13 +21,6 @@ describe("wind-v1 numerical acceptance (1e-8 m/s projection tolerance)", () => {
     for (const speed of [null, NaN, -1])
       expect(() => projectWind(speed, 0, 0)).toThrow();
     expect(() => projectWind(5, null, 0)).toThrow();
-  });
-  it("clamps the index and supports explicit configuration", () => {
-    expect([-10, -5, 0, 5, 10].map((x) => weatherIndex(x))).toEqual([
-      0, 0, 50, 100, 100,
-    ]);
-    expect(weatherIndex(0, { offsetMps: 2, spanMps: 4 })).toBe(50);
-    expect(() => weatherIndex(0, { offsetMps: 2, spanMps: 0 })).toThrow();
   });
 });
 describe("directed geodesic geometry", () => {
@@ -107,59 +93,4 @@ describe("directed geodesic geometry", () => {
       ),
     ).toThrow();
   });
-});
-// Ranking fixtures isolate tie logic from trigonometric roundoff.
-const row = (id: string, changes: Partial<Opportunity> = {}) =>
-  ({
-    segmentId: id,
-    caution: false,
-    weatherIndex: 50,
-    meanAbsCrosswindMps: 0,
-    precipitationMm: 0,
-    attemptAt: "2026-09-08T16:00:00Z",
-    ...changes,
-  }) as Opportunity;
-it("orders caution, score, crosswind, rain, instant and binary ID; keeps best distinct hour", () => {
-  const rows = [
-    row("z"),
-    row("a"),
-    row("a", { weatherIndex: 60 }),
-    row("caution", { caution: true, weatherIndex: 100 }),
-    row("unknown", { precipitationMm: null }),
-    row("rain", { precipitationMm: 1 }),
-    row("cross", { meanAbsCrosswindMps: 1 }),
-    row("earlier", { attemptAt: "2026-09-08T15:00:00Z" }),
-  ];
-  const expected = ["a", "earlier", "z", "rain", "unknown", "cross", "caution"];
-  expect(rankOpportunities(rows, 10).map((r) => r.segmentId)).toEqual(expected);
-  expect(
-    rankOpportunities([...rows].reverse(), 10).map((r) => r.segmentId),
-  ).toEqual(expected);
-  expect(
-    rankOpportunities([row("b"), row("a")]).map((r) => r.segmentId),
-  ).toEqual(["a", "b"]);
-});
-it("bounds segments, window, hours, duplicates and filters", () => {
-  const options = {
-    startAt: "2026-09-08T00:00:00Z",
-    endAt: "2026-09-10T00:00:00Z",
-    timeZone: "UTC",
-  };
-  expect(() => validateOptions(options, [])).not.toThrow();
-  for (const patch of [
-    { endAt: "2026-09-10T01:00:00Z" },
-    { timeZone: "bad-zone" },
-    { minTailwindMps: NaN },
-    { limit: 0 },
-    { thresholds: { gustMps: -1 } },
-  ])
-    expect(() => validateOptions({ ...options, ...patch }, [])).toThrow();
-  const c = { segmentId: "x", geometry: null, source: null, slots: [] };
-  expect(() =>
-    validateOptions(
-      options,
-      Array.from({ length: 51 }, (_, i) => ({ ...c, segmentId: String(i) })),
-    ),
-  ).toThrow();
-  expect(() => validateOptions(options, [c, c])).toThrow();
 });

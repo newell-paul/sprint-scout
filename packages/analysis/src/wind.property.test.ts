@@ -1,6 +1,6 @@
 import { describe, it } from "vitest";
 import fc from "fast-check";
-import { projectWind, weatherIndex } from "./index";
+import { projectWind } from "./index";
 
 const runs = { numRuns: 300, seed: Number(process.env.FC_SEED ?? 20260913) };
 const speed = fc.double({
@@ -66,28 +66,6 @@ describe("projectWind invariants", () => {
           return calm.tailwindMps === 0 && calm.crosswindMps === 0;
         },
       ),
-      runs,
-    );
-  });
-});
-
-describe("weatherIndex invariants", () => {
-  const tailwind = fc.double({ min: -50, max: 50, noNaN: true });
-  it("stays within 0 to 100", () => {
-    fc.assert(
-      fc.property(tailwind, (t) => {
-        const index = weatherIndex(t);
-        return index >= 0 && index <= 100;
-      }),
-      runs,
-    );
-  });
-  it("never decreases as tailwind increases", () => {
-    fc.assert(
-      fc.property(tailwind, tailwind, (a, b) => {
-        const [low, high] = a <= b ? [a, b] : [b, a];
-        return weatherIndex(low) <= weatherIndex(high);
-      }),
       runs,
     );
   });

@@ -20,30 +20,7 @@ export default defineConfig({
         test: {
           name: "unit",
           include: ["packages/**/*.test.{ts,tsx}", "apps/**/*.test.{ts,tsx}"],
-          exclude: [
-            "**/node_modules/**",
-            "**/*.browser.test.tsx",
-            "**/*.perf.test.ts",
-            "**/*.integration.test.ts",
-          ],
-        },
-      },
-      {
-        // Real Postgres through testcontainers; needs Docker, runs in CI.
-        test: {
-          name: "integration",
-          include: ["packages/**/*.integration.test.ts"],
-          fileParallelism: false,
-          testTimeout: 60_000,
-          hookTimeout: 300_000,
-        },
-      },
-      {
-        // Timing budgets run alone so unit shards stay deterministic.
-        test: {
-          name: "perf",
-          include: ["packages/**/*.perf.test.ts"],
-          fileParallelism: false,
+          exclude: ["**/node_modules/**", "**/*.browser.test.tsx"],
         },
       },
       {
@@ -86,10 +63,6 @@ export default defineConfig({
       ],
       exclude: [
         "**/*.test.ts",
-        "**/*.benchmark.ts",
-        "**/*.smoke.ts",
-        "**/*.perf.test.ts",
-        "**/*.integration.test.ts",
         "**/*.spec.ts",
         "**/*-fixtures.ts",
         "**/fixtures/**",
@@ -100,8 +73,6 @@ export default defineConfig({
         "packages/testing/src/playwright.ts",
         "packages/testing/src/vitest-commands.ts",
         "packages/testing/src/drift.ts",
-        "apps/api/src/server.ts",
-        "packages/database/**",
         "apps/worker/**",
         "apps/web/app/**/*.server.ts",
       ],

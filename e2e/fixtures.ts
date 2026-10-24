@@ -3,7 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { installOpenMeteo, type OpenMeteo } from "@scout/testing/playwright";
 import { writeFile } from "node:fs/promises";
 import allowlist from "./a11y-allowlist.json" with { type: "json" };
-import { DemoPlanner, northbound, Planner, routesKey, type Point } from "./pages";
+import { northbound, Planner, routesKey, type Point } from "./pages";
 
 export { expect };
 
@@ -57,7 +57,6 @@ type Fixtures = {
   a11y: void;
   aria: (name: string, locator: Locator) => Promise<void>;
   planner: Planner;
-  demo: DemoPlanner;
 };
 
 export const test = base.extend<Fixtures>({
@@ -154,8 +153,5 @@ export const test = base.extend<Fixtures>({
   },
   planner: async ({ page }, use) => {
     await use(new Planner(page));
-  },
-  demo: async ({ page }, use) => {
-    await use(new DemoPlanner(page));
   },
 });

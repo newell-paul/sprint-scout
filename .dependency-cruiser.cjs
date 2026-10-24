@@ -8,12 +8,12 @@ module.exports = {
       to: { circular: true },
     },
     {
-      name: "ui-must-not-implement-ranking",
+      name: "app-code-never-ships-test-helpers",
       comment:
-        "design.md: the UI never implements ranking maths. Apps reach providers and the database only through @scout/application.",
+        "@scout/testing holds fixtures and mocks; the planner reaches it only from tests.",
       severity: "error",
-      from: { path: "^apps/web/" },
-      to: { path: "^packages/(providers|database)/" },
+      from: { path: "^apps/web/app/", pathNot: "[.]test[.]tsx?$" },
+      to: { path: "^packages/testing/" },
     },
     {
       name: "analysis-is-pure",

@@ -6,7 +6,6 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: ".",
   testMatch: ["e2e/*.spec.ts"],
-  testIgnore: ["e2e/demo.spec.ts"],
   grep: /@smoke/,
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,

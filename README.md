@@ -41,20 +41,10 @@ pnpm test:component      # components in real Chromium with ARIA snapshots and a
 pnpm test:e2e            # Playwright (run `pnpm exec playwright install chromium` first)
 pnpm test:visual         # screenshot baselines (Linux; CI or the Playwright container)
 pnpm test:mutation       # StrykerJS, incremental
-pnpm test:integration    # migrate and seed against a throwaway Postgres (needs Docker)
 pnpm check:deploy        # static export smoke, size-limit, Lighthouse budgets
 ```
 
 Gate configuration lives in the respective config files at the repo root. The full strategy, fixtures and CI layout are in [docs/test-strategy.md](docs/test-strategy.md).
-
-## Beyond the planner
-
-The repo also holds a synthetic demo planner with a Fastify API, a local PostGIS database and the wind engine benchmark. None of it is needed to use or publish the planner.
-
-- `pnpm dev` starts web and API together. Demo at `/demo`; API at <http://127.0.0.1:3001>. Both use invented routes and fixed-clock forecasts, loopback only.
-- `docker compose up -d --wait && pnpm db:migrate && pnpm db:seed` for the database. Commands refuse non-loopback hosts. `.env.example` documents the only value.
-- `pnpm benchmark:wind` runs the synthetic 50-segment, 48-hour ranking benchmark.
-- `LIVE_WEATHER_SMOKE=1 pnpm test:weather:live` makes one real Open-Meteo request; skipped by default.
 
 Design, decisions and status: [docs/design.md](docs/design.md), [docs/integration-decisions.md](docs/integration-decisions.md), [docs/implementation-plan.md](docs/implementation-plan.md), [docs/validation.md](docs/validation.md), [docs/sdlc.md](docs/sdlc.md).
 

@@ -1,6 +1,6 @@
 # Personal Segment & Wind Planner — Implementation Plan
 
-Status: milestones 0–4 complete; milestone 5 (MCP host) withdrawn 22 September 2026; milestone 6 delivered as the browser-only independent-route slice with GPX efforts and archive wind; Strava integration blocked. Open checklist items below are marked done or dropped as of 9 October 2026.
+Status: milestones 0–4 complete; milestone 5 (MCP host) withdrawn 22 September 2026; milestone 6 delivered as the browser-only independent-route slice with GPX efforts and archive wind; Strava integration blocked; the synthetic demo, its API and database removed 24 October 2026. Open checklist items below are marked done or dropped as of 9 October 2026.
 Prepared: 7 September 2026.
 Specification: [design.md](design.md).
 

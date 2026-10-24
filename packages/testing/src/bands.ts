@@ -13,6 +13,7 @@ export type BandConfig = {
   window?: number | undefined;
   minRuns?: number | undefined;
   minSigma?: number | undefined;
+  since?: string | undefined;
 };
 export type BandsFile = { bands: BandConfig[] };
 export type BandResult = {
@@ -68,8 +69,10 @@ export function evaluateBand(
   const value = latest ? pick(latest, config.path) : null;
   const window = config.window ?? 20;
   const minRuns = config.minRuns ?? 5;
+  const since = config.since ? Date.parse(config.since) : -Infinity;
   const previous = history
     .slice(0, -1)
+    .filter((s) => Date.parse(s.date) >= since)
     .map((s) => pick(s, config.path))
     .filter((v): v is number => v !== null)
     .slice(-window);
