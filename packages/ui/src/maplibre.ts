@@ -116,10 +116,19 @@ export function clickToActivate(
   const onPointerEnter = (event: PointerEvent) => {
     if (event.pointerType === "mouse" && options.hint) showHint(options.hint);
   };
+  const release = () => {
+    if (!options.holdOnLeave?.()) set(false);
+  };
+  // A drag that crosses the edge keeps panning; release once the button is up
+  // if the mouse is still outside.
+  const onDragEnd = (event: Event) => {
+    if (!element.contains(event.target as Node)) release();
+  };
   const onPointerLeave = (event: PointerEvent) => {
     if (event.pointerType !== "mouse") return;
     hideHint();
-    if (!options.holdOnLeave?.()) set(false);
+    if (event.buttons) doc.addEventListener("pointerup", onDragEnd, once);
+    else release();
   };
   const onOutside = (event: Event) => {
     if (!element.contains(event.target as Node)) set(false);
@@ -130,6 +139,7 @@ export function clickToActivate(
   const onWheel = () => showHint("Click the map to zoom", 1500);
   const onTouchMove = () => showHint("Tap the map to move it", 1500);
   const capture = { capture: true };
+  const once = { once: true };
   element.addEventListener("pointerdown", onPointerDown, capture);
   element.addEventListener("click", onClick, capture);
   element.addEventListener("pointerenter", onPointerEnter);
@@ -155,6 +165,7 @@ export function clickToActivate(
       element.removeEventListener("wheel", onWheel);
       element.removeEventListener("touchmove", onTouchMove);
       doc.removeEventListener("pointerdown", onOutside, capture);
+      doc.removeEventListener("pointerup", onDragEnd);
       hint.remove();
     },
   };

@@ -34,6 +34,19 @@ test("the map takes control only after a click and gives it back when the mouse 
   await expect(demo.mapSurface).toHaveAttribute("data-map-active", "false");
 });
 
+test("a drag past the map's edge keeps control until the button comes up", async ({ demo }) => {
+  await demo.open();
+  await expect(demo.map).toHaveAttribute("data-map-ready", "true");
+
+  await demo.dragOutOfMap();
+
+  await expect(demo.mapSurface).toHaveAttribute("data-map-active", "true");
+
+  await demo.releaseMouse();
+
+  await expect(demo.mapSurface).toHaveAttribute("data-map-active", "false");
+});
+
 test("scrolling over the inactive map scrolls the page", async ({ demo }) => {
   await demo.open();
   await expect(demo.map).toHaveAttribute("data-map-ready", "true");

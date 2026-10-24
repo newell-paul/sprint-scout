@@ -219,15 +219,46 @@ describe("clickToActivate", () => {
     expect(hint().style.display).toBe("none");
   });
 
+  it("keeps a drag that crosses the edge, then releases when the button comes up outside", async () => {
+    const { doc, element, outside, enabled } = await start();
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    element.dispatchEvent(
+      event("pointerleave", { pointerType: "mouse", buttons: 1 }),
+    );
+    expect(enabled()).toEqual([true, true, true]);
+    const up = event("pointerup");
+    Object.defineProperty(up, "target", { value: outside });
+    doc.dispatchEvent(up);
+    expect(enabled()).toEqual([false, false, false]);
+  });
+
+  it("stays active when a drag returns and the button comes up over the map", async () => {
+    const { doc, element, enabled } = await start();
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    element.dispatchEvent(
+      event("pointerleave", { pointerType: "mouse", buttons: 1 }),
+    );
+    const up = event("pointerup");
+    Object.defineProperty(up, "target", { value: element });
+    doc.dispatchEvent(up);
+    expect(enabled()).toEqual([true, true, true]);
+  });
+
   it("cleanup removes the release listeners, so nothing switches the map back off", async () => {
     const { doc, element, outside, enabled, cleanup } = await start();
     element.dispatchEvent(event("click"));
+    element.dispatchEvent(
+      event("pointerleave", { pointerType: "mouse", buttons: 1 }),
+    );
     cleanup();
     const away = event("pointerdown");
     Object.defineProperty(away, "target", { value: outside });
     doc.dispatchEvent(away);
     element.dispatchEvent(event("focusout", { relatedTarget: outside }));
     element.dispatchEvent(event("pointerleave", { pointerType: "mouse" }));
+    const up = event("pointerup");
+    Object.defineProperty(up, "target", { value: outside });
+    doc.dispatchEvent(up);
     expect(enabled()).toEqual([true, true, true]);
   });
 
