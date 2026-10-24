@@ -43,3 +43,151 @@ describe("configureMapLibre", () => {
     expect(setWorkerUrl).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("clickToActivate", () => {
+  const handler = () => ({
+    enabled: true,
+    enable() {
+      this.enabled = true;
+    },
+    disable() {
+      this.enabled = false;
+    },
+  });
+  const event = (type: string, props: object = {}) =>
+    Object.assign(new Event(type), props);
+
+  function setup() {
+    vi.useFakeTimers();
+    const doc = Object.assign(new EventTarget(), {
+      createElement: () =>
+        Object.assign(new EventTarget(), {
+          style: {},
+          textContent: "",
+          setAttribute() {},
+          remove: vi.fn(),
+        }),
+    });
+    const children: unknown[] = [];
+    const outside = new EventTarget();
+    const element = Object.assign(new EventTarget(), {
+      ownerDocument: doc,
+      dataset: {} as Record<string, string>,
+      append: (child: unknown) => children.push(child),
+      contains: (node: unknown) => node === element || children.includes(node),
+    });
+    const map = {
+      scrollZoom: handler(),
+      dragPan: handler(),
+      touchZoomRotate: handler(),
+    };
+    const enabled = () =>
+      [map.scrollZoom, map.dragPan, map.touchZoomRotate].map((h) => h.enabled);
+    const hint = () =>
+      children[0] as {
+        style: { display: string };
+        textContent: string;
+        remove: () => void;
+      };
+    return { doc, element, outside, map, enabled, hint };
+  }
+
+  async function start() {
+    const { clickToActivate } = await import("./maplibre");
+    const s = setup();
+    const cleanup = clickToActivate(s.map as never, s.element as never);
+    return { ...s, cleanup };
+  }
+
+  it("starts with wheel, drag and touch gestures off", async () => {
+    const { enabled, element } = await start();
+    expect(enabled()).toEqual([false, false, false]);
+    expect(element.dataset.mapActive).toBe("false");
+  });
+
+  it("activates on a mouse press and releases when the mouse leaves", async () => {
+    const { element, enabled } = await start();
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    expect(enabled()).toEqual([true, true, true]);
+    expect(element.dataset.mapActive).toBe("true");
+    element.dispatchEvent(event("pointerleave", { pointerType: "mouse" }));
+    expect(enabled()).toEqual([false, false, false]);
+  });
+
+  it("needs a tap on touch, and a finger lifting off does not release it", async () => {
+    const { element, enabled } = await start();
+    element.dispatchEvent(event("pointerdown", { pointerType: "touch" }));
+    expect(enabled()).toEqual([false, false, false]);
+    element.dispatchEvent(event("click"));
+    element.dispatchEvent(event("pointerleave", { pointerType: "touch" }));
+    expect(enabled()).toEqual([true, true, true]);
+  });
+
+  it("releases on a press outside the map but not inside it", async () => {
+    const { doc, element, outside, enabled } = await start();
+    element.dispatchEvent(event("click"));
+    const inside = event("pointerdown", { pointerType: "touch" });
+    Object.defineProperty(inside, "target", { value: element });
+    doc.dispatchEvent(inside);
+    expect(enabled()).toEqual([true, true, true]);
+    const away = event("pointerdown");
+    Object.defineProperty(away, "target", { value: outside });
+    doc.dispatchEvent(away);
+    expect(enabled()).toEqual([false, false, false]);
+  });
+
+  it("releases when focus leaves the map but not when it moves within", async () => {
+    const { element, outside, enabled } = await start();
+    element.dispatchEvent(event("click"));
+    element.dispatchEvent(event("focusout", { relatedTarget: element }));
+    expect(enabled()).toEqual([true, true, true]);
+    element.dispatchEvent(event("focusout", { relatedTarget: outside }));
+    expect(enabled()).toEqual([false, false, false]);
+  });
+
+  it("hints how to activate only while inactive, then hides the hint", async () => {
+    const { element, hint } = await start();
+    element.dispatchEvent(event("wheel"));
+    expect(hint().style.display).toBe("block");
+    expect(hint().textContent).toBe("Click the map to zoom");
+    vi.advanceTimersByTime(1500);
+    expect(hint().style.display).toBe("none");
+    element.dispatchEvent(event("touchmove"));
+    expect(hint().textContent).toBe("Tap the map to move it");
+    element.dispatchEvent(event("click"));
+    expect(hint().style.display).toBe("none");
+    element.dispatchEvent(event("wheel"));
+    expect(hint().style.display).toBe("none");
+  });
+
+  it("cleanup removes the release listeners, so nothing switches the map back off", async () => {
+    const { doc, element, outside, enabled, cleanup } = await start();
+    element.dispatchEvent(event("click"));
+    cleanup();
+    const away = event("pointerdown");
+    Object.defineProperty(away, "target", { value: outside });
+    doc.dispatchEvent(away);
+    element.dispatchEvent(event("focusout", { relatedTarget: outside }));
+    element.dispatchEvent(event("pointerleave", { pointerType: "mouse" }));
+    expect(enabled()).toEqual([true, true, true]);
+  });
+
+  it("cleanup removes the hint and every listener", async () => {
+    const { doc, element, outside, enabled, hint, cleanup } = await start();
+    cleanup();
+    expect(hint().remove).toHaveBeenCalled();
+    element.dispatchEvent(event("click"));
+    expect(enabled()).toEqual([false, false, false]);
+    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
+    element.dispatchEvent(event("wheel"));
+    element.dispatchEvent(event("touchmove"));
+    expect(hint().style.display).toBe("none");
+    expect(enabled()).toEqual([false, false, false]);
+    const away = event("pointerdown");
+    Object.defineProperty(away, "target", { value: outside });
+    doc.dispatchEvent(away);
+    element.dispatchEvent(event("focusout", { relatedTarget: outside }));
+    element.dispatchEvent(event("pointerleave", { pointerType: "mouse" }));
+    expect(enabled()).toEqual([false, false, false]);
+  });
+});

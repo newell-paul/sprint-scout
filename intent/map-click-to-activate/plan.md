@@ -6,9 +6,10 @@
 - `packages/ui/src/maplibre.test.ts`: unit tests for the helper with a fake map and event targets.
 - `packages/ui/src/route-map.tsx`: call the helper after creating the map; clean up on dispose.
 - `apps/web/app/routes/route-drawer.tsx`: same.
-- `packages/ui/src/map.css`: hint styling (also imported by the drawing map).
+- The hint is styled inline by the helper, because the drawing map does not import `map.css`; `map.css` is unchanged.
 - `e2e/pages/demo.ts`, `e2e/demo.spec.ts`: activation and page-scroll tests.
 - `docs/design.md`: dated entry.
+- `AGENTS.md`: known mistake for the `next dev` reload loop, which recurred during this work.
 
 ## Order
 

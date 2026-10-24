@@ -1,6 +1,6 @@
 # Map takes control only after a click
 
-Status: accepted
+Status: done
 Opened: 24 October 2026 by Paul Newell
 
 ## Problem

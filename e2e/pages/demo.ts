@@ -76,6 +76,31 @@ export class DemoPlanner {
     return this.page.getByRole("status").filter({ hasText: text });
   }
 
+  /** The element that takes the wheel and drags once clicked. */
+  get mapSurface() {
+    return this.map.locator(".map-canvas");
+  }
+
+  async hoverMap() {
+    await this.mapSurface.hover();
+  }
+
+  async clickMap() {
+    await this.mapSurface.click();
+  }
+
+  async moveMouseAway() {
+    await this.heading.hover();
+  }
+
+  async wheel(pixels: number) {
+    await this.page.mouse.wheel(0, pixels);
+  }
+
+  scrollY() {
+    return this.page.evaluate(() => window.scrollY);
+  }
+
   /**
    * The demo is server-rendered; input made before hydration is dropped. On
    * a cold dev server the chart's many lazy chunks take seconds and hold every

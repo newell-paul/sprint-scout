@@ -637,3 +637,7 @@ The intent board refreshes on demand as well as on a push to `main`. Its section
 ## Evals on main for the dashboard — 24 October 2026
 
 The Evals workflow now also runs on a push to `main` that changes the agent configuration, with the paid tasks behind `EVALS_ENABLED` as on pull requests. The dashboard has only ever accepted an eval result from `main`, so that it describes merged configuration, but evals ran only on pull requests and by hand, and the card said n/a despite six passing runs. A merge starts Checks and Evals together and the paid tasks take minutes, so a result usually reaches the dashboard at the next push to `main`; it then stays until a newer one replaces it or the artifact expires after 90 days ([intent](../intent/evals-on-main/intent.md)).
+
+## Maps take control only after a click — 24 October 2026
+
+Both maps (route drawing on `/`, route map on `/demo`) start with wheel zoom, drag pan and touch zoom off, so scrolling the page past them never zooms or pans them. A mouse press or a tap activates the map; it releases when the mouse leaves, on a press outside it, or when focus leaves it. While inactive, a wheel or touch drag over the map shows a short hint. Map clicks, the zoom buttons and the keyboard handler work throughout. The helper is `clickToActivate` in `packages/ui/src/maplibre.ts`; MapLibre's cooperative gestures (Ctrl or ⌘ plus scroll) were considered and not chosen ([intent](../intent/map-click-to-activate/intent.md)).

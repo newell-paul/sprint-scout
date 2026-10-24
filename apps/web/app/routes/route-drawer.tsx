@@ -5,7 +5,7 @@ import Logo from "../components/logo";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as RouteMap, GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { loadMapLibre } from "@scout/ui/maplibre";
+import { clickToActivate, loadMapLibre } from "@scout/ui/maplibre";
 import {
   newId,
   readLibrary,
@@ -146,6 +146,7 @@ export default function Routes() {
   useEffect(() => {
     let cancelled = false;
     let instance: RouteMap | undefined;
+    let release: (() => void) | undefined;
     void loadMapLibre()
       .then(({ Map, NavigationControl }) => {
         if (cancelled || !container.current) return;
@@ -169,6 +170,7 @@ export default function Routes() {
           },
         });
         map.current = instance;
+        release = clickToActivate(instance, container.current);
         instance.addControl(new NavigationControl({ showCompass: false }));
         instance.touchZoomRotate.disableRotation();
         instance.keyboard.disableRotation();
@@ -240,6 +242,7 @@ export default function Routes() {
       .catch(() => setMapError("Map unavailable. Enter coordinates instead."));
     return () => {
       cancelled = true;
+      release?.();
       instance?.remove();
       map.current = null;
     };

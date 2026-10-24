@@ -21,6 +21,30 @@ test("the demo opens with the banner and a ready map @smoke @a11y", async ({ dem
   await expect(demo.map).toHaveAttribute("data-map-ready", "true");
 });
 
+test("the map takes control only after a click and gives it back when the mouse leaves", async ({ demo }) => {
+  await demo.open();
+  await expect(demo.map).toHaveAttribute("data-map-ready", "true");
+  await demo.hoverMap();
+  await expect(demo.mapSurface).toHaveAttribute("data-map-active", "false");
+
+  await demo.clickMap();
+  await expect(demo.mapSurface).toHaveAttribute("data-map-active", "true");
+
+  await demo.moveMouseAway();
+  await expect(demo.mapSurface).toHaveAttribute("data-map-active", "false");
+});
+
+test("scrolling over the inactive map scrolls the page", async ({ demo }) => {
+  await demo.open();
+  await expect(demo.map).toHaveAttribute("data-map-ready", "true");
+  await demo.hoverMap();
+  const before = await demo.scrollY();
+
+  await demo.wheel(300);
+
+  await expect.poll(() => demo.scrollY()).toBeGreaterThan(before);
+});
+
 test("one selected hour shows everywhere without a new request @smoke", async ({ page, demo }) => {
   const calls = plannerCalls(page);
   await demo.open();
