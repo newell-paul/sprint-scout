@@ -35,6 +35,7 @@ A new dashboard section, **Intent board**, follows AI practice. It shows four co
   - otherwise passing when there is at least one check;
   - otherwise no checks.
 - **Dropped.** Folded under the board in a `<details>` element, summary "Dropped (N)", absent when there are none.
+- **Long columns.** A column shows its newest six cards; the rest fold under a `<details>` element, summary "Show N more" (added 24 October 2026).
 - **Empty states.** An empty column says "None". With no intents at all, the section says "No intents".
 - **Freshness.** The section lead says the board reflects open pull requests when the dashboard was built. It refreshes only with the dashboard, on a push to `main` (intent question 1).
 - **Draft pull requests.** An intent appears once any pull request is open, draft or not. A branch without a pull request is not read (intent question 2).
