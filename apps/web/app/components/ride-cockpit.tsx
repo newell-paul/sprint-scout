@@ -53,6 +53,7 @@ export default function RideCockpit({
   );
   const fraction = (speed: number) => speedValue(speed) / maximum;
   const needle = dialPoint(fraction(effect?.windSpeedMps ?? 0), 73);
+  const reached = dialPoint(fraction(effect?.windSpeedMps ?? 0), 95);
   const baseline = dialPoint(
     fraction(effect?.calmSpeedMps ?? calmSpeedMps),
     97,
@@ -87,6 +88,12 @@ export default function RideCockpit({
         <span className="instrument-label">Modelled average speed</span>
         <svg className="speed-dial" viewBox="0 0 240 145" aria-hidden="true">
           <path d="M25 120 A95 95 0 0 1 215 120" className="dial-track" />
+          {effect && (
+            <path
+              d={`M25 120 A95 95 0 0 1 ${reached.x} ${reached.y}`}
+              className="dial-progress"
+            />
+          )}
           {Array.from({ length: 21 }, (_, position) => {
             const inner = dialPoint(
               position / 20,
@@ -230,8 +237,22 @@ export default function RideCockpit({
       <div className="cockpit-wind">
         <span className="instrument-label">Wind · north up</span>
         <svg viewBox="0 0 120 120" className="wind-compass" aria-hidden="true">
+          <circle cx="60" cy="60" r="40" className="compass-face" />
           <circle cx="60" cy="60" r="40" className="compass-ring" />
-          <path d="M60 20 V100 M20 60 H100" className="compass-grid" />
+          {Array.from({ length: 36 }, (_, position) => (
+            <line
+              key={position}
+              x1="60"
+              y1="21"
+              x2="60"
+              y2={position % 9 === 0 ? 29 : 25}
+              transform={`rotate(${position * 10} 60 60)`}
+              className={
+                position % 9 === 0 ? "compass-tick major" : "compass-tick"
+              }
+            />
+          ))}
+          <path d="M60 32 V88 M32 60 H88" className="compass-grid" />
           <text x="60" y="12" textAnchor="middle">
             N
           </text>
