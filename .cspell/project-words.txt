@@ -18,6 +18,7 @@ lede
 leecjohnny
 lhci
 lighthouseci
+lighthouserc
 lons
 maplibregl
 meteo

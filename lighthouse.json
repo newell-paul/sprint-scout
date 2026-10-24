@@ -1,0 +1,17 @@
+{
+  "url": "http://127.0.0.1:4173/sprint-scout/",
+  "runs": 3,
+  "minScores": {
+    "performance": 0.9,
+    "accessibility": 0.9,
+    "best-practices": 0.9
+  },
+  "maxNumeric": {
+    "largest-contentful-paint": 2500,
+    "total-blocking-time": 300
+  },
+  "resourceKiB": {
+    "script": 650,
+    "total": 900
+  }
+}
