@@ -46,6 +46,16 @@
 
 Every stage: `pnpm verify` and `pnpm check:deploy` green before the owner's check. Finish: `pnpm verify`, `pnpm check:deploy`, `pnpm test:visual`, and the verifier agent on the full `aero-stealth` diff.
 
+## As built
+
+- Stages 3 and 4 needed no markup in `time-chart.tsx`, `maplibre.ts` or most panels; their changes sit in `globals.css`. Terrain and shelter notes got `<details>` wrappers, which changed their ARIA snapshots.
+- `layout.tsx` loads the new fonts; `planner.tsx` lost the theme switch and took the shared logo.
+- `e2e/drawing.spec.ts` checks the new route colour; `docs/test-strategy.md` notes the single demo theme.
+- The demo's two theme baselines are orphaned and removed by hand, since `pnpm test:visual:update` only writes.
+- Night bands use `rgba(59, 130, 246, 0.1)`, not the spec's 0.08; 0.08 vanished on the lighter mock-up navy.
+- The demo legend copy changed with its colours ("Dashed orange: headwind", "Amber: riding direction"); copy that names a colour must follow it.
+- MapLibre paint, the arrow canvases and ECharts cannot read CSS variables, so `route-map.tsx`, `route-drawer.tsx` and `hour-chart.tsx` repeat token values as hex.
+
 ## Follow-up
 
 `/demo` is unlinked, absent from the Pages build, and lost its MCP role on 22 Sep 2026. The owner asked (24 Oct 2026) to remove it, with its tests, synthetic API and docs, as a separate intent after this redesign merges.
