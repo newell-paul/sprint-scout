@@ -22,3 +22,7 @@ From [spec.md](spec.md).
 - The new tests fail first, then pass.
 - `actionlint`, if installed, is clean on `review.yml`. `pnpm verify` is green.
 - On this pull request, the review arrives as one review with its comments attached, and a single email.
+
+## As built
+
+- The live check cannot run on this pull request. `claude-code-action` skips itself when the workflow file differs from the one on `main` ("The workflow file must exist and have identical content to the version on the repository's default branch"), so the Review job fails at Tally with no structured output. That job is not required. The first pull request after merge is the live check.
