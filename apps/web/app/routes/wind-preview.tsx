@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as RouteMap } from "maplibre-gl";
 import type { Rider, RiderInput } from "@scout/analysis";
 import {
-  estimateRouteRideEffect,
   describeRouteWind,
   type RouteWindForecast,
   type RouteWindHour,
@@ -28,6 +27,7 @@ import type { TerrainProfile } from "@scout/application/terrain";
 import ConditionsDetail from "./conditions-detail";
 import { withinAvailability, type Availability } from "./attempt";
 import { startWindParticles } from "./wind-particles";
+import { routeEffect } from "./route-effect";
 export default function WindPreview({
   route,
   map,
@@ -124,23 +124,9 @@ export default function WindPreview({
   const effects = useMemo(
     () =>
       forecast?.hours.map((hour) =>
-        estimateRouteRideEffect(
-          route.points,
-          hour,
-          forecast.retrievedAt,
-          rider,
-          route.terrainMode === "terrain" ? (route.terrain ?? null) : undefined,
-          route.shelter ?? "exposed",
-        ),
+        routeEffect(route, hour, rider, forecast.retrievedAt),
       ) ?? [],
-    [
-      forecast,
-      route.points,
-      route.terrain,
-      route.terrainMode,
-      route.shelter,
-      rider,
-    ],
+    [forecast, route, rider],
   );
   const rideEffect = effects[index];
   const windDescription = useMemo(
@@ -148,13 +134,7 @@ export default function WindPreview({
     [current, route.points],
   );
   const bestIndex = forecast
-    ? bestHourIndex(
-        effects,
-        forecast.hours,
-        daylightDryOnly,
-        availability,
-        forecast.hours.map((hour) => hour.at),
-      )
+    ? bestHourIndex(effects, forecast.hours, daylightDryOnly, availability)
     : -1;
   const days = forecast
     ? [0, 1].map((offset) => {

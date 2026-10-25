@@ -48,3 +48,11 @@ export function formatZonedTime(at: string, timeZone: string) {
   );
   return `${parts.day} ${months[Number(parts.month) - 1]}, ${parts.hour}:${parts.minute} ${parts.timeZoneName!.replace(/^GMT[+-]0$/, "GMT")}`;
 }
+
+/** Weekday and hour in the viewer's zone, for labels rendered after load. */
+export const formatWeekdayHour = (at: string) =>
+  new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(at));

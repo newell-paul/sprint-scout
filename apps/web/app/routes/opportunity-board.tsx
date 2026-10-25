@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Rider } from "@scout/analysis";
-import { formatDuration } from "../components/time";
+import { formatDuration, formatWeekdayHour } from "../components/time";
 import { getRouteForecast } from "./forecast-cache";
 import type { DrawnRoute, Point } from "./library";
 import { shelterPresets } from "@scout/application/shelter";
@@ -166,12 +166,6 @@ export default function OpportunityBoard({
     [enabled, routes, forecasts, rider, daylightDryOnly, availability],
   );
   const pending = rows.filter((row) => row.status === "loading").length;
-  const timeLabel = (at: string) =>
-    new Intl.DateTimeFormat(undefined, {
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(at));
   const gainLabel = (gainS: number) => {
     const rounded = Math.round(gainS);
     if (rounded === 0) return "±0s";
@@ -268,7 +262,9 @@ export default function OpportunityBoard({
                       </small>
                     )}
                   </th>
-                  <td>{row.bestAt ? timeLabel(row.bestAt) : row.reason}</td>
+                  <td>
+                    {row.bestAt ? formatWeekdayHour(row.bestAt) : row.reason}
+                  </td>
                   <td
                     className="board-gain"
                     data-tone={

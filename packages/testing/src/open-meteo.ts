@@ -4,13 +4,11 @@ import {
   openMeteoArchiveResponse,
   openMeteoElevationResponse,
   openMeteoForecastResponse,
-  openMeteoForecastResponses,
   type OpenMeteoArchiveResponse,
   type OpenMeteoElevationResponse,
   type OpenMeteoForecastResponse,
 } from "@scout/contracts";
 import forecastFixture from "../fixtures/open-meteo/forecast.json" with { type: "json" };
-import forecastIsoFixture from "../fixtures/open-meteo/forecast-iso.json" with { type: "json" };
 import elevationFixture from "../fixtures/open-meteo/elevation.json" with { type: "json" };
 import archiveFixture from "../fixtures/open-meteo/archive.json" with { type: "json" };
 
@@ -175,16 +173,13 @@ export const latitudesFrom = (url: string) =>
 
 export type Recorded = {
   forecast: OpenMeteoForecastResponse;
-  forecastIso: OpenMeteoForecastResponse[];
   elevation: OpenMeteoElevationResponse;
   archive: OpenMeteoArchiveResponse;
 };
 /** Recorded live responses, parsed through the contract schemas on first use. */
 export function recorded(): Recorded {
-  const iso = openMeteoForecastResponses.parse(forecastIsoFixture);
   return {
     forecast: openMeteoForecastResponse.parse(forecastFixture),
-    forecastIso: Array.isArray(iso) ? iso : [iso],
     elevation: openMeteoElevationResponse.parse(elevationFixture),
     archive: openMeteoArchiveResponse.parse(archiveFixture),
   };

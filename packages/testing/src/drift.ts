@@ -5,7 +5,6 @@ import {
   openMeteoArchiveResponse,
   openMeteoElevationResponse,
   openMeteoForecastResponse,
-  openMeteoForecastResponses,
 } from "@scout/contracts";
 import { openMeteoHosts, recorded } from "./open-meteo";
 
@@ -21,12 +20,6 @@ const checks = [
     url: `${openMeteoHosts.forecast}?latitude=51.5&longitude=-0.12&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,precipitation_probability,weather_code,is_day&wind_speed_unit=ms&timeformat=unixtime&timezone=GMT&start_hour=${slice(start)}&end_hour=${slice(start + 47 * hourMs)}`,
     schema: openMeteoForecastResponse,
     units: () => recorded().forecast.hourly_units,
-  },
-  {
-    name: "forecast (provider path)",
-    url: `${openMeteoHosts.forecast}?latitude=51.5,51.51&longitude=-0.12,-0.12&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,precipitation_probability,temperature_2m&wind_speed_unit=ms&precipitation_unit=mm&temperature_unit=celsius&timezone=GMT&timeformat=iso8601&models=best_match&start_hour=${slice(start)}&end_hour=${slice(start + 3 * hourMs)}`,
-    schema: openMeteoForecastResponses,
-    units: () => recorded().forecastIso[0]!.hourly_units,
   },
   {
     name: "elevation",

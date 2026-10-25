@@ -3,7 +3,7 @@ import { bearing } from "@turf/bearing";
 import { destination } from "@turf/destination";
 export * from "./ride-effect";
 export * from "./terrain-effect";
-import { coordinate, segment } from "@scout/contracts";
+import { coordinate, lineString } from "@scout/contracts";
 
 export const algorithmVersion = "wind-v1" as const;
 export const limits = {
@@ -39,7 +39,7 @@ export type Geometry = {
 };
 const radians = (n: number) => (n * Math.PI) / 180;
 export function prepareGeometry(input: unknown, maxLegM = 100): Geometry {
-  const parsed = segment.shape.geometry.safeParse(input);
+  const parsed = lineString.safeParse(input);
   if (
     !parsed.success ||
     !Number.isFinite(maxLegM) ||

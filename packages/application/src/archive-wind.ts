@@ -1,6 +1,7 @@
 // Browser-local past wind for recorded efforts, from the Open-Meteo archive.
 // One request per contiguous run of dates, bounded, opt-in, never automatic.
 import { coordinate } from "@scout/contracts";
+import { fetchOpenMeteo } from "./open-meteo-fetch";
 
 export type ArchiveHour = {
   at: string;
@@ -177,22 +178,14 @@ export async function loadArchiveWind(
       timeformat: "unixtime",
       timezone: "GMT",
     }).toString();
-    const response = await fetcher(url, {
+    const body = await fetchOpenMeteo(url, {
+      service: "Weather archive",
+      body: "Archive",
+      maxBytes: 200_000,
       signal,
-      credentials: "omit",
-      referrerPolicy: "no-referrer",
-      cache: "no-store",
-      redirect: "error",
+      fetcher,
     });
-    if (!response.ok)
-      throw new Error(
-        response.status === 429
-          ? "Weather archive rate limit reached. Try again later."
-          : "Weather archive unavailable. Try again.",
-      );
-    const raw = await response.text();
-    if (raw.length > 200_000) throw new Error("Archive response is too large.");
-    hours.push(...parseArchiveWind(JSON.parse(raw), range.start, range.days));
+    hours.push(...parseArchiveWind(body, range.start, range.days));
   }
   return { hours, retrievedAt: now.toISOString() };
 }
