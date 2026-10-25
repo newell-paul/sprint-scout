@@ -118,7 +118,7 @@ describe("effort matching", () => {
     expect(effort.startedAt).toBe("2026-09-12T09:00:30.000Z");
     expect(effort.maxDeviationM).toBeLessThan(2);
     expect(effort.sampleGapSeconds).toBe(1);
-    expect(effort.version).toBe("effort-match-v1");
+    expect(effort.version).toBe("effort-match-v2");
   });
   it("finds every lap of a repeated segment in order", () => {
     const lap1 = ride(hill, { speedMps: 10 });
@@ -336,6 +336,77 @@ describe("effort matching invariants", () => {
           return (
             JSON.stringify(matchEfforts(points, track)) ===
             JSON.stringify(matchEfforts(points, track))
+          );
+        },
+      ),
+      runs,
+    );
+  });
+});
+
+describe("loop segments", () => {
+  const step = (from: Coordinate, m: number, deg: number): Coordinate => {
+    const p = destination(from, m, deg, { units: "meters" }).geometry
+      .coordinates;
+    return [p[0]!, p[1]!];
+  };
+  const a: Coordinate = [-0.27, 51.45];
+  const b = step(a, 100, 0);
+  const c = step(b, 100, 90);
+  const d = step(c, 100, 180);
+  const square: Coordinate[] = [a, b, c, d, a];
+  const triangle: Coordinate[] = [a, step(a, 150, 30), step(a, 150, 100), a];
+  const laps = (loop: Coordinate[], n: number) => [
+    ...loop,
+    ...Array.from({ length: n - 1 }, () => loop.slice(1)).flat(),
+  ];
+  const times = (loop: Coordinate[], track: TrackPoint[]) =>
+    matchEfforts(loop, track).map((e) => e.elapsedSeconds);
+
+  it("times every lap of a loop ridden continuously", () => {
+    const lap = lengthOf(square) / 10;
+    const found = times(square, ride(laps(square, 3), { speedMps: 10 }));
+    expect(found).toHaveLength(3);
+    for (const t of found) expect(Math.abs(t - lap)).toBeLessThanOrEqual(1);
+  });
+  it("treats a finish inside the start gate as a loop", () => {
+    const open = [a, b, c, d, step(d, 90, 270)];
+    const route = [...open, a, ...open.slice(1), a];
+    expect(times(open, ride(route, { speedMps: 10 }))).toHaveLength(2);
+  });
+  it("counts laps joined from the road the loop leaves by", () => {
+    const west = step(a, 300, 270);
+    expect(
+      times(
+        square,
+        ride([west, ...laps(square, 2)], { speedMps: 10, leadM: 50 }),
+      ),
+    ).toHaveLength(2);
+  });
+  it("finds nothing on a loop ridden backwards", () => {
+    expect(
+      times(square, ride(laps(square, 2), { speedMps: 10, reverse: true })),
+    ).toEqual([]);
+  });
+  it("finds every lap under bounded noise, each within one sample", () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(square, triangle),
+        fc.integer({ min: 1, max: 3 }),
+        fc.double({ min: 4, max: 15, noNaN: true }),
+        fc.constantFrom(1, 2, 3),
+        fc.double({ min: 0, max: 8, noNaN: true }),
+        fc.integer({ min: 1, max: 1_000_000 }),
+        (loop, n, speedMps, intervalS, noiseM, seed) => {
+          const found = times(
+            loop,
+            ride(laps(loop, n), { speedMps, intervalS, noiseM, seed }),
+          );
+          return (
+            found.length === n &&
+            found.every(
+              (t) => Math.abs(t - lengthOf(loop) / speedMps) <= intervalS + 1,
+            )
           );
         },
       ),
