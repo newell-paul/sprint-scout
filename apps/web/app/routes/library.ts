@@ -43,6 +43,15 @@ export type DrawnRoute = {
   efforts?: RouteEffort[];
 };
 export const storageKey = "sprint-scout.drawn-routes.v1";
+// Every key the planner writes starts with this prefix, so a wipe also covers
+// keys added later; another app on the same origin keeps its own.
+export function clearSavedData(
+  storage: Pick<Storage, "length" | "key" | "removeItem">,
+) {
+  const keys = Array.from({ length: storage.length }, (_, i) => storage.key(i));
+  for (const key of keys)
+    if (key?.startsWith("sprint-scout.")) storage.removeItem(key);
+}
 // crypto.randomUUID exists only in secure contexts, so a phone opening the dev
 // server over plain HTTP on a LAN address has getRandomValues but not it.
 export function newId(c: Crypto = crypto): string {

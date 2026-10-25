@@ -1,4 +1,7 @@
 import { z } from "zod";
+// Zod probes for eval with Function(""), which the published page's content
+// security policy reports as a violation; the interpreted parser is enough.
+z.config({ jitless: true });
 export const utcInstant = z.iso.datetime({ precision: 0 });
 export const sourceKind = z.enum([
   "synthetic",

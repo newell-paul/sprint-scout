@@ -950,6 +950,17 @@ hr {
   flex: 1 1 120px;
   min-width: 0;
 }
+.clear-data {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.clear-data p {
+  flex-basis: 100%;
+  margin: 0;
+}
 .segment-editor {
   margin-top: 12px;
 }

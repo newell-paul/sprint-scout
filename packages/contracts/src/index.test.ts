@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { attribution, coordinate, provenance, utcInstant } from "./index";
+import { z } from "zod";
 
 const source = {
   sourceKind: "synthetic",
@@ -69,5 +70,11 @@ describe("provenance and attribution", () => {
     expect(
       attribution.safeParse({ ...valid, url: "open-meteo.com" }).success,
     ).toBe(false);
+  });
+});
+
+describe("zod configuration", () => {
+  it("never compiles parsers with eval, so the published policy needs none", () => {
+    expect(z.config().jitless).toBe(true);
   });
 });
