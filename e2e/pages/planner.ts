@@ -7,6 +7,7 @@ import { SegmentEditor } from "./editor";
 import { EffortsPanel } from "./efforts";
 import { SegmentLibrary } from "./library";
 import { PlannerMap } from "./map";
+import { DataPrivacy } from "./privacy";
 import { RiderPanel } from "./rider";
 import { Shelter } from "./shelter";
 import { TerrainPanel } from "./terrain";
@@ -27,6 +28,7 @@ export class Planner {
   readonly terrain: TerrainPanel;
   readonly efforts: EffortsPanel;
   readonly board: Board;
+  readonly privacy: DataPrivacy;
   readonly status: Locator;
   readonly alert: Locator;
   readonly demoLink: Locator;
@@ -43,6 +45,7 @@ export class Planner {
     this.terrain = new TerrainPanel(page);
     this.efforts = new EffortsPanel(page);
     this.board = new Board(page);
+    this.privacy = new DataPrivacy(page);
     this.status = page.locator("p[role=status]");
     this.alert = page.locator("p[role=alert]");
     this.demoLink = page.getByRole("link", { name: "Back to demo planner" });

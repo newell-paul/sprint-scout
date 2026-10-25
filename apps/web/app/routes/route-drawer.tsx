@@ -1,5 +1,6 @@
 "use client";
 
+import ClearData from "./clear-data";
 import WindPreview from "./wind-preview";
 import Logo from "../components/logo";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -830,9 +831,10 @@ export default function Routes() {
             shares sampled coordinates along the segment and saves attributed
             elevation in this browser. Removing elevation or deleting the
             segment removes that local profile; provider request logs may remain
-            for 90 days. Strava access is disabled. Clearing browser data
-            deletes saved segments.
+            for 90 days. Strava access is disabled. Clearing saved data, here or
+            in the browser, deletes everything the planner stored.
           </p>
+          <ClearData />
         </details>
       </footer>
     </main>

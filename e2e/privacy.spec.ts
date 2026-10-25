@@ -146,3 +146,58 @@ test("saving a drafted route sends only its start", async ({ planner, openMeteo 
 
   await expect.poll(() => openMeteo.weatherLongitudes).toEqual(["-0.31"]);
 });
+
+test.describe("clearing saved data", () => {
+  test.use({ firstVisit: true });
+
+  test("deletes every segment and rider setting and starts again from the example @smoke", async ({
+    page,
+    planner,
+    seed,
+  }) => {
+    await seed({
+      routes: [aRoute({ id: "home", name: "Home loop" })],
+      rider: { powerW: 300, massKg: 80, cdaM2: 0.3 },
+    });
+    await expect(planner.library.heading).toContainText("Home loop");
+
+    await planner.privacy.clearSavedData();
+
+    await expect(planner.library.heading).toContainText("Richmond Park (example)");
+    expect(await page.evaluate(() => localStorage.getItem("sprint-scout.rider.v1"))).toBeNull();
+  });
+
+  test("keeps everything when the rider backs out", async ({ planner, seed }) => {
+    await seed({ routes: [aRoute({ id: "home", name: "Home loop" })] });
+
+    await planner.privacy.toggle.click();
+    await planner.privacy.clearButton.click();
+    await planner.privacy.keepButton.click();
+
+    await expect(planner.privacy.clearButton).toBeVisible();
+    await expect(planner.library.heading).toContainText("Home loop");
+  });
+});
+
+// The published export carries the policy as a meta tag; the dev server does
+// not, so there this proves only that the journey itself is clean.
+const policyTags = (project: string) => (project === "static-chromium" ? 1 : 0);
+
+test("a full journey breaks no content security rule @smoke", async ({ page, planner, seed }) => {
+  await page.addInitScript(() => {
+    const seen: string[] = [];
+    (window as unknown as { cspViolations: string[] }).cspViolations = seen;
+    document.addEventListener("securitypolicyviolation", (event) =>
+      seen.push(`${event.violatedDirective} ${event.blockedURI}`),
+    );
+  });
+
+  await seed(seeded);
+  await expect(planner.cockpit.windSummary).toBeVisible();
+  await planner.terrain.load();
+
+  await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(
+    policyTags(test.info().project.name),
+  );
+  expect(await page.evaluate(() => (window as unknown as { cspViolations: string[] }).cspViolations)).toEqual([]);
+});

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  clearSavedData,
   needsWind,
   newId,
   nextFreeSlot,
@@ -195,5 +196,26 @@ describe("needsWind", () => {
     expect(needsWind({ wind: { ...wind, speedMps: null } })).toBe(true);
     expect(needsWind({ wind: { ...wind, speedMps: 4 } })).toBe(false);
     expect(needsWind({ wind: { ...wind, speedMps: 0 } })).toBe(false);
+  });
+});
+
+describe("clearSavedData", () => {
+  it("removes every planner key and leaves other sites' keys alone", () => {
+    const store = new Map<string, string>([
+      ["sprint-scout.drawn-routes.v1", "[]"],
+      ["sprint-scout.rider.v1", "{}"],
+      ["other-app.settings", "{}"],
+    ]);
+    const storage = {
+      get length() {
+        return store.size;
+      },
+      key: (index: number) => [...store.keys()][index] ?? null,
+      removeItem: (key: string) => void store.delete(key),
+    };
+
+    clearSavedData(storage);
+
+    expect([...store.keys()]).toEqual(["other-app.settings"]);
   });
 });
