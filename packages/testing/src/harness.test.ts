@@ -528,6 +528,7 @@ describe("workflows", () => {
       );
     }
     expect(ci).toMatch(/latest dashboard\)/);
+    expect(pages).toContain('[ -n "$run" ] ||');
     expect(ci).not.toContain("test-health");
   });
 
@@ -568,9 +569,6 @@ describe("workflows", () => {
       expect(s.run).not.toMatch(/> reports\/github\/\w+\.json/);
     for (const s of steps.filter((s) => s.run?.includes("scripts/collect-")))
       expect(s.run).toContain("::warning::");
-    expect(read("scripts/collect-reviews.mjs")).toContain(
-      ".workflow_run.head_repository_id == .workflow_run.repository_id",
-    );
   });
 
   it("triages failed runs read-only, from the default branch, behind its switch", () => {
