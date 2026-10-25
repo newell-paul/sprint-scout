@@ -18,6 +18,7 @@ None.
 ## Tests
 
 - **Unit:** `csp.test.ts` (allowed hosts, no eval, no plugins, base URI); `library.test.ts` `clearSavedData` (removes only planner keys); contracts test that Zod is jitless.
+- **Component:** `clear-data.browser.test.tsx`: blocked storage shows the alert and keeps the data.
 - **E2E:** `privacy.spec.ts`: clearing deletes the seeded segment and rider and shows the example (@smoke); backing out keeps everything; a full journey records no `securitypolicyviolation`, and on the static export the meta tag is present (@smoke).
 
 ## Docs
