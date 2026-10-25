@@ -1,8 +1,8 @@
 name: Triage
 # Reads the logs of a failed Checks run on a pull request and posts a
 # three-line diagnosis (docs/sdlc.md, step 12). workflow_run carries the
-# secret even for fork pull requests, so this job checks out the default
-# branch only, never runs pull request code, and gives the model read-only
+# secret even for fork pull requests, so this job skips forks, checks out
+# the default branch only, never runs pull request code, and gives the model read-only
 # tools; log text is treated as data. Paid, behind TRIAGE_ENABLED. No
 # schedule, by policy.
 on:
@@ -16,6 +16,7 @@ jobs:
     if: >-
       vars.TRIAGE_ENABLED == 'true' &&
       github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.conclusion == 'failure' ||
        github.event.workflow_run.conclusion == 'timed_out')
     runs-on: ubuntu-latest
@@ -60,6 +61,7 @@ jobs:
     if: >-
       vars.TRIAGE_ENABLED != 'true' &&
       github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
       (github.event.workflow_run.conclusion == 'failure' ||
        github.event.workflow_run.conclusion == 'timed_out')
     runs-on: ubuntu-latest
