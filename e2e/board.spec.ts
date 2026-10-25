@@ -60,6 +60,19 @@ test("open jumps to that segment's best hour without a new request", async ({ pl
   expect(openMeteo.weatherLongitudes).toEqual(["-0.12", "-0.2"]);
 });
 
+test("a segment picked by hand after Open starts at its first hour", async ({ planner, seed }) => {
+  await seed(both);
+  await planner.timeline.onlyDryDaylight();
+  await planner.board.rank();
+  await planner.board.open("Southbound");
+  await expect(planner.timeline.slider).toHaveValue("7");
+
+  await planner.library.selectSlot(1);
+
+  await expect(planner.library.slot(1)).toHaveAttribute("aria-pressed", "true");
+  await expect(planner.timeline.slider).toHaveValue("0");
+});
+
 test("refresh asks every segment again", async ({ planner, seed, openMeteo }) => {
   await seed(both);
   await planner.board.rank();

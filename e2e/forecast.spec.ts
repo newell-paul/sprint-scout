@@ -83,12 +83,13 @@ test("a calm hour matches the still-air time", async ({ planner, seed }) => {
   await expect(cockpit.windSummary).toContainText("Calm");
 });
 
-test("tomorrow moves the slider past today", async ({ planner, seed }) => {
+test("tomorrow moves the slider to the first hour after local midnight", async ({ planner, seed }) => {
   await seed(seeded);
 
   await planner.timeline.tomorrow();
 
-  expect(await planner.timeline.hour()).toBeGreaterThan(0);
+  // 07:00 UTC is 08:00 in London; local midnight is 16 hours on.
+  expect(await planner.timeline.hour()).toBe(16);
 });
 
 test("best hour selects the best window today", async ({ planner, seed }) => {

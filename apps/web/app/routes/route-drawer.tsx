@@ -113,6 +113,11 @@ export default function Routes() {
     setRequest((previous) => ({ at, seq: (previous?.seq ?? 0) + 1 }));
     setSlot(nextSlot);
   }, []);
+  // A board hour belongs to the segment opened from the board.
+  const pickSlot = useCallback((nextSlot: number) => {
+    setRequest(null);
+    setSlot(nextSlot);
+  }, []);
   const selectedRoute = editing
     ? undefined
     : routes.find((r) => r.slot === slot);
@@ -521,7 +526,7 @@ export default function Routes() {
           routes={routes}
           active={slot}
           disabled={hasDraft}
-          onSelect={setSlot}
+          onSelect={pickSlot}
         />
       </header>
       {selectedRoute ? (

@@ -122,3 +122,10 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Found by: the whole-repository review (silent-failure and type passes).
 - Fix: a 0.1 s floor on matched efforts; saved times must carry a zone and are read back in one UTC form.
 - Test: `effort-match.test.ts`, "never reports an effort shorter than the 0.1 s it is rounded to"; `library.test.ts`, "saved effort times and wind".
+
+## 25 October 2026: a hand-picked segment kept the board's hour
+
+- What broke: after Open on the opportunity board, choosing another segment from the slot picker opened it at the board's hour, because the requested hour stayed set and every new forecast panel jumped to it.
+- Found by: the whole-repository review (test-coverage pass).
+- Fix: the slot picker clears the request; only Open sets it.
+- Test: `e2e/board.spec.ts`, "a segment picked by hand after Open starts at its first hour".
