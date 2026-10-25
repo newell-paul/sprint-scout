@@ -159,31 +159,6 @@ describe("opportunity board ranking", () => {
     const all = rankOpportunities([north], forecasts, referenceRider, false);
     const dry = rankOpportunities([north], forecasts, referenceRider, true);
     expect(all[0]!.bestIndex).toBe(0);
-    const available = rankOpportunities(
-      [north],
-      forecasts,
-      referenceRider,
-      false,
-      {
-        from: "2026-09-10T11:00",
-        until: "2026-09-10T12:00",
-        timeZone: "Europe/London",
-      },
-    );
-    expect(available[0]!.bestIndex).toBe(1);
-    const uncovered = rankOpportunities(
-      [north],
-      forecasts,
-      referenceRider,
-      false,
-      {
-        from: "2026-09-11T11:00",
-        until: "2026-09-11T12:00",
-        timeZone: "Europe/London",
-      },
-    );
-    expect(uncovered[0]!.status).toBe("unavailable");
-    expect(uncovered[0]!.reason).toContain("availability");
     expect(dry[0]!.bestIndex).toBe(1);
     const none = rankOpportunities(
       [north],

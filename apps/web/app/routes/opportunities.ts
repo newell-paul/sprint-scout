@@ -2,7 +2,6 @@ import { type RouteWindForecast } from "@scout/application/route-wind";
 import type { Rider } from "@scout/analysis";
 import { bestHourIndex } from "../components/conditions";
 import type { DrawnRoute } from "./library";
-import type { Availability } from "./attempt";
 import { routeEffect } from "./route-effect";
 export type Opportunity = {
   route: DrawnRoute;
@@ -52,7 +51,6 @@ export function rankOpportunities(
   forecasts: ReadonlyMap<string, ForecastState>,
   rider: Rider,
   daylightDryOnly: boolean,
-  availability: Availability | null = null,
 ): Opportunity[] {
   const rows = routes.map((route): Opportunity => {
     const state = forecasts.get(route.id);
@@ -74,12 +72,7 @@ export function rankOpportunities(
     const effects = forecast.hours.map((hour) =>
       routeEffect(route, hour, rider, forecast.retrievedAt),
     );
-    const bestIndex = bestHourIndex(
-      effects,
-      forecast.hours,
-      daylightDryOnly,
-      availability,
-    );
+    const bestIndex = bestHourIndex(effects, forecast.hours, daylightDryOnly);
     const best = effects[bestIndex];
     if (bestIndex === -1 || !best)
       return {
@@ -87,13 +80,11 @@ export function rankOpportunities(
         status: "unavailable",
         hours: forecast.hours,
         timesS: effects.map((effect) => effect?.windTimeS ?? null),
-        reason: availability
-          ? "No eligible forecast hour in your availability."
-          : daylightDryOnly
-            ? "No dry daylight hour with wind data."
-            : route.terrainMode === "terrain" && !route.terrain
-              ? "Terrain not loaded. Load terrain or choose the flat-road estimate."
-              : "Wind data missing or segment cannot be modelled.",
+        reason: daylightDryOnly
+          ? "No dry daylight hour with wind data."
+          : route.terrainMode === "terrain" && !route.terrain
+            ? "Terrain not loaded. Load terrain or choose the flat-road estimate."
+            : "Wind data missing or segment cannot be modelled.",
       };
     return {
       route,

@@ -628,7 +628,6 @@ export default function Routes() {
           onDaylightDryChange={setDaylightDryOnly}
           requestedAt={request?.at ?? null}
           requestSeq={request?.seq ?? 0}
-          availability={null}
           onShelterChange={(shelter) =>
             updateRoute(selectedRoute, { shelter }, "whole")
           }
@@ -655,7 +654,6 @@ export default function Routes() {
           rider={rider}
           daylightDryOnly={daylightDryOnly}
           activeSlot={slot}
-          availability={null}
           onOpen={openOpportunity}
         />
       )}

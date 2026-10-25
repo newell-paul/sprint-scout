@@ -29,7 +29,6 @@ const props = () => ({
   daylightDryOnly: false,
   activeSlot: 0,
   onOpen: vi.fn(),
-  availability: null,
 });
 
 it("empty: ranking is disabled without segments", async () => {
@@ -79,26 +78,13 @@ it("ranked: every segment at its best hour, active slot marked", async () => {
   await aria("opportunity-board.ranked", region);
 });
 
-it("filters: the heading names dry daylight and availability", async () => {
+it("filters: the heading names the dry daylight filter", async () => {
   const screen = await render(
-    <OpportunityBoard
-      routes={routes()}
-      {...props()}
-      daylightDryOnly
-      availability={{
-        from: "2026-09-11T06:00",
-        until: "2026-09-12T20:00",
-        timeZone: "Europe/London",
-      }}
-    />,
+    <OpportunityBoard routes={routes()} {...props()} daylightDryOnly />,
   );
   const region = screen.getByRole("region", board);
   await expect
-    .element(
-      region.getByText(
-        /dry daylight only · Within availability \(Europe\/London\)/,
-      ),
-    )
+    .element(region.getByText(/next 48 hours · dry daylight only$/))
     .toBeVisible();
 });
 

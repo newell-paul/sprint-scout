@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  parseTarget,
-  targetDifference,
-  validAvailability,
-  withinAvailability,
-} from "./attempt";
-import { bestHourIndex } from "../components/conditions";
+import { parseTarget, targetDifference } from "./attempt";
 import { readLibrary } from "./library";
 
 describe("attempt preferences", () => {
@@ -37,63 +31,5 @@ describe("attempt preferences", () => {
       expect(() =>
         readLibrary(JSON.stringify([{ ...route, targetTimeS }])),
       ).toThrow();
-  });
-  it("uses local dates, excludes the end and supports overnight windows", () => {
-    const window = {
-      from: "2026-09-10T23:00",
-      until: "2026-09-11T01:00",
-      timeZone: "Europe/London",
-    };
-    expect(withinAvailability("2026-09-10T22:00:00Z", window)).toBe(true);
-    expect(withinAvailability("2026-09-11T00:00:00Z", window)).toBe(false);
-    expect(withinAvailability("2026-09-10T21:00:00Z", window)).toBe(false);
-    expect(validAvailability({ ...window, from: "2026-02-30T10:00" })).toBe(
-      false,
-    );
-    expect(validAvailability({ ...window, until: window.from })).toBe(false);
-    expect(withinAvailability("invalid", window)).toBe(false);
-  });
-  it("includes both repeated hours and does not invent spring-gap instants", () => {
-    const window = {
-      from: "2026-10-25T01:00",
-      until: "2026-10-25T02:00",
-      timeZone: "Europe/London",
-    };
-    expect(withinAvailability("2026-10-25T00:00:00Z", window)).toBe(true);
-    expect(withinAvailability("2026-10-25T01:00:00Z", window)).toBe(true);
-    expect(
-      withinAvailability("2026-03-29T01:00:00Z", {
-        ...window,
-        from: "2026-03-29T01:00",
-        until: "2026-03-29T02:00",
-      }),
-    ).toBe(false);
-  });
-  it("combines availability, dry daylight, missing wind and earliest ties", () => {
-    const window = {
-      from: "2026-09-10T10:00",
-      until: "2026-09-10T13:00",
-      timeZone: "UTC",
-    };
-    const hours = [
-      { at: "2026-09-10T09:00:00Z", isDay: true, weatherCode: 0 },
-      { at: "2026-09-10T10:00:00Z", isDay: true, weatherCode: 61 },
-      { at: "2026-09-10T11:00:00Z", isDay: true, weatherCode: 0 },
-    ];
-    const effects = [
-      { speedDeltaMps: 5 },
-      { speedDeltaMps: 2 },
-      { speedDeltaMps: 2 },
-    ];
-    expect(bestHourIndex(effects, hours, false, window)).toBe(1);
-    expect(bestHourIndex(effects, hours, true, window)).toBe(2);
-    expect(bestHourIndex([null, null, null], hours, false, window)).toBe(-1);
-    expect(
-      bestHourIndex(effects, hours, false, {
-        ...window,
-        from: "2026-09-11T10:00",
-        until: "2026-09-11T13:00",
-      }),
-    ).toBe(-1);
   });
 });
