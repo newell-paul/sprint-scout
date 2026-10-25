@@ -442,7 +442,7 @@ describe("history", () => {
 describe("charts", () => {
   it("draws a sparkline only with two or more points and labels its range", () => {
     expect(sparkline([1, null, 3], "coverage", " %")).toContain(
-      'aria-label="coverage over the last 2 runs, from 1 % to 3 %"',
+      'aria-label="coverage over the last 2 days, from 1 % to 3 %"',
     );
     expect(sparkline([null, 5], "x")).toBe("");
   });
@@ -523,6 +523,15 @@ describe("badges", () => {
     }
     expect(badges(snapshot({ date: "2026-10-10" })).evals?.message).toBe("n/a");
   });
+
+  // History is read from JSON without validation, and older entries predate
+  // some fields.
+  it("reads a missing mutation score in an old entry as n/a", () => {
+    const old = { ...snapshot({ date: "2026-10-10" }) } as Partial<Snapshot>;
+    delete old.mutationScore;
+    expect(badges(old as Snapshot).mutation?.message).toBe("n/a");
+    expect(() => render([old as Snapshot])).not.toThrow();
+  });
 });
 
 describe("render", () => {
@@ -583,7 +592,7 @@ describe("render", () => {
     expect(html).toContain("a &lt;b&gt;bold&lt;/b&gt; title");
     expect(html).not.toContain("<b>bold</b>");
     expect(html).toContain(
-      'aria-label="End-to-end duration over the last 2 runs',
+      'aria-label="End-to-end duration over the last 2 days',
     );
     expect(html).toContain("Not collected yet");
     expect(html).not.toContain("<script");

@@ -6,8 +6,9 @@
 // Lists the latest `review-report` artifacts of the Review workflow, reads
 // each tally.json, keeps the latest per pull request, then counts that pull
 // request's review threads and how many are resolved. Needs `gh` logged in
-// and GITHUB_REPOSITORY (set in Actions). Every failure degrades to less
-// data, never to a failed dashboard build: with no access it writes [].
+// and GITHUB_REPOSITORY (set in Actions). An unreadable artifact is skipped;
+// a failed listing or thread count exits 1 and writes nothing, so the cards
+// read n/a rather than zeros.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
@@ -41,7 +42,8 @@ function listArtifacts() {
     "api",
     `repos/${repo}/actions/artifacts?name=review-report&per_page=${limit}`,
     "--jq",
-    ".artifacts[] | select(.expired | not) | {id, created_at}",
+    // A fork's pull request can upload an artifact of the same name.
+    ".artifacts[] | select((.expired | not) and .workflow_run.head_repository_id == .workflow_run.repository_id) | {id, created_at}",
   ]);
   return text
     .split("\n")
@@ -63,8 +65,14 @@ function readTally(artifact, dir) {
     encoding: "utf8",
   });
   const tally = JSON.parse(text);
-  if (!Number.isInteger(tally.pr) || !tally.findings)
-    throw new Error("tally.json has no pull request");
+  const counts = ["blocker", "major", "minor", "nit"].map(
+    (s) => tally.findings?.[s],
+  );
+  if (
+    !Number.isInteger(tally.pr) ||
+    !counts.every((n) => Number.isInteger(n) && n >= 0)
+  )
+    throw new Error("tally.json has no pull request or bad counts");
   return tally;
 }
 
@@ -95,6 +103,10 @@ function threads(pr) {
   };
 }
 
+const fail = (message) => {
+  console.error(`collect-reviews: ${message}`);
+  process.exit(1);
+};
 const records = new Map();
 if (!repo) {
   console.error(
@@ -102,8 +114,15 @@ if (!repo) {
   );
 } else {
   const dir = mkdtempSync(path.join(os.tmpdir(), "review-artifacts-"));
+  let artifacts;
   try {
-    for (const artifact of listArtifacts()) {
+    artifacts = listArtifacts();
+  } catch (error) {
+    rmSync(dir, { recursive: true, force: true });
+    fail(`cannot list artifacts: ${error.message}`);
+  }
+  try {
+    for (const artifact of artifacts) {
       try {
         const tally = readTally(artifact, dir);
         const seen = records.get(tally.pr);
@@ -114,8 +133,6 @@ if (!repo) {
         );
       }
     }
-  } catch (error) {
-    console.error(`collect-reviews: cannot list artifacts: ${error.message}`);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -123,10 +140,7 @@ if (!repo) {
     try {
       Object.assign(record, threads(record.pr));
     } catch (error) {
-      console.error(
-        `collect-reviews: threads of #${record.pr} unavailable: ${error.message}`,
-      );
-      Object.assign(record, { threads: 0, resolved: 0 });
+      fail(`threads of #${record.pr} unavailable: ${error.message}`);
     }
   }
 }

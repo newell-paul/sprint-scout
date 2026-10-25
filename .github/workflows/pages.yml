@@ -32,6 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The commit whose Checks run passed, not whatever main is now. The
+          # job's condition limits this to a push in this repository.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -62,11 +66,13 @@ jobs:
         run: |
           run="${{ github.event.workflow_run.id }}"
           if [ -z "$run" ]; then
-            run=$(gh run list --workflow ci.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId' || true)
+            # Same query as the dashboard job: a fork's pull request from its
+            # own main must not supply the page.
+            run=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=dashboard" --jq '[.artifacts[] | select((.expired | not) and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)][0].workflow_run.id // empty')
           fi
-          if [ -n "$run" ]; then
-            gh run download "$run" --name dashboard --dir apps/web/out/dashboard || true
-          fi
+          # Publishing without it would delete the live dashboard and badges.
+          gh run download "$run" --name dashboard --dir apps/web/out/dashboard \
+            || { echo "::error::Could not download the dashboard from run ${run:-none}."; exit 1; }
       - name: Refresh the intent board
         # The "Rebuild now" link on the board leads here. The rest of the
         # dashboard stays as the last Checks run on main left it.
@@ -75,7 +81,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           [ -f apps/web/out/dashboard/history.json ] || exit 0
-          node scripts/collect-intents.mjs || true
+          node scripts/collect-intents.mjs || echo "::warning::Could not read open pull requests; the board shows main only."
           pnpm exec tsx packages/testing/src/dashboard.cli.ts --refresh-board apps/web/out/dashboard \
             --intents intent --open-intents reports/github/open-intents.json
       - run: touch apps/web/out/.nojekyll

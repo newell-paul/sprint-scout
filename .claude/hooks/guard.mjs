@@ -31,7 +31,7 @@ if (["Read", "Edit", "Write", "MultiEdit"].includes(tool)) {
   const file = rel(String(args.file_path ?? ""));
   if (isEnv(file))
     block(
-      "Blocked: .env files are never read or edited by an agent. Use .env.example.",
+      "Blocked: .env files are never read or edited by an agent. Ask the owner to change it.",
     );
   if (tool !== "Read") {
     if (isBaseline(file) && !marker("snapshots")) block(baselineReason);
@@ -106,10 +106,12 @@ if (tool === "Bash") {
   const cmd = String(args.command ?? "");
   if (/(^|[^\w.])\.env\b/.test(cmd.replaceAll(".env.example", "")))
     block(
-      "Blocked: commands that touch .env are not allowed. Use .env.example.",
+      "Blocked: commands that touch .env are not allowed. Ask the owner to run it.",
     );
+  // Options may sit between git and push (-C dir, -c k=v, --git-dir=x), and a
+  // +refspec forces the push as surely as --force.
   if (
-    /\bgit\s+push\b[^|;&]*(\bmain\b|--force|\s-f\b|--force-with-lease)/.test(
+    /\bgit(\s+-[Cc]\s+\S+|\s+--?[\w-]+(=\S+)?)*\s+push\b[^|;&]*(\bmain\b|--force|\s-f\b|\s\+\S)/.test(
       cmd,
     )
   )

@@ -107,3 +107,11 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Found by: the owner, asking whether "1 run recorded" meant only one run had been done. The job log said "(1 runs)".
 - Fix: the last flag wins, so CI's `--history` overrides the script's default. The header now reads "Built from main at `<sha>` on `<date>` · trends over N days", because history keeps one entry per day, not per run.
 - Test: `dashboard.cli.test.ts`, "keeps the history named by the last --history flag", runs the CLI twice as CI does.
+
+## 25 October 2026: a fork's main could supply the dashboard
+
+- What broke: nothing yet. The dashboard job's history fetch and the manual Pages rebuild picked the newest successful `ci.yml` run with `--branch main`. A fork's pull request from its own branch called main matches that filter and runs its own edited `ci.yml`, so it could upload a `dashboard` artifact that Pages publishes on the planner's origin. The Checks-triggered deploy was guarded earlier the same day; these two paths were not.
+- Found by: the whole-repository review on 25 October 2026.
+- Fix: both paths use the artifact query that checks `head_branch == "main"` and `head_repository_id == repository_id`.
+- Test: `harness.test.ts`, "takes the dashboard artifact only from main in this repository".
+- Rule for `AGENTS.md`: this is the second time a `--branch main` filter let a fork's run through (the first was the Pages trigger). Any workflow that reads another run's artifacts filters on the head repository, not the branch name.

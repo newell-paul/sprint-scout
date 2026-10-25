@@ -7,8 +7,8 @@
 // Lists open pull requests from branches of this repository, and for each
 // intent folder a pull request touches reads intent.md from that branch and
 // notes whether spec.md and plan.md exist there. Needs `gh` logged in and
-// GITHUB_REPOSITORY (set in Actions). Every failure degrades to less data,
-// never to a failed dashboard build: with no access it writes [].
+// GITHUB_REPOSITORY (set in Actions). An unreadable intent is skipped; a
+// failed listing exits 1 and writes nothing.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -99,9 +99,11 @@ if (!repo) {
       }
     }
   } catch (error) {
+    // Writing [] would claim that nothing is in flight.
     console.error(
       `collect-intents: could not list pull requests: ${error.message.split("\n")[0]}`,
     );
+    process.exit(1);
   }
 }
 

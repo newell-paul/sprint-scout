@@ -1,6 +1,7 @@
 # Deterministic bands over the dashboard history (docs/sdlc.md, step 9).
 #
-# Each run on main is compared with the previous runs in its window: the
+# Each run on main is compared with the previous days in its window (the
+# history keeps one entry per day): the
 # distance from their mean, in standard deviations and in the worse
 # direction, sets the level. 1σ is logged in the job summary, 2σ annotates
 # the dashboard, 3σ fails the dashboard job. minSigma stops a flat baseline
@@ -9,9 +10,9 @@
 #   path      dotted path into a dashboard snapshot (packages/testing/src/dashboard.ts);
 #             `evals.rate` is the pass rate in percent
 #   worse     which direction is a regression
-#   window    previous runs in the baseline (default 20)
-#   minRuns   runs needed before the band is live (default 5)
-#   since     YYYY-MM-DD; runs dated earlier leave the baseline, for an
+#   window    previous days in the baseline (default 20)
+#   minRuns   days needed before the band is live (default 5)
+#   since     YYYY-MM-DD; days earlier leave the baseline, for an
 #             intended step change (set in the commit that makes it)
 bands:
   - id: e2e-duration
