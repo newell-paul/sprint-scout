@@ -20,7 +20,7 @@
   - Intents over runs and review findings per pull request are orange area charts.
   - Fixed after review has a ring.
 - **Delivery:** PR cycle time and this week's merges are stacked. Beside them, a column chart of the last eight weeks: rounded orange-to-red columns, the current week glowing, labels "−7w" to "This wk", and a dashed grid at 0, half and the top.
-- **Slowest tests:** the table moves out of Tests into its own section. Project pills; a duration of 20 s or more is red.
+- **Slowest tests:** the table moves out of Tests into its own section and lists the five slowest (it was ten). Project pills; a duration of 20 s or more is red.
 - **Motion:** 200 ms transitions on hover and focus, and none under `prefers-reduced-motion`.
 - **Phone:** one column of cards, the board in two columns, and the project column hidden in the slowest table.
 - **Empty:** no delivery data shows a ghost "No pull request data". Missing values keep "n/a" and draw no chart.

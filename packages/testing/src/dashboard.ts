@@ -851,6 +851,7 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
   const e2e = latest.e2e;
   const streak = flakeFreeStreak(history);
   const slowest = (e2e?.slowest ?? [])
+    .slice(0, 5)
     .map(
       (t) =>
         `<tr><td>${escapeHtml(t.title)}</td><td><code>${escapeHtml(t.project)}</code></td><td class="num" data-tone="${t.durationMs >= 20_000 ? "poor" : "none"}">${seconds(t.durationMs)}</td></tr>`,
@@ -1179,7 +1180,7 @@ ${section("performance", "Performance", "The deploy gate runs Lighthouse against
 </div>
 ${section("ai", "AI practice", "Evals prove the agent configuration steers an agent; intents are the audit trail of work asked for and delivered.", grid(aiCards))}
 ${section("delivery", "Delivery", "Pull requests merged into main, read from the GitHub API by the dashboard job.", deliveryCards)}
-${section("slowest", "Slowest tests", "The ten slowest end-to-end tests in the latest run, across all three browser projects.", `<table><thead><tr><th>Test</th><th>Project</th><th class="num">Duration</th></tr></thead><tbody>${slowest || '<tr><td colspan="3" class="muted">No end-to-end report</td></tr>'}</tbody></table>`)}
+${section("slowest", "Slowest tests", "The five slowest end-to-end tests in the latest run, across all three browser projects.", `<table><thead><tr><th>Test</th><th>Project</th><th class="num">Duration</th></tr></thead><tbody>${slowest || '<tr><td colspan="3" class="muted">No end-to-end report</td></tr>'}</tbody></table>`)}
 <footer>Built by the Checks workflow after every push to main. No scripts, no external requests. Source: <code>packages/testing/src/dashboard.ts</code>.</footer>
 </main>
 </body>

@@ -628,6 +628,19 @@ describe("render", () => {
     expect(render(history)).not.toContain('class="bands"');
   });
 
+  it("lists only the five slowest end-to-end tests", () => {
+    const latest = snapshot({ date: "2026-10-10", playwright });
+    latest.e2e!.slowest = Array.from({ length: 10 }, (_, i) => ({
+      title: `slow ${i}`,
+      project: "chromium-desktop",
+      durationMs: 20_000 - i * 1000,
+    }));
+    const table = render([latest]).split('<section id="slowest"')[1]!;
+    expect(table.match(/<tr><td>/g)).toHaveLength(5);
+    expect(table).toContain("slow 4<");
+    expect(table).not.toContain("slow 5<");
+  });
+
   it("explains an empty history", () => {
     expect(render([])).toContain("No test runs recorded yet.");
   });
