@@ -1,11 +1,9 @@
-import {
-  estimateRouteRideEffect,
-  type RouteWindForecast,
-} from "@scout/application/route-wind";
+import { type RouteWindForecast } from "@scout/application/route-wind";
 import type { Rider } from "@scout/analysis";
 import { bestHourIndex } from "../components/conditions";
 import type { DrawnRoute } from "./library";
 import type { Availability } from "./attempt";
+import { routeEffect } from "./route-effect";
 export type Opportunity = {
   route: DrawnRoute;
   status: "ranked" | "loading" | "unavailable";
@@ -74,21 +72,13 @@ export function rankOpportunities(
       return { ...empty, status: "unavailable", reason: state.message };
     const { forecast } = state;
     const effects = forecast.hours.map((hour) =>
-      estimateRouteRideEffect(
-        route.points,
-        hour,
-        forecast.retrievedAt,
-        rider,
-        route.terrainMode === "terrain" ? (route.terrain ?? null) : undefined,
-        route.shelter ?? "exposed",
-      ),
+      routeEffect(route, hour, rider, forecast.retrievedAt),
     );
     const bestIndex = bestHourIndex(
       effects,
       forecast.hours,
       daylightDryOnly,
       availability,
-      forecast.hours.map((hour) => hour.at),
     );
     const best = effects[bestIndex];
     if (bestIndex === -1 || !best)

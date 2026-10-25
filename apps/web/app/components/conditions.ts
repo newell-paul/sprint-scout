@@ -53,16 +53,16 @@ export function describeConditions(
 // daylight and dry hours; unknown daylight or weather counts as unsuitable.
 export function bestHourIndex(
   effects: readonly ({ speedDeltaMps: number } | null)[],
-  hours: readonly Pick<RouteWindHour, "isDay" | "weatherCode">[],
+  hours: readonly (Pick<RouteWindHour, "isDay" | "weatherCode"> &
+    Partial<Pick<RouteWindHour, "at">>)[],
   daylightDryOnly: boolean,
   availability: Availability | null = null,
-  instants: readonly string[] = [],
 ) {
   return effects.reduce((best, effect, position) => {
     if (!effect) return best;
     if (
       availability &&
-      !withinAvailability(instants[position] ?? "", availability)
+      !withinAvailability(hours[position]?.at ?? "", availability)
     )
       return best;
     const hour = hours[position];

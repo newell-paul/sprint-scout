@@ -9,10 +9,7 @@ import {
   utcDate,
   windAt,
 } from "@scout/application/archive-wind";
-import {
-  describeRouteWind,
-  estimateRouteRideEffect,
-} from "@scout/application/route-wind";
+import { describeRouteWind } from "@scout/application/route-wind";
 import { formatDuration } from "../components/time";
 import { formatSpeed, type SpeedUnit } from "../components/speed";
 import {
@@ -23,6 +20,7 @@ import {
   type EffortWind,
   type RouteEffort,
 } from "./library";
+import { routeEffect } from "./route-effect";
 
 const months = [
   "Jan",
@@ -215,14 +213,7 @@ export default function EffortsPanel({
       speedMps: effort.wind.speedMps,
       fromDegrees: effort.wind.fromDegrees,
     };
-    const model = estimateRouteRideEffect(
-      route.points,
-      hour,
-      undefined,
-      rider,
-      route.terrainMode === "terrain" ? (route.terrain ?? null) : undefined,
-      route.shelter ?? "exposed",
-    );
+    const model = routeEffect(route, hour, rider);
     const seconds = model
       ? Math.round(model.windTimeS - model.calmTimeS)
       : null;

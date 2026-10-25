@@ -1,5 +1,6 @@
 import { destination } from "@turf/destination";
 import { prepareGeometry, type Geometry } from "@scout/analysis";
+import { fetchOpenMeteo } from "./open-meteo-fetch";
 
 export const terrainProfileVersion = "glo90-profile-v1" as const;
 export type TerrainProfile = {
@@ -180,37 +181,13 @@ export async function loadTerrain(
       latitude: batch.map((point) => point[1].toFixed(6)).join(","),
       longitude: batch.map((point) => point[0].toFixed(6)).join(","),
     }).toString();
-    const response = await fetcher(url, {
+    const input = await fetchOpenMeteo(url, {
+      service: "Elevation service",
+      body: "Elevation",
+      maxBytes: 20_000,
       signal,
-      credentials: "omit",
-      referrerPolicy: "no-referrer",
-      cache: "no-store",
-      redirect: "error",
+      fetcher,
     });
-    if (!response.ok)
-      throw new Error(
-        response.status === 429
-          ? "Elevation service rate limit reached. Try again later."
-          : "Elevation service unavailable. Try again.",
-      );
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error("Empty elevation response.");
-    let raw = "";
-    let bytes = 0;
-    const decoder = new TextDecoder();
-    try {
-      while (true) {
-        const part = await reader.read();
-        if (part.done) break;
-        bytes += part.value.byteLength;
-        if (bytes > 20000) throw new Error("Elevation response is too large.");
-        raw += decoder.decode(part.value, { stream: true });
-      }
-      raw += decoder.decode();
-    } finally {
-      await reader.cancel();
-    }
-    const input: unknown = JSON.parse(raw);
     const values =
       input && typeof input === "object"
         ? (input as Record<string, unknown>).elevation

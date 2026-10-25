@@ -12,6 +12,7 @@ import {
 } from "@scout/analysis";
 import { prepareTerrain, type TerrainProfile } from "./terrain";
 import { isShelter, shelterPresets, type Shelter } from "./shelter";
+import { fetchOpenMeteo } from "./open-meteo-fetch";
 export type RouteWindHour = {
   at: string;
   speedMps: number | null;
@@ -249,36 +250,14 @@ export async function loadRouteWind(
     start_hour: new Date(start).toISOString().slice(0, 16),
     end_hour: new Date(start + 47 * hourMs).toISOString().slice(0, 16),
   }).toString();
-  const response = await fetcher(url, {
+  const body = await fetchOpenMeteo(url, {
+    service: "Weather service",
+    body: "Weather",
+    maxBytes: 100_000,
     signal,
-    credentials: "omit",
-    referrerPolicy: "no-referrer",
-    cache: "no-store",
+    fetcher,
   });
-  if (!response.ok)
-    throw new Error(
-      response.status === 429
-        ? "Weather service rate limit reached. Try again later."
-        : "Weather service unavailable. Try again.",
-    );
-  const reader = response.body?.getReader();
-  if (!reader) throw new Error("Empty weather response.");
-  const decoder = new TextDecoder();
-  let raw = "",
-    bytes = 0;
-  try {
-    while (true) {
-      const part = await reader.read();
-      if (part.done) break;
-      bytes += part.value.byteLength;
-      if (bytes > 100_000) throw new Error("Weather response is too large.");
-      raw += decoder.decode(part.value, { stream: true });
-    }
-    raw += decoder.decode();
-  } finally {
-    await reader.cancel();
-  }
-  const hours = parseRouteWind(JSON.parse(raw), start);
+  const hours = parseRouteWind(body, start);
   if (hours.every((h) => h.speedMps === null))
     throw new Error("No usable wind forecast returned.");
   return {

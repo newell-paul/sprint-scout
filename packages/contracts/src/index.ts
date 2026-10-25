@@ -2,61 +2,18 @@ import { z } from "zod";
 // Zod probes for eval with Function(""), which the published page's content
 // security policy reports as a violation; the interpreted parser is enough.
 z.config({ jitless: true });
-export const utcInstant = z.iso.datetime({ precision: 0 });
-export const sourceKind = z.enum([
-  "synthetic",
-  "independent",
-  "strava-rest",
-  "strava-export",
-  "open-meteo",
-]);
-export const sourcePolicy = z
-  .object({
-    analysis: z.boolean(),
-    persistence: z.boolean(),
-    derivedOutputs: z.boolean(),
-    aiDisclosure: z.boolean(),
-    decisionId: z.string().min(1),
-  })
-  .strict();
-export const attribution = z
-  .object({
-    label: z.string().max(200),
-    url: z.url(),
-    licenceUrl: z.url(),
-    changes: z.string().max(300),
-  })
-  .strict();
-export const provenance = z
-  .object({
-    sourceKind,
-    sourceId: z.string().min(1),
-    retrievedAt: utcInstant,
-    expiresAt: utcInstant.nullable(),
-    policy: sourcePolicy,
-    attribution: attribution.optional(),
-  })
-  .strict();
 export const coordinate = z.tuple([
   z.number().min(-180).max(180),
   z.number().min(-90).max(90),
 ]);
-export const segment = z
+export const lineString = z
   .object({
-    id: z.string().min(1),
-    name: z.string().min(1).max(200),
-    geometry: z
-      .object({
-        type: z.literal("LineString"),
-        coordinates: z.array(coordinate).min(2).max(10000),
-      })
-      .strict(),
-    provenance,
+    type: z.literal("LineString"),
+    coordinates: z.array(coordinate).min(2).max(10000),
   })
   .strict();
-export type Provenance = z.infer<typeof provenance>;
 
-// Raw Open-Meteo response shapes as the planner and providers request them.
+// Raw Open-Meteo response shapes as the planner requests them.
 // Recorded fixtures in packages/testing are validated against these, and the
 // advisory CI drift job validates live responses so an upstream change fails
 // loudly instead of surfacing as a parsing quirk.
@@ -103,10 +60,6 @@ export const openMeteoForecastResponse = z
       ),
   })
   .strict();
-export const openMeteoForecastResponses = z.union([
-  openMeteoForecastResponse,
-  z.array(openMeteoForecastResponse).min(1).max(50),
-]);
 export const openMeteoArchiveResponse = z
   .object({
     ...openMeteoBase,

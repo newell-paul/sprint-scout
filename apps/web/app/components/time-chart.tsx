@@ -3,7 +3,7 @@ import type {
   RouteWindForecast,
 } from "@scout/application/route-wind";
 import { useState } from "react";
-import { formatDuration } from "./time";
+import { formatDuration, formatWeekdayHour } from "./time";
 import { conditionBands, describeConditions } from "./conditions";
 
 export default function TimeChart({
@@ -56,12 +56,6 @@ export default function TimeChart({
   const bandX = (position: number) => plotX(position) - halfHour;
   const bandWidth = (band: { from: number; to: number }) =>
     plotX(band.to) + halfHour - bandX(band.from);
-  const timeLabel = (at: string) =>
-    new Intl.DateTimeFormat(undefined, {
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(at));
   return (
     <div className="time-chart" data-testid="time-chart">
       <div className="time-chart-heading">
@@ -76,7 +70,7 @@ export default function TimeChart({
         >
           <span>
             {best && index === bestIndex ? "Best hour · " : "Selected · "}
-            {timeLabel(forecast.hours[index]!.at)}
+            {formatWeekdayHour(forecast.hours[index]!.at)}
           </span>
           <strong data-testid="segment-time-value">
             {selected ? formatDuration(selected.windTimeS) : "Unavailable"}

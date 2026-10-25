@@ -413,6 +413,25 @@ export default function Routes() {
       return false;
     }
   }
+  // Shelter and target compare the whole stored segment; the rest compare only
+  // its geometry, because terrain and efforts arrive after async work during
+  // which another setting may be saved.
+  function updateRoute(
+    route: DrawnRoute,
+    patch: Partial<DrawnRoute>,
+    compare: "whole" | "points" = "points",
+  ) {
+    const key = (r: DrawnRoute) =>
+      JSON.stringify(compare === "whole" ? r : r.points);
+    return persist((current) => {
+      const stored = current.find((item) => item.id === route.id);
+      if (!stored || key(stored) !== key(route))
+        throw new Error("Segment changed in another tab.");
+      return current.map((item) =>
+        item.id === route.id ? { ...item, ...patch } : item,
+      );
+    });
+  }
   const saveReason =
     points.length < 2
       ? "Add at least two different points to save your route."
@@ -611,84 +630,17 @@ export default function Routes() {
           requestSeq={request?.seq ?? 0}
           availability={null}
           onShelterChange={(shelter) =>
-            persist((current) => {
-              const stored = current.find(
-                (item) => item.id === selectedRoute.id,
-              );
-              if (
-                !stored ||
-                JSON.stringify(stored) !== JSON.stringify(selectedRoute)
-              )
-                throw new Error("Segment changed in another tab.");
-              return current.map((item) =>
-                item.id === selectedRoute.id ? { ...item, shelter } : item,
-              );
-            })
+            updateRoute(selectedRoute, { shelter }, "whole")
           }
           onTerrainChange={(terrain, terrainMode) =>
-            persist((current) => {
-              const stored = current.find(
-                (item) => item.id === selectedRoute.id,
-              );
-              if (
-                !stored ||
-                JSON.stringify(stored.points) !==
-                  JSON.stringify(selectedRoute.points)
-              )
-                throw new Error("Segment changed while loading terrain.");
-              return current.map((item) =>
-                item.id === selectedRoute.id
-                  ? { ...item, terrain, terrainMode }
-                  : item,
-              );
-            })
+            updateRoute(selectedRoute, { terrain, terrainMode })
           }
-          onEffortsChange={(efforts) =>
-            persist((current) => {
-              const stored = current.find(
-                (item) => item.id === selectedRoute.id,
-              );
-              if (
-                !stored ||
-                JSON.stringify(stored.points) !==
-                  JSON.stringify(selectedRoute.points)
-              )
-                throw new Error("Segment changed in another tab.");
-              return current.map((item) =>
-                item.id === selectedRoute.id ? { ...item, efforts } : item,
-              );
-            })
-          }
+          onEffortsChange={(efforts) => updateRoute(selectedRoute, { efforts })}
           onTerrainAutoChange={(terrainAuto) =>
-            persist((current) => {
-              const stored = current.find(
-                (item) => item.id === selectedRoute.id,
-              );
-              if (
-                !stored ||
-                JSON.stringify(stored.points) !==
-                  JSON.stringify(selectedRoute.points)
-              )
-                throw new Error("Segment changed in another tab.");
-              return current.map((item) =>
-                item.id === selectedRoute.id ? { ...item, terrainAuto } : item,
-              );
-            })
+            updateRoute(selectedRoute, { terrainAuto })
           }
           onTargetChange={(targetTimeS) =>
-            persist((current) => {
-              const stored = current.find(
-                (item) => item.id === selectedRoute.id,
-              );
-              if (
-                !stored ||
-                JSON.stringify(stored) !== JSON.stringify(selectedRoute)
-              )
-                throw new Error("Segment changed in another tab.");
-              return current.map((item) =>
-                item.id === selectedRoute.id ? { ...item, targetTimeS } : item,
-              );
-            })
+            updateRoute(selectedRoute, { targetTimeS }, "whole")
           }
         />
       )}

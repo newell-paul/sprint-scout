@@ -20,8 +20,6 @@ describe("recorded Open-Meteo fixtures", () => {
     const fixtures = recorded();
     expect(fixtures.forecast.hourly.time).toHaveLength(48);
     expect(fixtures.forecast.hourly_units.wind_speed_10m).toBe("m/s");
-    expect(fixtures.forecastIso).toHaveLength(2);
-    expect(fixtures.forecastIso[0]!.hourly_units.temperature_2m).toBe("°C");
     expect(fixtures.elevation.elevation).toHaveLength(11);
     expect(fixtures.archive.hourly.time).toHaveLength(48);
     expect(recordedForecastStartS() % 3600).toBe(0);

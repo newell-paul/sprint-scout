@@ -697,3 +697,7 @@ From the whole-repository review. Saved effort times (`startedAt`, `importedAt`,
 ## Hand-picked segment opens at its first hour — 25 October 2026
 
 Open on the opportunity board sets a requested hour for that segment. Choosing a segment from the slot picker now clears it, so a segment picked by hand opens at its first forecast hour instead of the board's hour for another segment. Source: `apps/web/app/routes/route-drawer.tsx`; plan in `intent/test-gaps/`.
+
+## Shared Open-Meteo request and fewer contracts — 25 October 2026
+
+From the whole-repository review. The forecast, elevation and archive loaders share one request function (`packages/application/src/open-meteo-fetch.ts`): no credentials, referrer, cache or redirects, and a byte cap enforced while the body streams. The forecast now refuses redirects too, and the archive's cap no longer waits for the whole body. `@scout/contracts` keeps only what runs: coordinates, a LineString and the three Open-Meteo response shapes the planner requests. The provenance, source-policy and attribution schemas, and the multi-location forecast schema with its recorded fixture and drift check, went with the provider path they served. In the web app, `routeEffect` builds a saved segment's ride effect in one place, `bestHourIndex` reads instants from the hours, and the route drawer's five setting saves share `updateRoute`. Plan in `intent/simplify/`.

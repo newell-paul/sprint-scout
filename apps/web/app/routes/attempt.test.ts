@@ -76,33 +76,24 @@ describe("attempt preferences", () => {
       timeZone: "UTC",
     };
     const hours = [
-      { isDay: true, weatherCode: 0 },
-      { isDay: true, weatherCode: 61 },
-      { isDay: true, weatherCode: 0 },
-    ];
-    const instants = [
-      "2026-09-10T09:00:00Z",
-      "2026-09-10T10:00:00Z",
-      "2026-09-10T11:00:00Z",
+      { at: "2026-09-10T09:00:00Z", isDay: true, weatherCode: 0 },
+      { at: "2026-09-10T10:00:00Z", isDay: true, weatherCode: 61 },
+      { at: "2026-09-10T11:00:00Z", isDay: true, weatherCode: 0 },
     ];
     const effects = [
       { speedDeltaMps: 5 },
       { speedDeltaMps: 2 },
       { speedDeltaMps: 2 },
     ];
-    expect(bestHourIndex(effects, hours, false, window, instants)).toBe(1);
-    expect(bestHourIndex(effects, hours, true, window, instants)).toBe(2);
+    expect(bestHourIndex(effects, hours, false, window)).toBe(1);
+    expect(bestHourIndex(effects, hours, true, window)).toBe(2);
+    expect(bestHourIndex([null, null, null], hours, false, window)).toBe(-1);
     expect(
-      bestHourIndex([null, null, null], hours, false, window, instants),
-    ).toBe(-1);
-    expect(
-      bestHourIndex(
-        effects,
-        hours,
-        false,
-        { ...window, from: "2026-09-11T10:00", until: "2026-09-11T13:00" },
-        instants,
-      ),
+      bestHourIndex(effects, hours, false, {
+        ...window,
+        from: "2026-09-11T10:00",
+        until: "2026-09-11T13:00",
+      }),
     ).toBe(-1);
   });
 });
