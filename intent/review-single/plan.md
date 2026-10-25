@@ -26,3 +26,4 @@ From [spec.md](spec.md).
 ## As built
 
 - The live check cannot run on this pull request. `claude-code-action` skips itself when the workflow file differs from the one on `main` ("The workflow file must exist and have identical content to the version on the repository's default branch"), so the Review job fails at Tally with no structured output. That job is not required. The first pull request after merge is the live check.
+- The live check passed after merge: every pull request from #47 onward got one review per push, with its line comments attached.
