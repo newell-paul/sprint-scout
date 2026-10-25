@@ -93,3 +93,10 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Fix: Pages deploys only when the triggering run was a `push` in this repository; triage skips runs whose head repository is not this one.
 - Test: `harness.test.ts`, "deploys only after a push to main in this repository" and the triage test.
 - Rule: every `workflow_run` job that uses the triggering run's artifacts, logs or secrets checks `github.event.workflow_run.head_repository.full_name == github.repository`.
+
+## 25 October 2026: the dashboard counted its own run as a failure
+
+- What broke: "First-pass success" read 70 % on the dashboard for `9bfa4da`. The dashboard job lists the Checks runs on main while its own run is still going, and gh lists that run with conclusion `""`, not `null`. `pipelineSummary` filtered only `null`, so the run in progress counted as a completed failure, and as the latest run for "Checks duration".
+- Found by: building the recent runs strip, which drew that run as a red bar.
+- Fix: `pipelineSummary` drops any empty conclusion; the job fetches 31 runs so 30 completed remain.
+- Test: `dashboard.test.ts`, "leaves out the run still in progress, which gh lists with an empty conclusion".
