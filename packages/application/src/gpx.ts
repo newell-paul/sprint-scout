@@ -12,7 +12,14 @@ const child = (body: string, name: string) =>
 // same file could yield different instants on different devices.
 const zoned = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/;
 
-export type GpxTrack = { name: string | null; points: TrackPoint[] };
+export type GpxTrack = {
+  name: string | null;
+  points: TrackPoint[];
+  /** Points dropped for a missing or unusable position or time. */
+  skipped: number;
+  /** How many of those had a time with no zone. */
+  zoneless: number;
+};
 
 export function parseGpx(text: string): GpxTrack {
   if (typeof text !== "string" || text.length > gpxLimits.bytes)
@@ -59,5 +66,5 @@ export function parseGpx(text: string): GpxTrack {
           ? "GPX track has no usable timed points; recordings need a time on each point."
           : "GPX file contains no track points.",
     );
-  return { name, points };
+  return { name, points, skipped, zoneless };
 }

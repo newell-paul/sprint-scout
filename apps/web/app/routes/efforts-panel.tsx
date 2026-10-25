@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { matchEfforts } from "@scout/analysis/effort-match";
 import type { Rider } from "@scout/analysis";
-import { parseGpx } from "@scout/application/gpx";
+import { parseGpx, type GpxTrack } from "@scout/application/gpx";
 import {
   loadArchiveWind,
   splitDates,
@@ -39,6 +39,10 @@ const months = [
   "Dec",
 ];
 
+const skippedNote = ({ skipped, zoneless }: GpxTrack) =>
+  skipped === 0
+    ? ""
+    : ` ${skipped} track ${skipped === 1 ? "point was" : "points were"} skipped for a missing or out-of-order time or position${zoneless > 0 ? `; ${zoneless} had a time with no zone` : ""}.`;
 export default function EffortsPanel({
   route,
   rider,
@@ -88,7 +92,7 @@ export default function EffortsPanel({
       const matches = matchEfforts(route.points, track.points);
       if (matches.length === 0) {
         setMessage(
-          `No traversal of this segment found in ${file.name}. The ride must pass the start, follow the segment in its drawn direction and reach the finish.`,
+          `No traversal of this segment found in ${file.name}. The ride must pass the start, follow the segment in its drawn direction and reach the finish.${skippedNote(track)}`,
         );
         return;
       }
@@ -123,7 +127,7 @@ export default function EffortsPanel({
       }
       if (onChange(merged))
         setMessage(
-          `${fresh.length} ${fresh.length === 1 ? "effort" : "efforts"} added from ${file.name}. The file was read in this browser only.`,
+          `${fresh.length} ${fresh.length === 1 ? "effort" : "efforts"} added from ${file.name}. The file was read in this browser only.${skippedNote(track)}`,
         );
     } catch (cause) {
       setMessage(

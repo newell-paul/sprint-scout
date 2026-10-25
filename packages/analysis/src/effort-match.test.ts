@@ -130,6 +130,18 @@ describe("effort matching", () => {
     ]);
     expect(efforts[0]!.lastIndex).toBeLessThan(efforts[1]!.firstIndex);
   });
+  it("never reports an effort shorter than the 0.1 s it is rounded to", () => {
+    const short: Coordinate[] = [
+      [-0.12, 51.5],
+      [-0.12, 51.5009],
+    ];
+    const efforts = matchEfforts(
+      short,
+      ride(short, { speedMps: 4000, intervalS: 0.005, leadM: 100 }),
+    );
+    expect(efforts).toHaveLength(1);
+    expect(efforts[0]!.elapsedSeconds).toBe(0.1);
+  });
   it("ignores a track that rides the segment the wrong way", () => {
     expect(matchEfforts(hill, ride(hill, { reverse: true }))).toEqual([]);
   });

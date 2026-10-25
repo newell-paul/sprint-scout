@@ -131,14 +131,14 @@ describe("independent route storage", () => {
   it("keeps valid efforts, drops efforts from other geometry and rejects malformed ones", () => {
     const effort = {
       id: "e1",
-      startedAt: "2026-09-12T09:00:30Z",
+      startedAt: "2026-09-12T09:00:30.000Z",
       elapsedSeconds: 112.4,
       source: "gpx",
       fileName: "ride.gpx",
       geometryKey: JSON.stringify(route.points),
       maxDeviationM: 3.2,
       sampleGapSeconds: 1,
-      importedAt: "2026-09-13T10:00:00Z",
+      importedAt: "2026-09-13T10:00:00.000Z",
     };
     const stale = { ...effort, id: "e2", geometryKey: "[]" };
     expect(
@@ -161,6 +161,63 @@ describe("independent route storage", () => {
   });
 });
 
+describe("saved effort times and wind", () => {
+  const effort = {
+    id: "e1",
+    startedAt: "2026-09-12T09:00:30.000Z",
+    elapsedSeconds: 112.4,
+    source: "gpx",
+    fileName: "ride.gpx",
+    geometryKey: JSON.stringify(route.points),
+    maxDeviationM: 3.2,
+    sampleGapSeconds: 1,
+    importedAt: "2026-09-13T10:00:00.000Z",
+  };
+  const wind = {
+    speedMps: 4,
+    fromDegrees: 180,
+    gustMps: null,
+    precipitationMm: 0,
+    retrievedAt: "2026-09-14T08:00:00.000Z",
+    source: "open-meteo-archive",
+  };
+  const read = (efforts: unknown[]) =>
+    readLibrary(JSON.stringify([{ ...route, efforts }]))[0]?.efforts;
+  it("reads zoned times back as UTC instants so sorting and duplicate checks compare like with like", () => {
+    const [saved] = read([
+      {
+        ...effort,
+        startedAt: "2026-09-12T10:00:30+01:00",
+        importedAt: "2026-09-13T10:00:00Z",
+        wind: { ...wind, retrievedAt: "2026-09-14T09:00:00+01:00" },
+      },
+    ])!;
+    expect(saved!.startedAt).toBe("2026-09-12T09:00:30.000Z");
+    expect(saved!.importedAt).toBe("2026-09-13T10:00:00.000Z");
+    expect(saved!.wind!.retrievedAt).toBe("2026-09-14T08:00:00.000Z");
+  });
+  it("rejects a time without a zone, which each device would read differently", () => {
+    for (const bad of [
+      { ...effort, startedAt: "2026-09-12T09:00:30" },
+      { ...effort, importedAt: "2026-09-13" },
+      { ...effort, wind: { ...wind, retrievedAt: "2026-09-14T08:00:00" } },
+    ])
+      expect(() => read([bad])).toThrow();
+  });
+  it("needs a direction for any wind above calm", () => {
+    expect(() =>
+      read([{ ...effort, wind: { ...wind, fromDegrees: null } }]),
+    ).toThrow();
+    expect(
+      read([{ ...effort, wind: { ...wind, speedMps: 0, fromDegrees: null } }]),
+    ).toHaveLength(1);
+    expect(
+      read([
+        { ...effort, wind: { ...wind, speedMps: null, fromDegrees: null } },
+      ]),
+    ).toHaveLength(1);
+  });
+});
 describe("newId", () => {
   const uuid =
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;

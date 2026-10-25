@@ -115,3 +115,10 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Fix: both paths use the artifact query that checks `head_branch == "main"` and `head_repository_id == repository_id`.
 - Test: `harness.test.ts`, "takes the dashboard artifact only from main in this repository".
 - Rule for `AGENTS.md`: this is the second time a `--branch main` filter let a fork's run through (the first was the Pages trigger). Any workflow that reads another run's artifacts filters on the head repository, not the branch name.
+
+## 25 October 2026: one bad effort could lock every saved segment
+
+- What broke: effort matching rounds elapsed time to 0.1 s, so a crossing under 0.05 s was saved as `0`. The library rejects `elapsedSeconds: 0` and rejects the whole store with it, so the next load would report every saved segment as unreadable. Effort times were also compared as strings in any form `Date.parse` accepts, so the same instant with an offset and in UTC counted as two efforts.
+- Found by: the whole-repository review (silent-failure and type passes).
+- Fix: a 0.1 s floor on matched efforts; saved times must carry a zone and are read back in one UTC form.
+- Test: `effort-match.test.ts`, "never reports an effort shorter than the 0.1 s it is rounded to"; `library.test.ts`, "saved effort times and wind".

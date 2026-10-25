@@ -42,8 +42,8 @@ export function weatherKind(
   if (code <= 99) return { kind: "thunder", label: "Thunderstorm" };
   return null;
 }
-// Outline style after the BBC Weather symbol set. On the dark theme the
-// "black" cloud outline is drawn near-white so it keeps its weight.
+// Outline style after the BBC Weather symbol set. The "black" cloud outline is
+// drawn near-white so it keeps its weight on the dark background.
 const yellow = "#ffd23f";
 const blue = "#4da3ff";
 const light = "#ffffff";

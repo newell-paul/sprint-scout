@@ -68,6 +68,16 @@ export function nextFreeSlot(routes: readonly Pick<DrawnRoute, "slot">[]) {
   while (taken.has(slot)) slot++;
   return slot;
 }
+// A time without a zone would be read in each device's own zone.
+const zonedInstant =
+  /^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:\d\d)$/;
+const validInstant = (value: unknown): value is string =>
+  typeof value === "string" &&
+  zonedInstant.test(value) &&
+  Number.isFinite(Date.parse(value));
+// Efforts are sorted and de-duplicated by string, so every time is read back
+// in one form.
+const utc = (value: string) => new Date(value).toISOString();
 function validWind(value: unknown): value is EffortWind {
   if (!value || typeof value !== "object") return false;
   const v = value as Partial<EffortWind>;
@@ -76,10 +86,9 @@ function validWind(value: unknown): value is EffortWind {
     (typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= max);
   return (
     v.source === "open-meteo-archive" &&
-    typeof v.retrievedAt === "string" &&
-    Number.isFinite(Date.parse(v.retrievedAt)) &&
+    validInstant(v.retrievedAt) &&
     bounded(v.speedMps, 150) &&
-    (v.fromDegrees === null ||
+    ((v.fromDegrees === null && !v.speedMps) ||
       (typeof v.fromDegrees === "number" &&
         v.fromDegrees >= 0 &&
         v.fromDegrees < 360)) &&
@@ -95,8 +104,7 @@ function validEffort(value: unknown): value is RouteEffort {
     typeof v.id === "string" &&
     v.id.length > 0 &&
     v.id.length <= 80 &&
-    typeof v.startedAt === "string" &&
-    Number.isFinite(Date.parse(v.startedAt)) &&
+    validInstant(v.startedAt) &&
     typeof v.elapsedSeconds === "number" &&
     Number.isFinite(v.elapsedSeconds) &&
     v.elapsedSeconds > 0 &&
@@ -111,8 +119,7 @@ function validEffort(value: unknown): value is RouteEffort {
     typeof v.sampleGapSeconds === "number" &&
     Number.isFinite(v.sampleGapSeconds) &&
     v.sampleGapSeconds >= 0 &&
-    typeof v.importedAt === "string" &&
-    Number.isFinite(Date.parse(v.importedAt))
+    validInstant(v.importedAt)
   );
 }
 export function validPoint(value: unknown): value is Point {
@@ -203,7 +210,18 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
     const efforts =
       r.efforts === undefined
         ? {}
-        : { efforts: r.efforts.filter((e) => e.geometryKey === key) };
+        : {
+            efforts: r.efforts
+              .filter((e) => e.geometryKey === key)
+              .map((e) => ({
+                ...e,
+                startedAt: utc(e.startedAt),
+                importedAt: utc(e.importedAt),
+                ...(e.wind && {
+                  wind: { ...e.wind, retrievedAt: utc(e.wind.retrievedAt) },
+                }),
+              })),
+          };
     if (r.slot !== undefined)
       return { ...r, ...terrain, ...terrainMode, ...efforts } as DrawnRoute;
     while (taken.has(next)) next++;

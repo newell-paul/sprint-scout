@@ -208,7 +208,10 @@ export function matchEfforts(
       efforts.push({
         version: effortMatchVersion,
         startedAt: new Date(Math.round(startedAt)).toISOString(),
-        elapsedSeconds: Math.round(((finishedAt - startedAt) / 1000) * 10) / 10,
+        elapsedSeconds: Math.max(
+          0.1,
+          Math.round(((finishedAt - startedAt) / 1000) * 10) / 10,
+        ),
         firstIndex: i,
         lastIndex: j,
         maxDeviationM: Math.round(maxDeviationM * 10) / 10,
