@@ -98,4 +98,23 @@ describe("GPX reader", () => {
       ).name,
     ).toBeNull();
   });
+  it("rejects a track point that is never closed", () => {
+    const unclosed = `<trkpt lat="51.5" lon="-0.12"><time>2026-09-12T08:59:00Z</time>`;
+    for (const body of [
+      unclosed,
+      unclosed +
+        point(51.5, -0.12, "2026-09-12T09:00:00Z") +
+        point(51.501, -0.12, "2026-09-12T09:00:05Z"),
+      `<trkpt lat="51.5" lon="-0.12"`,
+    ])
+      expect(() => parseGpx(gpx(body))).toThrow(
+        "GPX file has a track point that is not closed.",
+      );
+  });
+  it("rejects many unclosed track points without rescanning the file", () => {
+    const text = gpx(`<trkpt lat="51.5" lon="-0.12">`.repeat(200_000));
+    const started = performance.now();
+    expect(() => parseGpx(text)).toThrow("not closed");
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
 });

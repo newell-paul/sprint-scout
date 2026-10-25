@@ -129,3 +129,10 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Found by: the whole-repository review (test-coverage pass).
 - Fix: the slot picker clears the request; only Open sets it.
 - Test: `e2e/board.spec.ts`, "a segment picked by hand after Open starts at its first hour".
+
+## 25 October 2026: a malformed GPX file could freeze the page
+
+- What broke: an unclosed `<trkpt>` made the track-point regex rescan the rest of the file for every opening tag. 200 000 unclosed tags (about 6 MB) took 76 s on the main thread. The importer also read a file of any size into memory before the 25 MB check, and the target field kept a stale draft after the stored target changed.
+- Found by: the 25 October 2026 TypeScript review (F5, F6, F8).
+- Fix: a forward-only scanner that rejects an unclosed point; `file.size` checked before reading; the target draft resyncs when the stored target changes.
+- Test: `gpx.test.ts`, "rejects many unclosed track points without rescanning the file"; `efforts-panel.browser.test.tsx`, "a file over 25 MB is refused before it is read"; `target-settings.browser.test.tsx`, "the field follows a target changed elsewhere".

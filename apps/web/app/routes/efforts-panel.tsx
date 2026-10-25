@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { matchEfforts } from "@scout/analysis/effort-match";
 import type { Rider } from "@scout/analysis";
-import { parseGpx, type GpxTrack } from "@scout/application/gpx";
+import { gpxLimits, parseGpx, type GpxTrack } from "@scout/application/gpx";
 import {
   loadArchiveWind,
   splitDates,
@@ -86,6 +86,8 @@ export default function EffortsPanel({
     setBusy(true);
     setMessage("");
     try {
+      if (file.size > gpxLimits.bytes)
+        throw new Error("GPX file is missing or larger than 25 MB.");
       const track = parseGpx(await file.text());
       const matches = matchEfforts(route.points, track.points);
       if (matches.length === 0) {

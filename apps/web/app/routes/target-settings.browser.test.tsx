@@ -89,3 +89,17 @@ it("remove clears the field and reports it", async () => {
     .element(screen.getByRole("status"))
     .toHaveTextContent("Target removed.");
 });
+
+it("the field follows a target changed elsewhere", async () => {
+  const screen = await render(
+    <TargetSettings target={90} onChange={() => true} />,
+  );
+  await screen.rerender(<TargetSettings target={125} onChange={() => true} />);
+  await expect
+    .element(screen.getByRole("textbox", { name: /Target time/ }))
+    .toHaveValue("2:05");
+  await screen.rerender(<TargetSettings target={null} onChange={() => true} />);
+  await expect
+    .element(screen.getByRole("textbox", { name: /Target time/ }))
+    .toHaveValue("");
+});
