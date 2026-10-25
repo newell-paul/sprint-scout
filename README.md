@@ -1,6 +1,6 @@
 # SprintScout
 
-![SprintScout banner: chase the tailwind, find your window](docs/images/banner.png)
+![SprintScout banner: chase the tailwind, find your window](docs/images/banner.jpg)
 
 [![e2e](https://img.shields.io/endpoint?url=https%3A%2F%2Fnewell-paul.github.io%2Fsprint-scout%2Fdashboard%2Fbadges%2Fe2e.json)](https://newell-paul.github.io/sprint-scout/dashboard/) [![coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fnewell-paul.github.io%2Fsprint-scout%2Fdashboard%2Fbadges%2Fcoverage.json)](https://newell-paul.github.io/sprint-scout/dashboard/) [![mutation](https://img.shields.io/endpoint?url=https%3A%2F%2Fnewell-paul.github.io%2Fsprint-scout%2Fdashboard%2Fbadges%2Fmutation.json)](https://newell-paul.github.io/sprint-scout/dashboard/) [![lighthouse](https://img.shields.io/endpoint?url=https%3A%2F%2Fnewell-paul.github.io%2Fsprint-scout%2Fdashboard%2Fbadges%2Flighthouse.json)](https://newell-paul.github.io/sprint-scout/dashboard/) [![evals](https://img.shields.io/endpoint?url=https%3A%2F%2Fnewell-paul.github.io%2Fsprint-scout%2Fdashboard%2Fbadges%2Fevals.json)](https://newell-paul.github.io/sprint-scout/dashboard/)
 
