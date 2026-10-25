@@ -98,6 +98,9 @@ export type BoardCard = {
   pr?: { number: number; url: string; draft: boolean; checks: CheckState };
 };
 
+export type RunResult = "pass" | "rerun" | "fail" | "cancelled";
+export type RecentRun = { at: string; result: RunResult; durationMs: number };
+
 export type Counts = { tests: number; failed: number; durationMs: number };
 export type Snapshot = {
   date: string;
@@ -123,7 +126,11 @@ export type Snapshot = {
   } | null;
   bundle?: { name: string; bytes: number; limitBytes: number | null }[] | null;
   evals?: EvalsReport | null;
-  pipeline?: { durationMs: number | null; firstPassRate: number | null } | null;
+  pipeline?: {
+    durationMs: number | null;
+    firstPassRate: number | null;
+    recent?: RecentRun[];
+  } | null;
   delivery?: {
     medianCycleHours: number | null;
     mergesPerWeek: number[];
@@ -240,19 +247,36 @@ export function lighthouseSummary(
 }
 
 export function pipelineSummary(runs: WorkflowRun[], window = 30) {
-  const completed = runs.filter((r) => r.conclusion !== null).slice(0, window);
-  const latest = completed[0];
-  const firstPass = completed.filter(
+  // gh lists the run still in progress, the one building this dashboard, with "".
+  const completed = runs.filter((r) => r.conclusion).slice(0, window);
+  // A run cancelled by a newer push says nothing about the code or the pipeline.
+  const counted = completed.filter((r) => r.conclusion !== "cancelled");
+  const latest = counted[0];
+  const firstPass = counted.filter(
     (r) => r.conclusion === "success" && (r.attempt ?? 1) === 1,
   ).length;
   return {
     durationMs: latest
       ? Math.max(0, Date.parse(latest.updatedAt) - Date.parse(latest.createdAt))
       : null,
-    firstPassRate: completed.length
-      ? (firstPass / completed.length) * 100
-      : null,
+    firstPassRate: counted.length ? (firstPass / counted.length) * 100 : null,
+    recent: completed
+      .map((r): RecentRun => ({
+        at: r.createdAt,
+        result: runResult(r),
+        durationMs: Math.max(
+          0,
+          Date.parse(r.updatedAt) - Date.parse(r.createdAt),
+        ),
+      }))
+      .reverse(),
   };
+}
+
+function runResult(run: WorkflowRun): RunResult {
+  if (run.conclusion === "success")
+    return (run.attempt ?? 1) === 1 ? "pass" : "rerun";
+  return run.conclusion === "cancelled" ? "cancelled" : "fail";
 }
 
 const weekMs = 7 * 24 * 3600 * 1000;
@@ -458,16 +482,21 @@ export function snapshot(inputs: Inputs): Snapshot {
   return base;
 }
 
-// Only the newest entry keeps its board, so history does not grow by one per run.
+// Only the newest entry keeps its board and run list, so history does not grow by one per run.
 export function appendHistory(history: Snapshot[], next: Snapshot, keep = 90) {
   const kept = [...history.filter((s) => s.date !== next.date), next]
     .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
     .slice(-keep);
   return kept.map((s, i) => {
-    if (i === kept.length - 1 || !("board" in s)) return s;
+    if (i === kept.length - 1 || !("board" in s || s.pipeline?.recent))
+      return s;
     const rest = { ...s };
     delete rest.board;
     delete rest.boardAt;
+    if (rest.pipeline?.recent) {
+      rest.pipeline = { ...rest.pipeline };
+      delete rest.pipeline.recent;
+    }
     return rest;
   });
 }
@@ -722,6 +751,44 @@ function card(
   }${options.chart ? `<figure>${options.chart}</figure>` : ""}</div>`;
 }
 
+const runLabels: Record<RunResult, string> = {
+  pass: "passed first time",
+  rerun: "passed on a rerun",
+  fail: "failed",
+  cancelled: "cancelled",
+};
+
+function runsCard(recent: RecentRun[]) {
+  if (!recent.length)
+    return card("Recent runs", "n/a", { note: "No run data from GitHub" });
+  const count = (result: RunResult) =>
+    recent.filter((r) => r.result === result).length;
+  const summary = (Object.keys(runLabels) as RunResult[])
+    .map((r) => [r, count(r)] as const)
+    .filter(([, n]) => n > 0);
+  const label = `Last ${recent.length} runs on main, oldest first: ${summary.map(([r, n]) => `${n} ${runLabels[r]}`).join(", ")}`;
+  const width = 600;
+  const height = 120;
+  const base = height - 18;
+  const gap = 4;
+  const w = (width - gap * (recent.length - 1)) / recent.length;
+  const top = Math.max(...recent.map((r) => r.durationMs), 60_000);
+  const bars = recent
+    .map((r, i) => {
+      const h = Math.max(3, (r.durationMs / top) * (base - 16));
+      return `<rect data-run="${r.result}"${i === recent.length - 1 ? ' class="now"' : ""} x="${(i * (w + gap)).toFixed(1)}" y="${(base - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(3, w / 2).toFixed(1)}"><title>${escapeHtml(r.at.slice(0, 16).replace("T", " "))} UTC: ${runLabels[r.result]}, ${minutes(r.durationMs)}</title></rect>`;
+    })
+    .join("");
+  const chart = `<svg class="runs" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(label)}"><text class="axis" x="0" y="9">${minutes(top)}</text><line x1="0" x2="${width}" y1="${base}" y2="${base}"/>${bars}<text class="axis" x="0" y="${height - 2}">${recent.length} runs ago</text><text class="axis" x="${width}" y="${height - 2}" text-anchor="end">latest</text></svg>`;
+  const legend = summary
+    .map(
+      ([r, n]) =>
+        `<li data-run="${r}"><span>${n}</span> ${r === "pass" ? "first time" : runLabels[r]}</li>`,
+    )
+    .join("");
+  return `<div class="card span2"><dt>Last ${recent.length} runs</dt><dd class="sr">${escapeHtml(label)}</dd>${chart}<ul class="legend">${legend}</ul><p class="note">Bar height is run time. A cancelled run was superseded by a newer push.</p></div>`;
+}
+
 const section = (id: string, title: string, lead: string, body: string) =>
   `<section id="${id}" aria-labelledby="${id}-h"><h2 id="${id}-h">${escapeHtml(title)}</h2><p class="lead">${escapeHtml(lead)}</p>${body}</section>`;
 
@@ -835,7 +902,7 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
     }),
     card("First-pass success", percent(pipeline?.firstPassRate, 0), {
       tone: firstPassTone,
-      note: "Runs on main that passed at the first attempt, last 30",
+      note: "Runs on main that passed at the first attempt, of the last 30 less any cancelled",
       ring: ring(
         pipeline?.firstPassRate == null ? null : pipeline.firstPassRate / 100,
         firstPassTone,
@@ -848,6 +915,8 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
       ),
     }),
   ];
+
+  pipelineCards.push(runsCard(pipeline?.recent ?? []));
 
   const e2e = latest.e2e;
   const streak = flakeFreeStreak(history);
@@ -1132,7 +1201,10 @@ code,dd,td.num{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
 code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);padding:2px 7px;border-radius:999px}
 .split{display:grid;gap:0 28px}@media (min-width:1000px){.split{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
 .split .grid{grid-template-columns:repeat(auto-fill,minmax(13rem,1fr))}
-.wide{grid-column:1/-1}
+.wide{grid-column:1/-1}@media (min-width:560px){.span2{grid-column:span 2}}
+.runs{display:block;width:100%;height:auto;margin-top:10px}.runs line{stroke:var(--border)}.runs .axis{fill:var(--muted);font:10px "JetBrains Mono",ui-monospace,monospace}.runs rect{fill:var(--run);opacity:.8;transition:opacity var(--ease)}.runs rect:hover,.runs .now{opacity:1}.runs .now{filter:drop-shadow(0 0 5px var(--run))}
+[data-run=pass]{--run:var(--good)}[data-run=rerun]{--run:var(--watch)}[data-run=fail]{--run:var(--poor)}[data-run=cancelled]{--run:var(--line)}
+.legend{list-style:none;display:flex;flex-wrap:wrap;gap:4px 16px;margin:12px 0 0;padding:0;font-size:.8rem;color:var(--muted)}.legend li::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;background:var(--run)}.legend span{font-family:"JetBrains Mono",ui-monospace,monospace;color:var(--ink)}
 .board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}@media (min-width:720px){.board{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .column{background:color-mix(in srgb,var(--raised) 70%,transparent);border:1px solid var(--border);border-radius:14px;padding:10px;min-width:0}
 .column h3{display:flex;align-items:center;gap:8px;margin:2px 2px 10px;font-size:.88rem;color:var(--muted)}

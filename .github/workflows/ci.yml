@@ -362,7 +362,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p reports/github
-          gh run list --workflow ci.yml --branch main --event push --limit 30 \
+          # 31: this run is still in progress and left out, so 30 completed remain.
+          gh run list --workflow ci.yml --branch main --event push --limit 31 \
             --json conclusion,createdAt,updatedAt,attempt > reports/github/runs.json || true
           gh pr list --state merged --limit 100 --json createdAt,mergedAt > reports/github/pulls.json || true
       - name: Collect review tallies and resolved threads

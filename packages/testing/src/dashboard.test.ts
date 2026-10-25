@@ -263,7 +263,7 @@ describe("snapshot", () => {
       },
     ]);
     expect(result.evals?.passed).toBe(5);
-    expect(result.pipeline).toEqual({
+    expect(result.pipeline).toMatchObject({
       durationMs: 510_000,
       firstPassRate: (1 / 3) * 100,
     });
@@ -307,11 +307,50 @@ describe("snapshot", () => {
     expect(pipelineSummary(runs)).toEqual({
       durationMs: 510_000,
       firstPassRate: (1 / 3) * 100,
+      recent: [
+        { at: "2026-10-08T10:00:00Z", result: "fail", durationMs: 180_000 },
+        { at: "2026-10-09T10:00:00Z", result: "rerun", durationMs: 420_000 },
+        { at: "2026-10-10T10:00:00Z", result: "pass", durationMs: 510_000 },
+      ],
     });
     expect(pipelineSummary([])).toEqual({
       durationMs: null,
       firstPassRate: null,
+      recent: [],
     });
+  });
+
+  it("leaves cancelled runs out of the rate and the latest duration", () => {
+    const superseded = {
+      conclusion: "cancelled",
+      createdAt: "2026-10-10T11:00:00Z",
+      updatedAt: "2026-10-10T11:01:00Z",
+      attempt: 1,
+    };
+    expect(pipelineSummary([superseded, ...runs])).toMatchObject({
+      durationMs: 510_000,
+      firstPassRate: (1 / 3) * 100,
+    });
+    expect(pipelineSummary([superseded]).firstPassRate).toBeNull();
+  });
+
+  it("marks a cancelled run apart from a failure", () => {
+    const cancelled = { ...runs[0]!, conclusion: "cancelled" };
+    expect(pipelineSummary([cancelled]).recent).toEqual([
+      { at: "2026-10-10T10:00:00Z", result: "cancelled", durationMs: 510_000 },
+    ]);
+  });
+
+  it("leaves out the run still in progress, which gh lists with an empty conclusion", () => {
+    const inProgress = {
+      conclusion: "",
+      createdAt: "2026-10-11T10:00:00Z",
+      updatedAt: "2026-10-11T10:04:00Z",
+      attempt: 1,
+    };
+    expect(pipelineSummary([inProgress, ...runs])).toMatchObject(
+      pipelineSummary(runs),
+    );
   });
 
   it("takes the median cycle time and buckets merges by week ending now", () => {
@@ -354,6 +393,22 @@ describe("history", () => {
       ["2026-09-11", 0],
       ["2026-09-13", 50],
     ]);
+  });
+
+  it("keeps the run list on the newest entry only", () => {
+    const withRuns = (date: string): Snapshot => ({
+      ...day(date),
+      pipeline: pipelineSummary(runs),
+    });
+    const history = appendHistory(
+      [withRuns("2026-10-01")],
+      withRuns("2026-10-02"),
+    );
+    expect(history[0]!.pipeline).toEqual({
+      durationMs: 510_000,
+      firstPassRate: (1 / 3) * 100,
+    });
+    expect(history[1]!.pipeline?.recent).toHaveLength(3);
   });
 
   it("counts the flake-free streak back from the latest run", () => {
@@ -630,6 +685,28 @@ describe("render", () => {
     expect(loud).toContain("<strong>a &lt;b&gt;</strong>: drifted");
     expect(loud).toContain("broke &amp; failed");
     expect(render(history)).not.toContain('class="bands"');
+  });
+
+  it("draws the recent runs oldest first, sized by run time, and names each count", () => {
+    const html = render([snapshot({ date: "2026-10-10", runs })]);
+    const strip = html.slice(html.indexOf('<svg class="runs"'));
+    const bars = [
+      ...strip.matchAll(/<rect data-run="([a-z]+)"[^>]* height="([\d.]+)"/g),
+    ];
+    expect(bars.map((m) => m[1])).toEqual(["fail", "rerun", "pass"]);
+    const heights = bars.map((m) => Number(m[2]));
+    expect(heights[0]).toBeLessThan(heights[1]!);
+    expect(heights[1]).toBeLessThan(heights[2]!);
+    expect(strip.match(/class="now"/g)).toHaveLength(1);
+    expect(strip).toContain(
+      'aria-label="Last 3 runs on main, oldest first: 1 passed first time, 1 passed on a rerun, 1 failed"',
+    );
+    expect(strip).toContain(
+      "<title>2026-10-10 10:00 UTC: passed first time, 8.5 min</title>",
+    );
+    expect(render([snapshot({ date: "2026-10-10" })])).toContain(
+      "No run data from GitHub",
+    );
   });
 
   it("lists only the five slowest end-to-end tests", () => {
