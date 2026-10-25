@@ -1,9 +1,8 @@
 - region "Ride instruments":
   - text: Modelled average speed
   - strong: Unavailable
-  - text: ○ Still-air baseline · same terrain Unavailable Estimated segment time
-  - strong: Unavailable
-  - paragraph: Terrain is not loaded for this segment. Load terrain in the Terrain panel below, or switch it to the flat-road estimate.
-  - text: Modelled at constant effort · Terrain-aware · Unvalidated Wind · north up
+  - text: ○ Still-air baseline · same terrain Unavailable Wind · north up
   - strong: 14.4 km/h
   - text: Towards north Tailwind
+  - paragraph: Terrain is not loaded for this segment. Load terrain in the Terrain panel below, or switch it to the flat-road estimate.
+  - paragraph: Modelled at constant effort · Terrain-aware · Unvalidated

@@ -3,7 +3,7 @@ import { render } from "vitest-browser-react/pure";
 import { describeRouteWind } from "@scout/application/route-wind";
 import RideCockpit from "./ride-cockpit";
 import { formatSpeed } from "./speed";
-import { formatDuration } from "./time";
+import { formatDuration, formatTimeDifference } from "./time";
 import {
   aRoute,
   aTerrain,
@@ -33,7 +33,7 @@ it("ready: a tailwind hour reads faster than still air", async () => {
     .element(region.getByText(formatSpeed(effect.windSpeedMps)))
     .toBeVisible();
   await expect
-    .element(region.getByText(formatDuration(effect.windTimeS)))
+    .element(region.getByText(formatTimeDifference(effect.timeDeltaS)))
     .toBeVisible();
   await expect.element(region.getByText("Towards N")).toBeVisible();
   await aria("ride-cockpit.ready", region);
@@ -91,7 +91,7 @@ it("wind missing: every instrument reads unavailable with the reason", async () 
     .toBeVisible();
   await expect
     .poll(() => region.getByText("Unavailable").elements().length)
-    .toBe(4);
+    .toBe(3);
   await aria("ride-cockpit.wind-missing", region);
 });
 

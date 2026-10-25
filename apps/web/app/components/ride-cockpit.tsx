@@ -155,11 +155,69 @@ export default function RideCockpit({
             : formatSpeed(effect?.calmSpeedMps ?? calmSpeedMps, unit)}
         </span>
       </div>
-      <div className="cockpit-timing" data-testid="segment-time">
-        <span className="instrument-label">Estimated segment time</span>
-        <strong className="cockpit-time" data-testid="segment-time-value">
-          {effect ? formatDuration(effect.windTimeS) : "Unavailable"}
-        </strong>
+      <div className="cockpit-wind">
+        <span className="instrument-label">Wind · north up</span>
+        <div className="compass-dial">
+          <svg
+            viewBox="0 0 200 200"
+            className="wind-compass"
+            aria-hidden="true"
+          >
+            <circle cx="100" cy="100" r="78" className="compass-face" />
+            <circle cx="100" cy="100" r="78" className="compass-ring" />
+            {Array.from({ length: 36 }, (_, position) => (
+              <line
+                key={position}
+                x1="100"
+                y1="30"
+                x2="100"
+                y2={position % 9 === 0 ? 40 : 35}
+                transform={`rotate(${position * 10} 100 100)`}
+                className={
+                  position % 9 === 0 ? "compass-tick major" : "compass-tick"
+                }
+              />
+            ))}
+            <text x="100" y="12" textAnchor="middle">
+              N
+            </text>
+            <text x="100" y="197" textAnchor="middle">
+              S
+            </text>
+            <text x="7" y="104" textAnchor="middle">
+              W
+            </text>
+            <text x="193" y="104" textAnchor="middle">
+              E
+            </text>
+            {hour.flowDegrees !== null &&
+              hour.speedMps !== null &&
+              hour.speedMps > 0 && (
+                <g transform={`rotate(${hour.flowDegrees} 100 100)`}>
+                  <path
+                    d="M100 24 L88 46 L100 40 L112 46 Z"
+                    className="compass-arrow"
+                  />
+                  <path d="M100 160 V178" className="compass-tail" />
+                </g>
+              )}
+          </svg>
+          <strong>
+            {hour.speedMps === null
+              ? "Unavailable"
+              : hour.speedMps === 0
+                ? "Calm"
+                : formatSpeed(hour.speedMps, unit)}
+          </strong>
+        </div>
+        <span>
+          {hour.speedMps && hour.flowDegrees !== null
+            ? `Towards ${compassDirection(hour.flowDegrees)}`
+            : "No wind direction"}
+        </span>
+        <span className="wind-character">{description}</span>
+      </div>
+      <div className="cockpit-facts" data-testid="segment-time">
         {effect ? (
           <>
             <span className="time-delta" data-testid="segment-time-difference">
@@ -209,19 +267,21 @@ export default function RideCockpit({
                 : "This segment cannot be modelled."}
           </p>
         )}
-        <span className="instrument-note">
-          {terrainMode
-            ? "Modelled at constant effort · Terrain-aware · Unvalidated"
-            : "Modelled at constant effort · Flat road · Terrain not modelled"}
-        </span>
-        {effect?.shelter && effect.shelter !== "exposed" && (
-          <span
-            className="instrument-note shelter-assumption"
-            data-testid="shelter-assumption"
-          >
-            {shelterPresets[effect.shelter].label} · assumed shelter
+        <p className="cockpit-notes">
+          <span className="instrument-note">
+            {terrainMode
+              ? "Modelled at constant effort · Terrain-aware · Unvalidated"
+              : "Modelled at constant effort · Flat road · Terrain not modelled"}
           </span>
-        )}
+          {effect?.shelter && effect.shelter !== "exposed" && (
+            <span
+              className="instrument-note shelter-assumption"
+              data-testid="shelter-assumption"
+            >
+              {shelterPresets[effect.shelter].label} · assumed shelter
+            </span>
+          )}
+        </p>
         {targetTimeS !== null && (
           <div className="target-comparison" data-testid="target-comparison">
             <span>Target {formatDuration(targetTimeS)}</span>
@@ -229,69 +289,10 @@ export default function RideCockpit({
               {targetDifference(effect?.windTimeS ?? null, targetTimeS)}
             </strong>
             <small>
-              Compare with the estimated range above; not a success probability.
+              Compare with the estimated range; not a success probability.
             </small>
           </div>
         )}
-      </div>
-      <div className="cockpit-wind">
-        <span className="instrument-label">Wind · north up</span>
-        <svg viewBox="0 0 120 120" className="wind-compass" aria-hidden="true">
-          <circle cx="60" cy="60" r="40" className="compass-face" />
-          <circle cx="60" cy="60" r="40" className="compass-ring" />
-          {Array.from({ length: 36 }, (_, position) => (
-            <line
-              key={position}
-              x1="60"
-              y1="21"
-              x2="60"
-              y2={position % 9 === 0 ? 29 : 25}
-              transform={`rotate(${position * 10} 60 60)`}
-              className={
-                position % 9 === 0 ? "compass-tick major" : "compass-tick"
-              }
-            />
-          ))}
-          <path d="M60 32 V88 M32 60 H88" className="compass-grid" />
-          <text x="60" y="12" textAnchor="middle">
-            N
-          </text>
-          <text x="60" y="117" textAnchor="middle">
-            S
-          </text>
-          <text x="8" y="64" textAnchor="middle">
-            W
-          </text>
-          <text x="112" y="64" textAnchor="middle">
-            E
-          </text>
-          {hour.flowDegrees !== null &&
-            hour.speedMps !== null &&
-            hour.speedMps > 0 && (
-              <g transform={`rotate(${hour.flowDegrees} 60 60)`}>
-                <path
-                  d="M60 90 V32 M48 46 L60 30 L72 46"
-                  className="compass-arrow"
-                />
-              </g>
-            )}
-          {hour.speedMps === 0 && (
-            <circle cx="60" cy="60" r="5" className="dial-hub" />
-          )}
-        </svg>
-        <strong>
-          {hour.speedMps === null
-            ? "Unavailable"
-            : hour.speedMps === 0
-              ? "Calm"
-              : formatSpeed(hour.speedMps, unit)}
-        </strong>
-        <span>
-          {hour.speedMps && hour.flowDegrees !== null
-            ? `Towards ${compassDirection(hour.flowDegrees)}`
-            : "No wind direction"}
-        </span>
-        <span className="wind-character">{description}</span>
       </div>
     </section>
   );
