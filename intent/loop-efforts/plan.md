@@ -2,7 +2,7 @@
 
 ## Files
 
-- `packages/analysis/src/effort-match.ts`: loop detection, no forward extension of the last leg on a loop, unwrapped positions across the seam, next lap searched from the finishing pair, version v2.
+- `packages/analysis/src/effort-match.ts`: loop detection; on a loop, neither end extended, samples beyond the shared point flagged with their distance, positions unwrapped across it in both directions, gates and crossing times from the closest approach of the line between two samples, the next lap searched from the finishing pair; version v2.
 - `packages/analysis/src/effort-match.test.ts`: loop unit and property tests.
 - `docs/design.md`, `docs/lessons.md`.
 

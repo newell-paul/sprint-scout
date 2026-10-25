@@ -355,7 +355,10 @@ describe("loop segments", () => {
   const c = step(b, 100, 90);
   const d = step(c, 100, 180);
   const square: Coordinate[] = [a, b, c, d, a];
-  const triangle: Coordinate[] = [a, step(a, 150, 30), step(a, 150, 100), a];
+  const octagon = Array.from({ length: 8 }, (_, k) => k * 45).reduce<
+    Coordinate[]
+  >((points, deg) => [...points, step(points.at(-1)!, 60, deg)], [a]);
+  octagon[8] = a;
   const laps = (loop: Coordinate[], n: number) => [
     ...loop,
     ...Array.from({ length: n - 1 }, () => loop.slice(1)).flat(),
@@ -383,15 +386,21 @@ describe("loop segments", () => {
       ),
     ).toHaveLength(2);
   });
+  it("does not finish a lap that passes the finish outside the gate", () => {
+    const drifted = ride(square, { speedMps: 10, driftM: -35 });
+    expect(matchEfforts(square, drifted)).toEqual([]);
+    expect(matchEfforts(square, drifted, { gateM: 38 })).toHaveLength(1);
+  });
   it("finds nothing on a loop ridden backwards", () => {
     expect(
       times(square, ride(laps(square, 2), { speedMps: 10, reverse: true })),
     ).toEqual([]);
   });
-  it("finds every lap under bounded noise, each within one sample", () => {
+  // At a corner start, lateral noise moves the crossing along the track.
+  it("finds every lap under bounded noise, each within one sample and the noise", () => {
     fc.assert(
       fc.property(
-        fc.constantFrom(square, triangle),
+        fc.constantFrom(square, octagon),
         fc.integer({ min: 1, max: 3 }),
         fc.double({ min: 4, max: 15, noNaN: true }),
         fc.constantFrom(1, 2, 3),
@@ -405,7 +414,9 @@ describe("loop segments", () => {
           return (
             found.length === n &&
             found.every(
-              (t) => Math.abs(t - lengthOf(loop) / speedMps) <= intervalS + 1,
+              (t) =>
+                Math.abs(t - lengthOf(loop) / speedMps) <=
+                intervalS + (2 * noiseM) / speedMps,
             )
           );
         },
