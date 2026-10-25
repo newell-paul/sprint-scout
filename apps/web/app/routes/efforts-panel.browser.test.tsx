@@ -130,18 +130,22 @@ it("efforts on more date ranges than one load allows finish on the next press", 
 });
 
 it("a file over 25 MB is refused before it is read", async () => {
-  const file = new File(["<gpx/>"], "huge.gpx", {
-    type: "application/gpx+xml",
-  });
-  Object.defineProperty(file, "size", { value: 25_000_001 });
-  const read = vi.spyOn(file, "text");
+  const read = vi.spyOn(File.prototype, "text");
   const { screen } = await renderPanel([anEffort("a", "2026-09-01T07:00:00Z")]);
   await screen.getByLabelText(/my own device recording/).click();
+  // Built in the page: userEvent.upload would copy 25 MB through the driver.
+  const files = new DataTransfer();
+  files.items.add(new File([new Uint8Array(25_000_001)], "huge.gpx"));
+  const input = screen
+    .getByLabelText(/Import GPX/)
+    .element() as HTMLInputElement;
 
-  await userEvent.upload(screen.getByLabelText(/Import GPX/), file);
+  input.files = files.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
 
   await expect
     .element(screen.getByText("GPX file is missing or larger than 25 MB."))
     .toBeVisible();
   expect(read).not.toHaveBeenCalled();
+  read.mockRestore();
 });

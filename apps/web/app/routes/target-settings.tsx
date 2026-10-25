@@ -3,6 +3,11 @@ import { useState } from "react";
 import { parseTarget } from "./attempt";
 import { formatDuration } from "../components/time";
 
+const format = (target: number | null) =>
+  target === null
+    ? ""
+    : `${Math.floor(target / 60)}:${String(target % 60).padStart(2, "0")}`;
+
 export default function TargetSettings({
   target,
   onChange,
@@ -10,11 +15,14 @@ export default function TargetSettings({
   target: number | null;
   onChange: (target: number | null) => boolean;
 }) {
-  const [value, setValue] = useState(
-    target === null
-      ? ""
-      : `${Math.floor(target / 60)}:${String(target % 60).padStart(2, "0")}`,
-  );
+  const [value, setValue] = useState(format(target));
+  // A target saved in another tab or removed elsewhere replaces the draft, so
+  // a stale value is never saved over it.
+  const [shown, setShown] = useState(target);
+  if (target !== shown) {
+    setShown(target);
+    setValue(format(target));
+  }
   const [message, setMessage] = useState("");
   return (
     <section
