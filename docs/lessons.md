@@ -136,3 +136,10 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Found by: the 25 October 2026 TypeScript review (F5, F6, F8).
 - Fix: a forward-only scanner that rejects an unclosed point; `file.size` checked before reading; the target draft resyncs when the stored target changes.
 - Test: `gpx.test.ts`, "rejects many unclosed track points without rescanning the file"; `efforts-panel.browser.test.tsx`, "a file over 25 MB is refused before it is read"; `target-settings.browser.test.tsx`, "the field follows a target changed elsewhere".
+
+## 25 October 2026: loop segments found almost no efforts
+
+- What broke: on a segment whose finish is its start, the nearest point on the segment jumped from its end to its start at the shared point, which the matcher read as riding backwards. A 400 m square loop ridden twice and then left straight on gave no efforts.
+- Found by: the owner asking what a loop segment would do; probed with synthetic rides.
+- Fix: loops are detected from the start gate; positions unwrap across the shared point, and its gates are timed at the closest approach.
+- Test: `effort-match.test.ts`, describe "loop segments", including a property over laps, speed, sampling and noise.
