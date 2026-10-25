@@ -5,7 +5,7 @@ Applies to every pull request, whether reviewed by a person, by a second model r
 ## Passes
 
 1. **Correctness against the plan.** Read `intent/<slug>/plan.md` when the PR names one. Every proof item has evidence in the diff or the suite; every file changed is in the plan or explained. Look for logic errors, unhandled states (empty, error, mobile, offline), and silent fallbacks that hide failure.
-2. **Rules of this repository.** No Strava data, tokens or credentials. Calculations in `packages/analysis` and `packages/application` stay deterministic and tested. No network request before a user action or consent. UI never implements ranking maths. Architectural changes carry a dated entry in `docs/design.md`.
+2. **Rules of this repository.** No Strava data, tokens or credentials. Calculations in `packages/analysis` and `packages/application` stay deterministic and tested. No network request before a user action or consent, apart from the map tiles and the example segment's first-visit forecast. UI never implements ranking maths. Architectural changes carry a dated entry in `docs/design.md`.
 3. **Tests.** New behaviour has a test at the lowest level that can prove it. Baselines (`__aria__`, `__screenshots__`) changed only through the test runner. Bug fixes include the failing test.
 
 ## Severity
