@@ -2,17 +2,19 @@ import { describe, expect, it } from "vitest";
 import {
   appendHistory,
   badges,
-  bars,
   checkState,
+  columns,
   deliverySummary,
   flakeFreeStreak,
   intentBoard,
   intentSummary,
   lighthouseSummary,
+  meter,
   mutationScore,
   pipelineSummary,
   refreshBoard,
   render,
+  ring,
   snapshot,
   sparkline,
   summariseVitest,
@@ -390,9 +392,48 @@ describe("charts", () => {
     expect(sparkline([null, 5], "x")).toBe("");
   });
 
-  it("draws one bar per value", () => {
-    expect(bars([0, 2, 1], "merges").match(/<rect/g)).toHaveLength(3);
-    expect(bars([], "merges")).toBe("");
+  it("fills under a sparkline only when given an area id, and names what it spans", () => {
+    const filled = sparkline([2, 3], "Review findings", "", {
+      area: "f",
+      over: "pull requests",
+    });
+    expect(filled).toContain('fill="url(#f)"');
+    expect(filled).toContain(
+      'aria-label="Review findings over the last 2 pull requests, from 2 to 3"',
+    );
+    expect(sparkline([2, 3], "x")).not.toContain("url(#");
+  });
+
+  it("draws a ring whose dash is the percentage, clamped, with its tone", () => {
+    expect(ring(0.92, "good", "Line coverage")).toContain(
+      'stroke-dasharray="92.0 100"',
+    );
+    expect(ring(1.4, "good", "x")).toContain('stroke-dasharray="100.0 100"');
+    expect(ring(0.5, "watch", "SEO 90", "90")).toMatch(
+      /data-tone="watch" role="img" aria-label="SEO 90">.*<text[^>]*>90<\/text>/,
+    );
+    expect(ring(null, "none", "x")).toBe("");
+  });
+
+  it("fills a meter against its scale and marks a ceiling", () => {
+    const html = meter(445, 605, "good", "bundle", 550);
+    expect(html).toContain('style="width:73.6%"');
+    expect(html).toContain('class="mark" style="left:90.9%"');
+    expect(meter(900, 300, "poor", "tbt")).toContain('style="width:100.0%"');
+    expect(meter(undefined, 300, "none", "tbt")).toBe("");
+  });
+
+  it("draws one column per week and lights the newest", () => {
+    const html = columns([3, 0, 7], ["−2w", "−1w", "This wk"], "Merges");
+    expect(html.match(/<path/g)).toHaveLength(3);
+    expect(html.match(/class="now"/g)).toHaveLength(1);
+    expect(html).toContain(">This wk</text>");
+    expect(html).toContain('aria-label="Merges: 3, 0, 7"');
+    expect(columns([], [], "Merges")).toBe("");
+    const axis = (html: string) =>
+      [...html.matchAll(/class="axis" x="18"[^>]*>(\d+)</g)].map((m) => m[1]);
+    expect(axis(columns([5], ["w"], "Merges"))).toEqual(["0", "3", "6"]);
+    expect(axis(columns([0], ["w"], "Merges"))).toEqual(["0", "1", "2"]);
   });
 });
 
@@ -455,13 +496,28 @@ describe("render", () => {
     for (const id of [
       "pipeline",
       "tests",
+      "board",
       "quality",
       "performance",
       "ai",
       "delivery",
+      "slowest",
     ]) {
       expect(html).toContain(`<section id="${id}"`);
     }
+    const order = [...html.matchAll(/<section id="([a-z]+)"/g)].map(
+      (m) => m[1],
+    );
+    expect(order).toEqual([
+      "pipeline",
+      "tests",
+      "board",
+      "quality",
+      "performance",
+      "ai",
+      "delivery",
+      "slowest",
+    ]);
     expect(html).toContain("1 / 1 passed");
     expect(html).toContain("377 / 377 passed");
     expect(html).toContain("97 · 100 · 100 · 90");
@@ -479,7 +535,9 @@ describe("render", () => {
     expect(
       html.replace(/<a href="https:\/\/github\.com\/[^"]*">/g, ""),
     ).not.toMatch(/https?:\/\//);
-    expect(html).toContain("prefers-color-scheme:dark");
+    expect(html).toContain('<meta name="color-scheme" content="dark">');
+    expect(html).toContain('aria-label="Performance 97"');
+    expect(html).toMatch(/data-tone="watch" role="img" aria-label="SEO 90"/);
   });
 
   it("shows review findings and the resolved share once reviews are collected", () => {
@@ -525,7 +583,9 @@ describe("render", () => {
     expect(html).toContain(
       "0 blocker · 1 major · 3 minor · 1 nit over 2 pull requests",
     );
-    expect(html).toContain('aria-label="Findings per pull request: 3, 2"');
+    expect(html).toContain(
+      'aria-label="Review findings over the last 2 pull requests, from 2 to 3"',
+    );
     expect(html).toContain("75 %");
     expect(html).toContain("3 of 4 reviewer threads resolved");
     expect(html).not.toContain("Not collected yet");
@@ -570,6 +630,19 @@ describe("render", () => {
     expect(loud).toContain("<strong>a &lt;b&gt;</strong>: drifted");
     expect(loud).toContain("broke &amp; failed");
     expect(render(history)).not.toContain('class="bands"');
+  });
+
+  it("lists only the five slowest end-to-end tests", () => {
+    const latest = snapshot({ date: "2026-10-10", playwright });
+    latest.e2e!.slowest = Array.from({ length: 10 }, (_, i) => ({
+      title: `slow ${i}`,
+      project: "chromium-desktop",
+      durationMs: 20_000 - i * 1000,
+    }));
+    const table = render([latest]).split('<section id="slowest"')[1]!;
+    expect(table.match(/<tr><td>/g)).toHaveLength(5);
+    expect(table).toContain("slow 4<");
+    expect(table).not.toContain("slow 5<");
   });
 
   it("explains an empty history", () => {
@@ -785,7 +858,7 @@ describe("intent board", () => {
       "In build",
       "Done",
     ]);
-    expect(board).toContain("None");
+    expect(board).toContain('<p class="ghost">Nothing here</p>');
     expect(board).toContain("Shipped &lt;it&gt;");
     expect(board).toContain(
       'href="https://github.com/o/r/tree/main/intent/shipped"',
@@ -794,7 +867,7 @@ describe("intent board", () => {
       'href="https://github.com/o/r/tree/branch-32/intent/wip"',
     );
     expect(board).toContain(
-      '<a href="https://github.com/o/r/pull/32">#32</a> draft · failing',
+      '<a class="pr" data-checks="failing" href="https://github.com/o/r/pull/32">#32 draft · failing</a>',
     );
     expect(board).toContain("Spec and plan");
     expect(board).toContain("No spec or plan");
@@ -802,7 +875,7 @@ describe("intent board", () => {
     expect(html).not.toContain(">Intents</caption>");
   });
 
-  it("shows the newest six cards in a column and folds the rest", () => {
+  it("shows the newest five cards in a column and folds the rest", () => {
     const done = (n: number) =>
       Array.from({ length: n }, (_, i) => ({
         slug: `s${i}`,
@@ -812,13 +885,13 @@ describe("intent board", () => {
     const board = html.slice(html.indexOf('<section id="board"'));
     const shown = board.slice(0, board.indexOf("<details"));
     expect(shown).toContain("Intent 7");
-    expect(shown).toContain("Intent 2");
-    expect(shown).not.toContain("Intent 1<");
-    expect(board).toContain("<summary>Show 2 more</summary>");
-    expect(board.slice(board.indexOf("Show 2 more"))).toContain("Intent 0");
+    expect(shown).toContain("Intent 3");
+    expect(shown).not.toContain("Intent 2<");
+    expect(board).toContain("<summary>+ Show 3 more</summary>");
+    expect(board.slice(board.indexOf("Show 3 more"))).toContain("Intent 0");
 
-    const six = render([snapshot({ date: "2026-10-10", intents: done(6) })]);
-    expect(six).not.toContain("more</summary>");
+    const five = render([snapshot({ date: "2026-10-10", intents: done(5) })]);
+    expect(five).not.toContain("more</summary>");
   });
 
   it("refreshes the board on the newest entry only", () => {

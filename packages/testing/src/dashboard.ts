@@ -616,10 +616,12 @@ const under = (value: number | null | undefined, limit: number): Tone =>
         ? "watch"
         : "poor";
 
+// With an area id the line gets a gradient fill below it; ids must be unique per page.
 export function sparkline(
   values: (number | null | undefined)[],
   label: string,
   unit = "",
+  { area, over = "runs" }: { area?: string; over?: string } = {},
 ) {
   const points = values
     .map((v, i) => [i, v ?? null] as const)
@@ -636,25 +638,67 @@ export function sparkline(
   const path = points
     .map(([i, v], n) => `${n ? "L" : "M"}${(i * step).toFixed(1)} ${y(v)}`)
     .join(" ");
+  const first = points[0]!;
   const last = points.at(-1)!;
   const fmt = (v: number) => `${Number.isInteger(v) ? v : v.toFixed(1)}${unit}`;
-  return `<svg class="spark" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${escapeHtml(label)} over the last ${points.length} runs, from ${fmt(min)} to ${fmt(max)}"><path d="${path}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="${(last[0] * step).toFixed(1)}" cy="${y(last[1])}" r="3" fill="currentColor"/></svg>`;
+  const fill = area
+    ? `<defs><linearGradient id="${area}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".35"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="${path} L${(last[0] * step).toFixed(1)} ${height} L${(first[0] * step).toFixed(1)} ${height} Z" fill="url(#${area})"/>`
+    : "";
+  return `<svg class="spark" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${escapeHtml(label)} over the last ${points.length} ${over}, from ${fmt(min)} to ${fmt(max)}">${fill}<path d="${path}" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="${(last[0] * step).toFixed(1)}" cy="${y(last[1])}" r="3" fill="currentColor"/></svg>`;
 }
 
-export function bars(values: number[], label: string) {
+// A ring on a 100-unit circumference, so the dash length is the percentage.
+export function ring(
+  fraction: number | null | undefined,
+  tone: Tone,
+  label: string,
+  centre = "",
+) {
+  if (fraction === null || fraction === undefined) return "";
+  const pct = Math.max(0, Math.min(1, fraction)) * 100;
+  return `<svg class="ring" viewBox="0 0 36 36" data-tone="${tone}" role="img" aria-label="${escapeHtml(label)}"><circle class="track" cx="18" cy="18" r="15.9155"/><circle class="arc" cx="18" cy="18" r="15.9155" stroke-dasharray="${pct.toFixed(1)} 100" transform="rotate(-90 18 18)"/>${centre ? `<text x="18" y="18">${escapeHtml(centre)}</text>` : ""}</svg>`;
+}
+
+export function meter(
+  value: number | null | undefined,
+  scale: number,
+  tone: Tone,
+  label: string,
+  mark?: number,
+) {
+  if (value === null || value === undefined) return "";
+  const at = (v: number) => `${Math.min(100, (v / scale) * 100).toFixed(1)}%`;
+  return `<div class="meter" data-tone="${tone}" role="img" aria-label="${escapeHtml(label)}"><span class="fill" style="width:${at(value)}"></span>${mark === undefined ? "" : `<span class="mark" style="left:${at(mark)}"></span>`}</div>`;
+}
+
+// Rounded-top columns on soft grid lines; the newest column glows.
+export function columns(values: number[], labels: string[], label: string) {
   if (!values.length) return "";
   const max = Math.max(...values, 1);
-  const width = 240;
-  const height = 48;
-  const gap = 4;
-  const w = (width - gap * (values.length - 1)) / values.length;
-  const rects = values
-    .map((v, i) => {
-      const h = Math.max(2, (v / max) * (height - 4));
-      return `<rect x="${(i * (w + gap)).toFixed(1)}" y="${(height - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2"/>`;
+  // An even top keeps the midline on a whole number.
+  const top = Math.ceil(max / 2) * 2;
+  const width = 900;
+  const height = 220;
+  const base = height - 20;
+  const gap = 10;
+  const w = (width - 28 - gap * (values.length - 1)) / values.length;
+  const grid = [0, 0.5, 1]
+    .map((f) => {
+      const y = (base - f * (base - 8)).toFixed(1);
+      return `<line x1="24" x2="${width}" y1="${y}" y2="${y}"/><text class="axis" x="18" y="${y}" text-anchor="end">${Math.round(f * top)}</text>`;
     })
     .join("");
-  return `<svg class="spark" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${escapeHtml(label)}: ${values.join(", ")}" fill="currentColor">${rects}</svg>`;
+  const cols = values
+    .map((v, i) => {
+      const x = 28 + i * (w + gap);
+      const h = Math.max(3, (v / top) * (base - 8));
+      const r = Math.min(5, w / 2, h);
+      const y = base - h;
+      const now = i === values.length - 1;
+      return `<path${now ? ' class="now"' : ""} d="M${x.toFixed(1)} ${base} V${(y + r).toFixed(1)} Q${x.toFixed(1)} ${y.toFixed(1)} ${(x + r).toFixed(1)} ${y.toFixed(1)} H${(x + w - r).toFixed(1)} Q${(x + w).toFixed(1)} ${y.toFixed(1)} ${(x + w).toFixed(1)} ${(y + r).toFixed(1)} V${base} Z"/><text class="axis" x="${(x + w / 2).toFixed(1)}" y="${height - 4}" text-anchor="middle">${escapeHtml(labels[i] ?? "")}</text>`;
+    })
+    .join("");
+  return `<svg class="columns" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(label)}: ${values.join(", ")}"><defs><linearGradient id="col-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--watch)"/><stop offset="1" stop-color="var(--poor)" stop-opacity=".75"/></linearGradient></defs><g class="grid">${grid}</g><g fill="url(#col-fill)">${cols}</g></svg>`;
 }
 
 function card(
@@ -664,13 +708,16 @@ function card(
     tone?: Tone | undefined;
     note?: string | undefined;
     chart?: string | undefined;
+    ring?: string | undefined;
+    className?: string | undefined;
   } = {},
 ) {
   const tone =
     options.tone && options.tone !== "none"
       ? ` data-tone="${options.tone}"`
       : "";
-  return `<div class="card"${tone}><dt>${escapeHtml(name)}</dt><dd>${escapeHtml(value)}</dd>${
+  const cls = options.className ? ` ${options.className}` : "";
+  return `<div class="card${cls}"${tone}><div class="head"><div><dt>${escapeHtml(name)}</dt><dd>${escapeHtml(value)}</dd></div>${options.ring ?? ""}</div>${
     options.note ? `<p class="note">${escapeHtml(options.note)}</p>` : ""
   }${options.chart ? `<figure>${options.chart}</figure>` : ""}</div>`;
 }
@@ -683,11 +730,13 @@ const counts = (c: Counts | null | undefined) =>
 
 export type Annotation = { label: string; level: number; reason: string };
 
+const tick = `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="var(--good)"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
 function bandsPanel(annotations: Annotation[]) {
   const breaches = annotations.filter((a) => a.level >= 2);
   if (!annotations.length) return "";
   if (!breaches.length)
-    return `<p class="bands" data-level="0">Bands: every metric is within its ${annotations.length}-band envelope.</p>`;
+    return `<p class="bands" data-level="0">${tick}<span><strong>All within band</strong>Bands: every metric is within its ${annotations.length}-band envelope.</span></p>`;
   const items = breaches
     .map(
       (a) =>
@@ -707,25 +756,29 @@ const docsText = (c: BoardCard) =>
         ? "Plan, no spec"
         : "No spec or plan";
 
+const shortDate = (opened: string) =>
+  opened.replace(/^(\d{1,2}) ([A-Za-z]{3})[a-z]* (\d{4})$/, "$1 $2 $3");
+
 const boardCard = (c: BoardCard) =>
   `<li class="intent"><a href="${escapeHtml(c.folder)}"><strong>${escapeHtml(c.title)}</strong></a>` +
-  `<p class="note"><code>${escapeHtml(c.slug)}</code>${c.opened ? ` · ${escapeHtml(c.opened)}` : ""}</p>` +
-  `<p class="note">${docsText(c)}</p>` +
-  (c.pr
-    ? `<p class="note" data-checks="${c.pr.checks}"><a href="${escapeHtml(c.pr.url)}">#${c.pr.number}</a>${c.pr.draft ? " draft" : ""} · ${c.pr.checks}</p>`
-    : "") +
+  `<p class="pills"><code>${escapeHtml(c.slug)}</code>${
+    c.pr
+      ? `<a class="pr" data-checks="${c.pr.checks}" href="${escapeHtml(c.pr.url)}">#${c.pr.number}${c.pr.draft ? " draft" : ""} · ${c.pr.checks}</a>`
+      : ""
+  }</p>` +
+  `<p class="meta"><span>${escapeHtml(shortDate(c.opened))}</span><span>${docsText(c)}</span></p>` +
   `</li>`;
 
 const boardList = (cards: BoardCard[]) =>
   cards.length
     ? `<ul>${cards.map(boardCard).join("")}</ul>`
-    : `<p class="note">None</p>`;
+    : `<p class="ghost">Nothing here</p>`;
 
-const shownPerColumn = 6;
+const shownPerColumn = 5;
 const columnList = (cards: BoardCard[]) =>
   cards.length > shownPerColumn
     ? boardList(cards.slice(0, shownPerColumn)) +
-      `<details class="more"><summary>Show ${cards.length - shownPerColumn} more</summary>${boardList(cards.slice(shownPerColumn))}</details>`
+      `<details class="more"><summary>+ Show ${cards.length - shownPerColumn} more</summary>${boardList(cards.slice(shownPerColumn))}</details>`
     : boardList(cards);
 
 function boardHtml(latest: Snapshot) {
@@ -734,21 +787,26 @@ function boardHtml(latest: Snapshot) {
     ? `<p class="note">Built on ${escapeHtml(latest.boardAt ?? latest.date)}. <a href="https://github.com/${escapeHtml(latest.repo)}/actions/workflows/pages.yml">Rebuild now</a></p>`
     : "";
   if (!cards.length) return rebuild + `<p class="muted">No intents</p>`;
-  const columns = (["Draft", "Accepted", "In build", "Done"] as const)
+  const cols = (["Draft", "Accepted", "In build", "Done"] as const)
     .map((name) => {
       const inColumn = cards.filter((c) => c.column === name);
-      return `<div class="column"><h3>${name} <span class="muted">${inColumn.length}</span></h3>${columnList(inColumn)}</div>`;
+      return `<div class="column"${inColumn.length ? "" : " data-empty"}><h3>${name} <span class="count">${inColumn.length}</span></h3>${columnList(inColumn)}</div>`;
     })
     .join("");
   const dropped = cards.filter((c) => c.column === "Dropped");
   return (
     rebuild +
-    `<div class="board">${columns}</div>` +
+    `<div class="board">${cols}</div>` +
     (dropped.length
       ? `<details class="dropped"><summary>Dropped (${dropped.length})</summary>${boardList(dropped)}</details>`
       : "")
   );
 }
+
+const weekLabels = (n: number) =>
+  Array.from({ length: n }, (_, i) =>
+    i === n - 1 ? "This wk" : `−${n - 1 - i}w`,
+  );
 
 export function render(history: Snapshot[], annotations: Annotation[] = []) {
   const latest = history.at(-1);
@@ -757,9 +815,11 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
     pick: (s: Snapshot) => number | null | undefined,
     label: string,
     unit = "",
-  ) => sparkline(history.map(pick), label, unit);
+    area?: string,
+  ) => sparkline(history.map(pick), label, unit, area ? { area } : {});
 
   const pipeline = latest.pipeline;
+  const firstPassTone = rate(pipeline?.firstPassRate, 90, 75);
   const pipelineCards = [
     card("Checks duration", minutes(pipeline?.durationMs), {
       tone: under(pipeline?.durationMs, 15 * 60_000),
@@ -774,8 +834,13 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
       ),
     }),
     card("First-pass success", percent(pipeline?.firstPassRate, 0), {
-      tone: rate(pipeline?.firstPassRate, 90, 75),
+      tone: firstPassTone,
       note: "Runs on main that passed at the first attempt, last 30",
+      ring: ring(
+        pipeline?.firstPassRate == null ? null : pipeline.firstPassRate / 100,
+        firstPassTone,
+        "First-pass success",
+      ),
       chart: trend(
         (s) => s.pipeline?.firstPassRate,
         "First-pass success",
@@ -787,9 +852,10 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
   const e2e = latest.e2e;
   const streak = flakeFreeStreak(history);
   const slowest = (e2e?.slowest ?? [])
+    .slice(0, 5)
     .map(
       (t) =>
-        `<tr><td>${escapeHtml(t.title)}</td><td>${escapeHtml(t.project)}</td><td class="num">${seconds(t.durationMs)}</td></tr>`,
+        `<tr><td>${escapeHtml(t.title)}</td><td><code>${escapeHtml(t.project)}</code></td><td class="num" data-tone="${t.durationMs >= 20_000 ? "poor" : "none"}">${seconds(t.durationMs)}</td></tr>`,
     )
     .join("");
   const testCards = [
@@ -826,77 +892,103 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
     }),
   ];
 
+  const gate = (
+    name: string,
+    value: number | null | undefined,
+    tone: Tone,
+    digits: number,
+    note?: string,
+  ) =>
+    card(name, percent(value, digits), {
+      tone,
+      note,
+      ring: ring(value == null ? null : value / 100, tone, name),
+    });
   const qualityCards = [
-    card("Line coverage", percent(latest.coverage?.lines), {
-      tone: rate(latest.coverage?.lines, 90, 75),
-      chart: trend((s) => s.coverage?.lines, "Line coverage", " %"),
-    }),
-    card("Branch coverage", percent(latest.coverage?.branches), {
-      tone: rate(latest.coverage?.branches, 85, 70),
-      chart: trend((s) => s.coverage?.branches, "Branch coverage", " %"),
-    }),
-    card("Mutation score", percent(latest.mutationScore), {
-      tone: rate(latest.mutationScore, 80, 60),
-      note: "Latest manual Stryker run",
-      chart: trend((s) => s.mutationScore, "Mutation score", " %"),
-    }),
-    card("Type coverage", percent(latest.typeCoverage, 2), {
-      tone: rate(latest.typeCoverage, 99.5, 98),
-      note: "Gate at 99.5 %",
-    }),
+    gate(
+      "Line coverage",
+      latest.coverage?.lines,
+      rate(latest.coverage?.lines, 90, 75),
+      1,
+    ),
+    gate(
+      "Branch coverage",
+      latest.coverage?.branches,
+      rate(latest.coverage?.branches, 85, 70),
+      1,
+    ),
+    gate(
+      "Mutation score",
+      latest.mutationScore,
+      rate(latest.mutationScore, 80, 60),
+      1,
+      "Latest manual Stryker run",
+    ),
+    gate(
+      "Type coverage",
+      latest.typeCoverage,
+      rate(latest.typeCoverage, 99.5, 98),
+      2,
+      "Gate at 99.5 %",
+    ),
   ];
 
   const lh = latest.lighthouse;
   const bundle = latest.bundle ?? [];
+  const score = (name: string, short: string, value: number) =>
+    `<li>${ring(value / 100, value > 90 ? "good" : value >= 70 ? "watch" : "poor", `${name} ${value}`, `${value}`)}<span>${short}</span></li>`;
+  const lighthouseCard = `<div class="card wide"${lh ? ` data-tone="${rate(Math.min(lh.performance, lh.accessibility, lh.bestPractices), 90, 70)}"` : ""}><dt>Lighthouse</dt>${
+    lh
+      ? `<dd class="sr">${lh.performance} · ${lh.accessibility} · ${lh.bestPractices} · ${lh.seo}</dd><ul class="scores">${score("Performance", "Perf", lh.performance)}${score("Accessibility", "A11y", lh.accessibility)}${score("Best practices", "BP", lh.bestPractices)}${score("SEO", "SEO", lh.seo)}</ul>`
+      : "<dd>n/a</dd>"
+  }<p class="note">Desktop preset on the static export</p></div>`;
+  const lcpTone = under(lh?.lcpMs, 2500);
+  const tbtTone = under(lh?.tbtMs, 300);
   const perfCards = [
-    card(
-      "Lighthouse",
-      lh
-        ? `${lh.performance} · ${lh.accessibility} · ${lh.bestPractices} · ${lh.seo}`
-        : "n/a",
-      {
-        tone: lh
-          ? rate(
-              Math.min(lh.performance, lh.accessibility, lh.bestPractices),
-              90,
-              70,
-            )
-          : "none",
-        note: "Performance · accessibility · best practices · SEO, desktop preset",
-        chart: trend(
-          (s) => s.lighthouse?.performance,
-          "Lighthouse performance",
-        ),
-      },
-    ),
+    lighthouseCard,
     card(
       "Largest contentful paint",
       lh?.lcpMs == null ? "n/a" : `${lh.lcpMs} ms`,
       {
-        tone: under(lh?.lcpMs, 2500),
+        tone: lcpTone,
         note: "Budget 2500 ms",
-        chart: trend(
-          (s) => s.lighthouse?.lcpMs,
-          "Largest contentful paint",
-          " ms",
+        chart: meter(
+          lh?.lcpMs,
+          2500,
+          lcpTone,
+          "Largest contentful paint against its budget",
         ),
       },
     ),
     card("Total blocking time", lh?.tbtMs == null ? "n/a" : `${lh.tbtMs} ms`, {
-      tone: under(lh?.tbtMs, 300),
+      tone: tbtTone,
       note: "Budget 300 ms",
+      chart: meter(
+        lh?.tbtMs,
+        300,
+        tbtTone,
+        "Total blocking time against its budget",
+      ),
     }),
-    ...bundle.map((b) =>
-      card(b.name, kb(b.bytes), {
-        tone: b.limitBytes === null ? "none" : under(b.bytes, b.limitBytes),
+    ...bundle.map((b) => {
+      const tone =
+        b.limitBytes === null ? "none" : under(b.bytes, b.limitBytes);
+      return card(b.name, kb(b.bytes), {
+        tone,
+        className: "wide",
         note: b.limitBytes === null ? undefined : `Ceiling ${kb(b.limitBytes)}`,
-        chart: trend(
-          (s) => s.bundle?.find((x) => x.name === b.name)?.bytes,
-          b.name,
-          " B",
-        ),
-      }),
-    ),
+        chart:
+          b.limitBytes === null
+            ? undefined
+            : meter(
+                b.bytes,
+                b.limitBytes * 1.1,
+                tone,
+                `${b.name} against its ceiling`,
+                b.limitBytes,
+              ),
+      });
+    }),
   ];
   if (!bundle.length)
     perfCards.push(
@@ -910,30 +1002,19 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
   for (const i of intents)
     byStatus.set(i.status, (byStatus.get(i.status) ?? 0) + 1);
   const aiCards = [
-    card("Eval pass rate", ev ? `${ev.passed} / ${ev.total}` : "n/a", {
-      tone:
-        ev && ev.total ? rate((ev.passed / ev.total) * 100, 80, 50) : "none",
-      note: ev
-        ? `${ev.model}, $${ev.costUsd.toFixed(3)}, ${ev.at.slice(0, 10)}`
-        : "No eval run recorded yet",
-      chart: trend(
-        (s) =>
-          s.evals && s.evals.total
-            ? +((s.evals.passed / s.evals.total) * 100).toFixed(0)
-            : null,
-        "Eval pass rate",
-        " %",
-      ),
-    }),
+    `<div class="card hero"${ev && ev.total ? ` data-tone="${rate((ev.passed / ev.total) * 100, 80, 50)}"` : ""}><dt>Eval pass rate</dt><dd>${ev ? `${ev.passed} / ${ev.total}` : "n/a"}</dd><p class="note">${ev ? `passed · ${ev.at.slice(0, 10)} · $${ev.costUsd.toFixed(3)}` : "No eval run recorded yet"}</p>${ev ? `<p class="pills"><code>${escapeHtml(ev.model)}</code></p>` : ""}</div>`,
     card("Intents", intents.length ? `${intents.length}` : "n/a", {
+      className: "trend",
       note: intents.length
         ? [...byStatus].map(([s, n]) => `${n} ${s}`).join(" · ")
         : "No intent folder",
+      chart: trend((s) => s.intents?.length, "Intents", "", "intents-fill"),
     }),
     card(
       "Review findings",
       review ? `${totalFindings(review.findings)}` : "n/a",
       {
+        className: "trend",
         tone: review
           ? review.findings.blocker
             ? "poor"
@@ -945,9 +1026,11 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
           ? `${severities.map((s) => `${review.findings[s]} ${s}`).join(" · ")} over ${review.pulls} pull request${review.pulls === 1 ? "" : "s"}`
           : "Not collected yet: arrives with the review workflow",
         chart: review
-          ? bars(
+          ? sparkline(
               review.perPull.map((p) => p.total),
-              "Findings per pull request",
+              "Review findings",
+              "",
+              { area: "findings-fill", over: "pull requests" },
             )
           : "",
       },
@@ -959,6 +1042,13 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
         : "n/a",
       {
         tone: review ? rate(review.resolvedShare, 80, 50) : "none",
+        ring: review
+          ? ring(
+              review.resolvedShare === null ? null : review.resolvedShare / 100,
+              rate(review.resolvedShare, 80, 50),
+              "Fixed after review",
+            )
+          : "",
         note: review
           ? `${review.resolved} of ${review.threads} reviewer threads resolved, by the fix loop or by hand`
           : "Share of reviewer threads resolved, by the fix loop or by hand",
@@ -967,20 +1057,26 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
   ];
 
   const delivery = latest.delivery;
-  const deliveryCards = [
-    card("PR cycle time", hours(delivery?.medianCycleHours), {
+  const deliveryCards = `<div class="delivery"><div class="stack">${card(
+    "PR cycle time",
+    hours(delivery?.medianCycleHours),
+    {
       tone: under(delivery?.medianCycleHours, 48),
       note: "Median from opened to merged",
-    }),
-    card(
-      "Merges per week",
-      delivery ? `${delivery.mergesPerWeek.at(-1) ?? 0}` : "n/a",
-      {
-        note: "Last eight weeks",
-        chart: delivery ? bars(delivery.mergesPerWeek, "Merges per week") : "",
-      },
-    ),
-  ];
+    },
+  )}${card(
+    "Merges per week",
+    delivery ? `${delivery.mergesPerWeek.at(-1) ?? 0}` : "n/a",
+    { note: "This week; the chart shows the last eight" },
+  )}</div><div class="card chart"><dt>Merges per week</dt>${
+    delivery
+      ? columns(
+          delivery.mergesPerWeek,
+          weekLabels(delivery.mergesPerWeek.length),
+          "Merges per week",
+        )
+      : `<p class="ghost">No pull request data</p>`
+  }</div></div>`;
 
   const grid = (cards: string[]) => `<dl class="grid">${cards.join("")}</dl>`;
   const commit = latest.sha
@@ -991,59 +1087,101 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark">
 <title>SprintScout engineering dashboard</title>
 <style>
-:root{--brand-data:#0f766e;--brand-wind:#0369a1;--bg:#f6f2f9;--surface:#fff;--ink:#241d33;--muted:#6b6480;--border:#d9d2e4;--accent:#c2301f;--soft:#efe9f6;--gain:#087359;--loss:#9e5400;--poor:#b3261e;--gain-soft:#d6f5ec;--loss-soft:#ffe9cc;--poor-soft:#fde2df}
-@media (prefers-color-scheme:dark){:root{--brand-data:#2dd4bf;--brand-wind:#38bdf8;--bg:#101d22;--surface:#1a2c32;--ink:#e8f1ef;--muted:#b5c7c8;--border:#2f454c;--accent:#ff8c84;--soft:#254440;--gain:#6df2c0;--loss:#ffd084;--poor:#ff8c84;--gain-soft:#1b3a33;--loss-soft:#3b2f18;--poor-soft:#3f2321}}
+:root{--brand-data:#2dd4bf;--brand-wind:#38bdf8;--bg:#0b0f19;--surface:#111827;--raised:#0f172a;--ink:#f1f5f9;--muted:#94a3b8;--border:#1e293b;--line:#334155;--good:#2dd4bf;--watch:#f97316;--poor:#ef4444;--poor-text:#f87171;--accent:#2dd4bf;--ease:200ms ease}
 @font-face{font-family:Inter;src:url("fonts/inter-latin-variable.woff2") format("woff2");font-weight:400 800;font-display:swap}
 @font-face{font-family:"JetBrains Mono";src:url("fonts/jetbrains-mono-latin-variable.woff2") format("woff2");font-weight:400 700;font-display:swap}
 *{box-sizing:border-box}
-body{font:15px/1.5 Inter,"Helvetica Neue",Arial,system-ui,sans-serif;margin:0;padding:24px 16px 48px;color:var(--ink);background:var(--bg)}
-main{max-width:72rem;margin-inline:auto}
-header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:8px}
-h1{font:800 2.1rem/1.2 Inter,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.02em;margin:0}
-h2{font:700 1.1rem/1.3 Inter,"Helvetica Neue",Arial,sans-serif;margin:32px 0 2px}
-.lead,.muted,.note{color:var(--muted)}.lead{margin:0 0 12px;font-size:.9rem}
-nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.9rem;margin:8px 0 0}nav a{color:var(--accent);text-decoration:none}nav a:hover{text-decoration:underline}
+body{font:15px/1.5 Inter,"Helvetica Neue",Arial,system-ui,sans-serif;margin:0;padding:28px 16px 56px;color:var(--ink);background:radial-gradient(1200px 600px at 10% -10%,#12233a 0,transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
+main{max-width:76rem;margin-inline:auto}
+a{color:var(--accent)}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:12px}
+h1{font:800 2.2rem/1.15 Inter,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.025em;margin:0}
+h2{font:700 1.15rem/1.3 Inter,"Helvetica Neue",Arial,sans-serif;margin:40px 0 2px;letter-spacing:-.01em}
+h3{font-weight:600}
+.lead,.muted,.note{color:var(--muted)}.lead{margin:0 0 14px;font-size:.9rem}
+header code{border:1px solid var(--line)}
+nav{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+nav a{color:var(--ink);text-decoration:none;font-size:.88rem;padding:6px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);transition:border-color var(--ease),box-shadow var(--ease),color var(--ease)}
+nav a:hover,nav a:focus-visible{border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px -4px var(--accent);outline:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:12px;margin:0}
-.card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:10px;padding:12px 14px;min-width:0}
-.card[data-tone=good]{border-left-color:var(--gain)}.card[data-tone=watch]{border-left-color:var(--loss)}.card[data-tone=poor]{border-left-color:var(--poor)}
-dt{font-size:.8rem;color:var(--muted)}dd{margin:0;font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.note{margin:2px 0 0;font-size:.8rem}
-figure{margin:8px 0 0;color:var(--accent)}.spark{display:block;max-width:100%;height:auto}
-table{border-collapse:collapse;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:12px}
-th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--border);font-size:.9rem}tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums}
+.card{--tone:var(--line);position:relative;background:linear-gradient(160deg,color-mix(in srgb,var(--tone) 9%,var(--surface)),var(--surface) 60%);border:1px solid color-mix(in srgb,var(--tone) 45%,var(--border));border-radius:14px;padding:14px 16px;min-width:0;transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease)}
+.card[data-tone=good]{--tone:var(--good)}.card[data-tone=watch]{--tone:var(--watch)}.card[data-tone=poor]{--tone:var(--poor)}
+.card[data-tone]{box-shadow:0 0 28px -14px var(--tone)}
+.card:hover{transform:translateY(-2px);box-shadow:0 0 32px -10px var(--tone)}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+dt{font-size:.8rem;color:var(--muted);font-weight:500}dd{margin:2px 0 0;font-size:1.55rem;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;letter-spacing:-.01em}
+.note{margin:4px 0 0;font-size:.8rem}
+figure{margin:10px 0 0;color:var(--tone)}.card:not([data-tone]) figure{color:var(--accent)}.spark{display:block;width:100%;height:auto;max-height:56px}
+.ring{width:56px;height:56px;flex:none;--tone:var(--muted)}.ring[data-tone=good]{--tone:var(--good)}.ring[data-tone=watch]{--tone:var(--watch)}.ring[data-tone=poor]{--tone:var(--poor)}
+.ring circle{fill:none;stroke-width:3.2}.ring .track{stroke:var(--border)}.ring .arc{stroke:var(--tone);stroke-linecap:round;filter:drop-shadow(0 0 2px var(--tone))}
+.ring text{fill:var(--ink);font:700 10px "JetBrains Mono",ui-monospace,monospace;text-anchor:middle;dominant-baseline:central}
+.meter{position:relative;height:6px;border-radius:999px;background:var(--border);--tone:var(--accent)}.meter[data-tone=watch]{--tone:var(--watch)}.meter[data-tone=poor]{--tone:var(--poor)}
+.meter .fill{position:absolute;inset:0 auto 0 0;border-radius:inherit;background:linear-gradient(90deg,color-mix(in srgb,var(--tone) 55%,transparent),var(--tone));box-shadow:0 0 10px -2px var(--tone)}
+.meter .mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink);border-radius:1px}
+.scores{list-style:none;display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0;padding:0}.scores li{display:grid;justify-items:center;gap:2px;font-size:.72rem;color:var(--muted)}.scores .ring{width:54px;height:54px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+table{border-collapse:separate;border-spacing:0;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+caption{padding:0 0 8px;font-size:.85rem}
+th{background:var(--raised);font-size:.82rem;color:var(--muted);font-weight:600}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);font-size:.88rem}tr:last-child td{border-bottom:0}tbody tr{transition:background var(--ease)}tbody tr:hover{background:var(--raised)}
+.num{text-align:right;font-variant-numeric:tabular-nums}td.num[data-tone=poor]{color:var(--poor-text);font-weight:700}
 code,dd,td.num{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
-code{font-size:.85em;background:var(--soft);padding:1px 5px;border-radius:4px}
-.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:12px;align-items:start}
-.column{background:var(--soft);border-radius:10px;padding:10px;min-width:0}.column h3{margin:0 0 8px;font-size:.95rem}
+code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);padding:2px 7px;border-radius:999px}
+.split{display:grid;gap:0 28px}@media (min-width:1000px){.split{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+.split .grid{grid-template-columns:repeat(auto-fill,minmax(13rem,1fr))}
+.wide{grid-column:1/-1}
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}@media (min-width:720px){.board{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.column{background:color-mix(in srgb,var(--raised) 70%,transparent);border:1px solid var(--border);border-radius:14px;padding:10px;min-width:0}
+.column h3{display:flex;align-items:center;gap:8px;margin:2px 2px 10px;font-size:.88rem;color:var(--muted)}
+.count{font:600 .72rem "JetBrains Mono",ui-monospace,monospace;color:var(--ink);background:var(--border);border-radius:999px;padding:1px 8px}
 .board ul,.dropped ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.intent{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;overflow-wrap:anywhere}
-.intent a{color:var(--ink)}[data-checks=failing]{color:var(--poor)}[data-checks=passing]{color:var(--gain)}
-.dropped,.more{margin-top:12px}.more{margin-top:8px}.dropped summary,.more summary{cursor:pointer;color:var(--muted)}.more ul{margin-top:8px}
+.intent{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 11px;overflow-wrap:anywhere;transition:border-color var(--ease),transform var(--ease)}
+.intent:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--border));transform:translateY(-1px)}
+.intent>a{color:var(--ink);text-decoration:none;font-size:.88rem;line-height:1.3}.intent>a:hover{color:var(--accent)}
+.pills{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 0}.pills code{font-size:.7rem}
+.pr{font:.7rem "JetBrains Mono",ui-monospace,monospace;text-decoration:none;padding:2px 7px;border-radius:999px;background:var(--border);color:var(--muted)}
+[data-checks=failing]{color:var(--poor-text);background:color-mix(in srgb,var(--poor) 16%,var(--surface))}[data-checks=passing]{color:var(--good)}[data-checks=running]{color:var(--watch)}
+.meta{display:flex;justify-content:space-between;gap:8px;margin:8px 0 0;font-size:.7rem;color:var(--muted)}
+.ghost{margin:0;border:1px dashed var(--line);border-radius:10px;padding:22px 8px;text-align:center;font-size:.8rem;color:var(--muted)}
+.dropped,.more{margin-top:12px}.more{margin-top:8px}.dropped summary,.more summary{cursor:pointer;color:var(--muted);font-size:.82rem;text-align:center;padding:6px;border-radius:8px;list-style:none;transition:color var(--ease),background var(--ease)}.more summary:hover{color:var(--accent);background:var(--border)}.more ul{margin-top:8px}
+.hero{display:grid;place-content:center;text-align:center;border-color:var(--tone);box-shadow:0 0 36px -10px var(--tone),inset 0 0 24px -16px var(--tone)}.hero dd{font-size:2.4rem;color:var(--tone)}.hero .pills{justify-content:center}
+.card.trend figure{color:var(--watch)}
+.delivery{display:grid;gap:12px}@media (min-width:760px){.delivery{grid-template-columns:minmax(14rem,1fr) 3fr}}
+.stack{display:grid;gap:12px;align-content:start}
+.columns{display:block;width:100%;height:auto;margin-top:8px}.columns .grid line{stroke:var(--border);stroke-dasharray:3 4}.columns .axis{fill:var(--muted);font:10px "JetBrains Mono",ui-monospace,monospace}
+.columns path{transition:opacity var(--ease)}.columns path:not(.now){opacity:.72}.columns path:hover{opacity:1}.columns .now{filter:drop-shadow(0 0 6px var(--watch))}
 .brand{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;color:var(--ink);text-decoration:none}.brand svg{display:block}.brand span{font-weight:800;font-size:2.4rem;line-height:1;letter-spacing:-.035em}.brand b{font-weight:800;color:var(--brand-wind);margin-left:.18em}
-@media (max-width:600px){.brand{gap:8px}.brand svg{width:40px;height:40px}.brand span{font-size:1.7rem}h1{font-size:1.6rem}}
-footer{margin-top:40px;font-size:.85rem;color:var(--muted)}
-.bands{margin-top:16px;border-radius:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border)}
-p.bands{font-size:.9rem;color:var(--muted)}
-.bands[data-level="2"]{border-color:var(--loss);background:var(--loss-soft)}.bands[data-level="3"]{border-color:var(--poor);background:var(--poor-soft)}
+@media (max-width:600px){.brand{gap:8px}.brand svg{width:40px;height:40px}.brand span{font-size:1.7rem}h1{font-size:1.6rem}th:nth-child(2),td:nth-child(2){display:none}}
+footer{margin-top:48px;font-size:.85rem;color:var(--muted)}
+.bands{margin-top:18px;border-radius:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border)}
+p.bands{display:flex;gap:12px;align-items:center;font-size:.88rem;color:var(--muted);background:linear-gradient(100deg,color-mix(in srgb,var(--good) 14%,var(--surface)),var(--surface) 70%);border-color:color-mix(in srgb,var(--good) 45%,var(--border))}
+p.bands strong{display:block;color:var(--ink)}p.bands svg{flex:none;filter:drop-shadow(0 0 6px var(--good))}
+.bands[data-level="2"]{border-color:var(--watch);background:color-mix(in srgb,var(--watch) 12%,var(--surface))}.bands[data-level="3"]{border-color:var(--poor);background:color-mix(in srgb,var(--poor) 12%,var(--surface))}
 .bands h2{margin:0 0 2px}.bands ul{margin:4px 0 0;padding-left:20px}.bands li{margin:2px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.card:hover,.intent:hover{transform:none}}
 </style>
 </head>
 <body>
 <main>
 <a class="brand" href="../" aria-label="SprintScout planner"><svg viewBox="0 0 48 48" width="56" height="56" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12 L20 24 L6 36" stroke="var(--brand-data)" stroke-opacity="0.55" stroke-width="5"/><path d="M20 12 L34 24 L20 36" stroke="var(--brand-data)" stroke-width="5"/><path d="M34 24 H44" stroke="var(--brand-wind)" stroke-width="3"/></svg><span>Sprint<b>Scout</b></span></a>
 <header><h1>Engineering dashboard</h1><p class="muted">Run on main of ${escapeHtml(latest.date)}${commit} · ${history.length} run${history.length === 1 ? "" : "s"} recorded</p></header>
-<nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a></nav>
+<nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#board">Intent board</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a><a href="#slowest">Slowest tests</a></nav>
 ${bandsPanel(annotations)}
 ${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, deploy gate.", grid(pipelineCards))}
-${section("tests", "Tests", "Counts per level from the latest run; trend over the recorded runs.", grid(testCards) + `<table><caption class="muted">Slowest ten end-to-end tests</caption><thead><tr><th>Test</th><th>Project</th><th class="num">Duration</th></tr></thead><tbody>${slowest || '<tr><td colspan="3" class="muted">No end-to-end report</td></tr>'}</tbody></table>`)}
+${section("tests", "Tests", "Counts per level from the latest run; trend over the recorded runs.", grid(testCards))}
+<div class="split">
+${section("board", "Intent board", "Intents on main and on open pull requests, as they stood when this dashboard was built.", boardHtml(latest))}
+<div>
 ${section("quality", "Quality gates", "Coverage from the merged unit shards, mutation score from the last manual Stryker run, type coverage from the static gate.", grid(qualityCards))}
 ${section("performance", "Performance", "The deploy gate runs Lighthouse against the static export and checks client JavaScript against its ceiling.", grid(perfCards))}
+</div>
+</div>
 ${section("ai", "AI practice", "Evals prove the agent configuration steers an agent; intents are the audit trail of work asked for and delivered.", grid(aiCards))}
-${section("board", "Intent board", "Intents on main and on open pull requests, as they stood when this dashboard was built.", boardHtml(latest))}
-${section("delivery", "Delivery", "Pull requests merged into main, read from the GitHub API by the dashboard job.", grid(deliveryCards))}
+${section("delivery", "Delivery", "Pull requests merged into main, read from the GitHub API by the dashboard job.", deliveryCards)}
+${section("slowest", "Slowest tests", "The five slowest end-to-end tests in the latest run, across all three browser projects.", `<table><thead><tr><th>Test</th><th>Project</th><th class="num">Duration</th></tr></thead><tbody>${slowest || '<tr><td colspan="3" class="muted">No end-to-end report</td></tr>'}</tbody></table>`)}
 <footer>Built by the Checks workflow after every push to main. No scripts, no external requests. Source: <code>packages/testing/src/dashboard.ts</code>.</footer>
 </main>
 </body>
