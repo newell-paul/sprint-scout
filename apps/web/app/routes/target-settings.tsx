@@ -15,7 +15,7 @@ export default function TargetSettings({
   target: number | null;
   onChange: (target: number | null) => boolean;
 }) {
-  const [value, setValue] = useState(format(target));
+  const [value, setValue] = useState(() => format(target));
   // A target saved in another tab or removed elsewhere replaces the draft, so
   // a stale value is never saved over it.
   const [shown, setShown] = useState(target);
