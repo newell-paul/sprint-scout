@@ -48,7 +48,8 @@ function listArtifacts() {
   return artifacts.filter(
     (a) =>
       !a.expired &&
-      a.workflow_run?.head_repository_id === a.workflow_run?.repository_id,
+      a.workflow_run?.repository_id != null &&
+      a.workflow_run.head_repository_id === a.workflow_run.repository_id,
   );
 }
 

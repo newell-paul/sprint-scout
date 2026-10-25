@@ -28,12 +28,12 @@ const [, endpoint] = process.argv.slice(2);
 const fail = process.env.FAKE_FAIL;
 if (endpoint.includes("artifacts?")) {
   if (fail === "list") process.exit(1);
-  // Artifact 9 comes from a fork's pull request; artifact 8 has expired.
+  // Artifact 9 comes from a fork's pull request, 8 has expired and 7 names no run.
   const run = (head) => ({ repository_id: 1, head_repository_id: head });
   const artifacts = Object.keys(JSON.parse(process.env.FAKE_TALLIES)).map((id) => ({
     id: Number(id),
     expired: id === "8",
-    workflow_run: run(id === "9" ? 2 : 1),
+    workflow_run: id === "7" ? undefined : run(id === "9" ? 2 : 1),
   }));
   console.log(JSON.stringify({ artifacts }));
 } else if (endpoint.endsWith("/zip")) {
@@ -87,6 +87,7 @@ describe("review tally collector", () => {
       1: tally(10, { minor: 2 }),
       2: tally(11, { minor: -1 }),
       3: tally(12, { nit: 1.5 }),
+      7: tally(15, {}),
       8: tally(13, {}),
       9: tally(14, {}),
     });
