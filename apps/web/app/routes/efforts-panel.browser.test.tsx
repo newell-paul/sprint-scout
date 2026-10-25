@@ -128,3 +128,20 @@ it("efforts on more date ranges than one load allows finish on the next press", 
     .not.toHaveTextContent("press Load past wind again");
   expect(saved.at(-1)!.filter((effort) => effort.wind === null)).toEqual([]);
 });
+
+it("a file over 25 MB is refused before it is read", async () => {
+  const file = new File(["<gpx/>"], "huge.gpx", {
+    type: "application/gpx+xml",
+  });
+  Object.defineProperty(file, "size", { value: 25_000_001 });
+  const read = vi.spyOn(file, "text");
+  const { screen } = await renderPanel([anEffort("a", "2026-09-01T07:00:00Z")]);
+  await screen.getByLabelText(/my own device recording/).click();
+
+  await userEvent.upload(screen.getByLabelText(/Import GPX/), file);
+
+  await expect
+    .element(screen.getByText("GPX file is missing or larger than 25 MB."))
+    .toBeVisible();
+  expect(read).not.toHaveBeenCalled();
+});
