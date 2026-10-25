@@ -105,3 +105,26 @@ it("an import that skipped points says how many", async () => {
       "2 track points were skipped for a missing or out-of-order time or position; 1 had a time with no zone.",
     );
 });
+
+it("efforts on more date ranges than one load allows finish on the next press", async () => {
+  const efforts = Array.from({ length: 31 }, (_, k) =>
+    anEffort(`e${k}`, new Date(Date.UTC(2026, 6, 1 + 2 * k, 7)).toISOString()),
+  );
+  const { screen, saved } = await renderPanel(efforts);
+  const load = screen.getByRole("button", { name: "Load past wind" });
+
+  await load.click();
+
+  await expect
+    .element(screen.getByText(/Past wind saved for 30 efforts/))
+    .toHaveTextContent(
+      "1 more on other dates still need wind; press Load past wind again.",
+    );
+
+  await load.click();
+
+  await expect
+    .element(screen.getByText(/Past wind saved for 1 effort from/))
+    .not.toHaveTextContent("press Load past wind again");
+  expect(saved.at(-1)!.filter((effort) => effort.wind === null)).toEqual([]);
+});

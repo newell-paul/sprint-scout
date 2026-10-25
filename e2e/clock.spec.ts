@@ -33,3 +33,34 @@ test.describe("forecast expiry", () => {
     await expect(planner.timeline.slider).toHaveValue("5");
   });
 });
+
+test.describe("board expiry", () => {
+  test.use({ installClock: true, fixedTime: "2026-09-10T07:00:00Z" });
+
+  test("a board left open re-ranks every segment once its forecasts expire", async ({
+    page,
+    planner,
+    seed,
+    openMeteo,
+  }) => {
+    const southbound = aRoute({
+      id: "south",
+      name: "Southbound",
+      slot: 1,
+      points: [
+        [-0.2, 51.51],
+        [-0.2, 51.5],
+      ],
+    });
+    await seed({ routes: [...seeded.routes, southbound] });
+    await planner.board.rank();
+    await expect(planner.board.rows).toHaveCount(2);
+    const southCalls = () => openMeteo.weatherLongitudes.filter((lon) => lon === "-0.2").length;
+    expect(southCalls()).toBe(1);
+
+    await page.clock.fastForward(31 * 60_000);
+
+    await expect.poll(southCalls).toBe(2);
+    await expect(planner.board.row("Southbound")).toHaveAttribute("data-status", "ranked");
+  });
+});

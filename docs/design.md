@@ -693,3 +693,7 @@ A whole-repository review (six agents over `d95ad89`) found the dashboard and Pa
 ## Saved data hardening — 25 October 2026
 
 From the whole-repository review. Saved effort times (`startedAt`, `importedAt`, the wind's `retrievedAt`) must carry `Z` or an offset and are read back as `toISOString()` UTC instants, because efforts are sorted and de-duplicated by string and a zone-less time reads differently on each device. Saved data the app wrote already has this form, so nothing stored is lost. A matched effort is never shorter than 0.1 s: a crossing that rounded to `0` would have been saved and then rejected on the next load, taking every saved segment with it. Saved wind above calm needs a direction, as the archive loader already guarantees. The rider note says when the browser could not store the rider's numbers, and a GPX import says how many track points it skipped and how many of those had no time zone. Source: `apps/web/app/routes/library.ts`, `rider-settings.tsx`, `efforts-panel.tsx`, `packages/analysis/src/effort-match.ts`, `packages/application/src/gpx.ts`; plan in `intent/saved-data/`.
+
+## Hand-picked segment opens at its first hour — 25 October 2026
+
+Open on the opportunity board sets a requested hour for that segment. Choosing a segment from the slot picker now clears it, so a segment picked by hand opens at its first forecast hour instead of the board's hour for another segment. Source: `apps/web/app/routes/route-drawer.tsx`; plan in `intent/test-gaps/`.

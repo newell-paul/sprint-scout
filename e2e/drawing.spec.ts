@@ -181,6 +181,31 @@ test.describe("with the forecast unavailable", () => {
     await expect(planner.library.heading).toContainText("Updated ride");
   });
 
+  test("renaming keeps the segment's target, shelter and efforts", async ({ planner, seed }) => {
+    const effort = {
+      id: "e1",
+      startedAt: "2026-09-01T07:00:00.000Z",
+      elapsedSeconds: 95,
+      source: "gpx",
+      fileName: "ride.gpx",
+      geometryKey: JSON.stringify(saved.routes[0]!.points),
+      maxDeviationM: 3,
+      sampleGapSeconds: 1,
+      importedAt: "2026-09-02T07:00:00.000Z",
+      wind: null,
+    };
+    await seed({ routes: [{ ...saved.routes[0]!, targetTimeS: 90, shelter: "dense", efforts: [effort] }] });
+    await planner.library.redraw();
+
+    await planner.editor.name("Updated ride");
+    await planner.editor.confirmOwnership();
+    await planner.editor.save();
+
+    await expect(planner.library.heading).toContainText("Updated ride");
+    const [stored] = JSON.parse((await planner.storedRoutes())!);
+    expect(stored).toMatchObject({ name: "Updated ride", targetTimeS: 90, shelter: "dense", efforts: [effort] });
+  });
+
   test("delete empties the slot", async ({ planner, seed }) => {
     await seed(saved);
 
