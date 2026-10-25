@@ -1149,7 +1149,7 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 
   const grid = (cards: string[]) => `<dl class="grid">${cards.join("")}</dl>`;
   const commit = latest.sha
-    ? ` · <code>${escapeHtml(latest.sha.slice(0, 7))}</code>`
+    ? ` at <code>${escapeHtml(latest.sha.slice(0, 7))}</code>`
     : "";
   return `<!doctype html>
 <html lang="en">
@@ -1239,7 +1239,7 @@ p.bands strong{display:block;color:var(--ink)}p.bands svg{flex:none;filter:drop-
 <body>
 <main>
 <a class="brand" href="../" aria-label="SprintScout planner"><svg viewBox="0 0 48 48" width="56" height="56" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12 L20 24 L6 36" stroke="var(--brand-data)" stroke-opacity="0.55" stroke-width="5"/><path d="M20 12 L34 24 L20 36" stroke="var(--brand-data)" stroke-width="5"/><path d="M34 24 H44" stroke="var(--brand-wind)" stroke-width="3"/></svg><span>Sprint<b>Scout</b></span></a>
-<header><h1>Engineering dashboard</h1><p class="muted">Run on main of ${escapeHtml(latest.date)}${commit} · ${history.length} run${history.length === 1 ? "" : "s"} recorded</p></header>
+<header><h1>Engineering dashboard</h1><p class="muted">Built from main${commit} on ${escapeHtml(latest.date)} · trends over ${history.length} day${history.length === 1 ? "" : "s"}</p></header>
 <nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#board">Intent board</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a><a href="#slowest">Slowest tests</a></nav>
 ${bandsPanel(annotations)}
 ${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, deploy gate.", grid(pipelineCards))}

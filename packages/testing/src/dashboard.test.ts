@@ -546,8 +546,9 @@ describe("render", () => {
       },
     });
     const html = render([first, latest]);
-    expect(html).toContain("Run on main of 2026-10-10");
-    expect(html).toContain("<code>0123456</code>");
+    expect(html).toContain(
+      "Built from main at <code>0123456</code> on 2026-10-10 · trends over 2 days",
+    );
     for (const id of [
       "pipeline",
       "tests",
@@ -635,6 +636,7 @@ describe("render", () => {
       resolvedShare: 75,
     });
     const html = render([latest]);
+    expect(html).toContain("· trends over 1 day</p>");
     expect(html).toContain(
       "0 blocker · 1 major · 3 minor · 1 nit over 2 pull requests",
     );

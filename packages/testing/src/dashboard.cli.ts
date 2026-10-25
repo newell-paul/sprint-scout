@@ -44,8 +44,9 @@ import {
 // Every input is optional: a missing file leaves its cards at n/a. With
 // --bands, exits 3 when a metric leaves its 3σ band, after writing everything.
 const args = process.argv.slice(2);
+// The last flag wins, so CI can override a default the pnpm script passes.
 const option = (name: string) => {
-  const index = args.indexOf(name);
+  const index = args.lastIndexOf(name);
   return index === -1 ? undefined : args[index + 1];
 };
 const readJson = <T>(path: string | undefined): T | undefined =>
