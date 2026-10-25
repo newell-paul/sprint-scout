@@ -84,3 +84,12 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Cause: `randomUUID` exists only in secure contexts; plain HTTP on a LAN address is not one.
 - Fix: `newId()` in `apps/web/app/routes/library.ts` falls back to `getRandomValues`.
 - Test: `library.test.ts`, `describe("newId")`, secure and fallback cases.
+
+## 25 October 2026: workflow_run trusted fork runs
+
+- What broke: nothing yet. `pages.yml` deployed after any successful Checks run whose head branch was named `main`, including a fork's pull request from its own `main`, and published that run's `dashboard` artifact, which the fork's edited `ci.yml` could write. `triage.yml` ran the paid model on failed fork runs, feeding it logs the fork controlled.
+- Found by: a privacy and security review the owner asked for.
+- Cause: a `workflow_run` `branches` filter matches the branch name, not the repository; `workflow_run` jobs carry secrets even for forks.
+- Fix: Pages deploys only when the triggering run was a `push` in this repository; triage skips runs whose head repository is not this one.
+- Test: `harness.test.ts`, "deploys only after a push to main in this repository" and the triage test.
+- Rule: every `workflow_run` job that uses the triggering run's artifacts, logs or secrets checks `github.event.workflow_run.head_repository.full_name == github.repository`.

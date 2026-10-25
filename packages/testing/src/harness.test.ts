@@ -474,6 +474,9 @@ describe("workflows", () => {
 
   // Most evals runs are free and upload nothing, and mutation is manual, so
   // "latest successful run" usually has no report; look the artifact up instead.
+  const sameRepository =
+    /github\.event\.workflow_run\.head_repository\.full_name == github\.repository/g;
+
   it("feeds the dashboard the newest mutation and evals reports, not the newest run", () => {
     const ci = read(".github/workflows/ci.yml");
     expect(ci).not.toMatch(/latest (mutation|evals)\.yml/);
@@ -487,6 +490,14 @@ describe("workflows", () => {
       expect(ci).toMatch(new RegExp(`newest ${name}\\)`));
   });
 
+  // A fork's pull request from a branch named main also completes Checks with
+  // head_branch "main"; only a push in this repository may reach Pages.
+  it("deploys only after a push to main in this repository", () => {
+    const pages = read(".github/workflows/pages.yml");
+    expect(pages).toContain("github.event.workflow_run.event == 'push'");
+    expect(pages.match(sameRepository)).toHaveLength(1);
+  });
+
   it("triages failed runs read-only, from the default branch, behind its switch", () => {
     const triage = read(".github/workflows/triage.yml");
     expect(triage).toContain("vars.TRIAGE_ENABLED == 'true'");
@@ -496,7 +507,9 @@ describe("workflows", () => {
     );
     // Never check out the pull request head in a workflow_run job.
     expect(triage).not.toMatch(/^\s+ref:/m);
-    expect(triage).not.toMatch(/head_branch|head_repository/);
+    expect(triage).not.toMatch(/head_branch/);
+    // A fork's failing run would feed the paid model logs the fork wrote.
+    expect(triage.match(sameRepository)).toHaveLength(2);
     expect(triage).toMatch(/contents: read/);
     expect(triage).not.toMatch(/contents: write/);
   });
