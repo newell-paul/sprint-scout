@@ -158,7 +158,8 @@ export function matchEfforts(
       next.alongM > 0 &&
       here.offM <= gateM &&
       next.offM <= corridorM &&
-      !skipsRoute(here, next, corridorM);
+      !skipsRoute(here, next, corridorM) &&
+      track[i + 1]!.at - track[i]!.at <= trackLimits.gapSeconds * 1000;
     if (!entersAtStart) {
       i++;
       continue;
@@ -173,7 +174,8 @@ export function matchEfforts(
       if (
         p.offM > corridorM ||
         p.alongM < prev.alongM - backtrackM ||
-        skipsRoute(prev, p, corridorM)
+        skipsRoute(prev, p, corridorM) ||
+        track[j]!.at - track[j - 1]!.at > trackLimits.gapSeconds * 1000
       )
         break;
       maxDeviationM = Math.max(maxDeviationM, Math.min(p.offM, corridorM));

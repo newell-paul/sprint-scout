@@ -85,6 +85,24 @@ it("navigation: next and previous hour move the selection", async () => {
     .toBeEnabled();
 });
 
+it("opportunity: a repeated request for the same hour moves back to it", async () => {
+  const route = fresh();
+  const at = "2026-09-11T09:00:00.000Z";
+  const screen = await render(
+    <WindPreview route={route} requestedAt={at} requestSeq={1} {...props()} />,
+  );
+  const region = screen.getByRole("region", console);
+  await expect.element(region.getByText("Hour 3 of 48")).toBeInTheDocument();
+  await region.getByRole("button", { name: "Next hour" }).click();
+  await expect.element(region.getByText("Hour 4 of 48")).toBeInTheDocument();
+
+  await screen.rerender(
+    <WindPreview route={route} requestedAt={at} requestSeq={2} {...props()} />,
+  );
+
+  await expect.element(region.getByText("Hour 3 of 48")).toBeInTheDocument();
+});
+
 it("wind missing: the selected hour reads unavailable", async () => {
   openMeteo.hours = { 0: { speed: null, direction: null } };
   const screen = await render(<WindPreview route={fresh()} {...props()} />);

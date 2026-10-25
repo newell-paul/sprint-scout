@@ -22,7 +22,7 @@ export const openMeteoHosts = {
 
 export type WeatherFault = "ok" | "outage" | "rateLimit" | "empty" | "timeout";
 export type ElevationFault = "ok" | "incomplete" | "outage" | "timeout";
-export type ArchiveFault = "ok" | "outage" | "rateLimit";
+export type ArchiveFault = "ok" | "outage" | "rateLimit" | "slow" | "timeout";
 export type HourOverride = Partial<{
   speed: number | null;
   direction: number | null;

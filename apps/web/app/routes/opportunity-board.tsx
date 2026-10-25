@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Rider } from "@scout/analysis";
 import { formatDuration } from "../components/time";
 import { getRouteForecast } from "./forecast-cache";
-import type { DrawnRoute } from "./library";
+import type { DrawnRoute, Point } from "./library";
 import { shelterPresets } from "@scout/application/shelter";
 import { targetDifference, type Availability } from "./attempt";
 import {
@@ -79,18 +79,36 @@ export default function OpportunityBoard({
     () => new Map(),
   );
   const [generation, setGeneration] = useState(0);
+  // Only Refresh and the expiry timer bypass the forecast cache, and only for
+  // the fetch they start.
+  const forceNext = useRef(false);
+  const reload = useCallback(() => {
+    forceNext.current = true;
+    setGeneration((g) => g + 1);
+  }, []);
+  // Keyed by content: saving a target or shelter makes a new routes array but
+  // must not refetch the board.
+  const targetsKey = JSON.stringify(
+    routes.map((route) => ({
+      id: route.id,
+      point: route.points[0]!,
+      confirmed: route.confirmed,
+    })),
+  );
   const targets = useMemo(
     () =>
-      routes.map((route) => ({
-        id: route.id,
-        point: route.points[0]!,
-        confirmed: route.confirmed,
-      })),
-    [routes],
+      JSON.parse(targetsKey) as {
+        id: string;
+        point: Point;
+        confirmed: boolean;
+      }[],
+    [targetsKey],
   );
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
+    const force = forceNext.current;
+    forceNext.current = false;
     setForecasts(
       new Map(targets.map((t) => [t.id, { status: "loading" as const }])),
     );
@@ -103,7 +121,7 @@ export default function OpportunityBoard({
           state = {
             status: "ready",
             forecast: await getRouteForecast(target.point, target.confirmed, {
-              force: generation > 0,
+              force,
             }),
           };
         } catch (cause) {
@@ -129,11 +147,11 @@ export default function OpportunityBoard({
     const expiry = nextExpiry(forecasts);
     if (expiry === null) return;
     const timer = window.setTimeout(
-      () => setGeneration((g) => g + 1),
+      reload,
       Math.max(60_000, expiry - Date.now()),
     );
     return () => window.clearTimeout(timer);
-  }, [enabled, forecasts]);
+  }, [enabled, forecasts, reload]);
   const rows = useMemo(
     () =>
       enabled
@@ -186,11 +204,7 @@ export default function OpportunityBoard({
             Rank my segments
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={() => setGeneration((g) => g + 1)}
-            disabled={pending > 0}
-          >
+          <button type="button" onClick={reload} disabled={pending > 0}>
             Refresh
           </button>
         )}
