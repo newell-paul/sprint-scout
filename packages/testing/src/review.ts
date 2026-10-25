@@ -52,8 +52,79 @@ export function parseFindings(text: string): StructuredReview {
   ) as Findings;
   return {
     findings,
-    inline: o["inline"] === undefined ? 0 : count(o["inline"], "inline"),
+    inline: Array.isArray(o["comments"])
+      ? o["comments"].filter(placeable).length
+      : o["inline"] === undefined
+        ? 0
+        : count(o["inline"], "inline"),
     verdict: typeof o["verdict"] === "string" ? o["verdict"].trim() : "",
+  };
+}
+
+export type ReviewComment = { path: string; line: number; body: string };
+export type ReviewPayload = {
+  commit_id: string;
+  event: "COMMENT";
+  body: string;
+  comments: (ReviewComment & { side: "RIGHT" })[];
+};
+
+const placeable = (c: unknown): c is ReviewComment => {
+  if (!c || typeof c !== "object") return false;
+  const { path, line, body } = c as Record<string, unknown>;
+  return (
+    typeof path === "string" &&
+    path.trim() !== "" &&
+    typeof line === "number" &&
+    Number.isInteger(line) &&
+    line > 0 &&
+    typeof body === "string" &&
+    body.trim() !== ""
+  );
+};
+
+const unplaced = (comments: unknown[]) =>
+  comments.length
+    ? [
+        "",
+        "**Not placed on the diff**",
+        "",
+        ...comments.map((c) =>
+          placeable(c)
+            ? `- \`${c.path}:${c.line}\` ${c.body.trim()}`
+            : `- ${typeof c === "string" ? c : JSON.stringify(c)}`,
+        ),
+      ].join("\n")
+    : "";
+
+// One GitHub review per reviewed push, so the owner gets one email: the
+// summary is the body and each finding sits on its line. GitHub rejects the
+// whole review when a comment points outside the diff, so the fallback carries
+// the same findings in the body alone.
+export function reviewPayloads(
+  text: string,
+  sha: string,
+): { review: ReviewPayload; fallback: ReviewPayload; placed: number } | null {
+  const o = JSON.parse(text) as Record<string, unknown>;
+  const body = typeof o["body"] === "string" ? o["body"].trim() : "";
+  if (!body) return null;
+  const all: unknown[] = Array.isArray(o["comments"]) ? o["comments"] : [];
+  const placed = all.filter(placeable);
+  const review: ReviewPayload = {
+    commit_id: sha,
+    event: "COMMENT",
+    body: body + unplaced(all.filter((c) => !placeable(c))),
+    comments: placed.map(({ path, line, body }) => ({
+      path,
+      line,
+      side: "RIGHT",
+      body,
+    })),
+  };
+  return {
+    review,
+    fallback: { ...review, body: body + unplaced(all), comments: [] },
+    placed: placed.length,
   };
 }
 

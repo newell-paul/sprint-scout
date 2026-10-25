@@ -1,11 +1,17 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { parseFindings, tallyMarkdown, type ReviewTally } from "./review";
+import {
+  parseFindings,
+  reviewPayloads,
+  tallyMarkdown,
+  type ReviewTally,
+} from "./review";
 
 // tsx review.cli.ts --structured <file with the action's structured_output>
 //   --pr <number> --sha <commit> --run <run id> --model <model>
 //   [--out reports/review] [--at <ISO time>]
-// Writes tally.json and summary.md. Exits 1 when the structured output is
+// Writes tally.json and summary.md, and review.json and review-fallback.json
+// when the reviewer returned a review body. Exits 1 when the structured output is
 // missing or malformed, so an unreadable review is a visible failure rather
 // than a silent zero on the dashboard.
 const args = process.argv.slice(2);
@@ -49,6 +55,14 @@ const tally: ReviewTally = {
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, "tally.json"), JSON.stringify(tally, null, 2) + "\n");
 writeFileSync(join(out, "summary.md"), tallyMarkdown(tally));
+const payloads = reviewPayloads(text, tally.sha);
+if (payloads) {
+  writeFileSync(join(out, "review.json"), JSON.stringify(payloads.review));
+  writeFileSync(
+    join(out, "review-fallback.json"),
+    JSON.stringify(payloads.fallback),
+  );
+}
 console.log(
   `Review tally for #${tally.pr} written to ${resolve(out)} (${tally.findings.blocker} blocker, ${tally.findings.major} major, ${tally.findings.minor} minor, ${tally.findings.nit} nit)`,
 );

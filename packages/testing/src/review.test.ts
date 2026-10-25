@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseFindings,
+  reviewPayloads,
   reviewSummary,
   tallyMarkdown,
   totalFindings,
@@ -131,5 +132,68 @@ describe("reviewSummary", () => {
     expect(summary?.perPull[0]?.pr).toBe(6);
     expect(summary?.findings.minor).toBe(20);
     expect(summary?.resolvedShare).toBeNull();
+  });
+});
+
+const minor = {
+  path: "packages/testing/src/dashboard.cli.ts",
+  line: 92,
+  body: "**Minor** · Font copy has no test",
+};
+const review = (extra: object) =>
+  JSON.stringify({ blocker: 0, major: 0, minor: 1, nit: 0, ...extra });
+
+describe("reviewPayloads", () => {
+  it("builds one review with the findings on their lines", () => {
+    const payloads = reviewPayloads(
+      review({ body: "### Review", comments: [minor] }),
+      "abc123",
+    );
+    expect(payloads?.review).toEqual({
+      commit_id: "abc123",
+      event: "COMMENT",
+      body: "### Review",
+      comments: [{ ...minor, side: "RIGHT" }],
+    });
+    expect(payloads?.placed).toBe(1);
+    expect(parseFindings(review({ body: "x", comments: [minor] })).inline).toBe(
+      1,
+    );
+  });
+
+  it("falls back to the body alone with the comments folded in", () => {
+    const fallback = reviewPayloads(
+      review({ body: "### Review", comments: [minor] }),
+      "abc123",
+    )?.fallback;
+    expect(fallback?.comments).toEqual([]);
+    expect(fallback?.body).toContain("Not placed on the diff");
+    expect(fallback?.body).toContain(
+      "`packages/testing/src/dashboard.cli.ts:92` **Minor** · Font copy has no test",
+    );
+  });
+
+  it.each([
+    ["no path", { ...minor, path: "" }],
+    ["a zero line", { ...minor, line: 0 }],
+    ["a fractional line", { ...minor, line: 1.5 }],
+    ["an empty body", { ...minor, body: " " }],
+    ["not an object", "packages/x.ts:1 broken"],
+  ])("moves a comment with %s into the body", (_name, comment) => {
+    const payloads = reviewPayloads(
+      review({ body: "### Review", comments: [minor, comment] }),
+      "abc123",
+    );
+    expect(payloads?.review.comments).toHaveLength(1);
+    expect(payloads?.review.body).toContain("Not placed on the diff");
+    expect(payloads?.placed).toBe(1);
+  });
+
+  it("posts nothing without a body, and a body alone without findings", () => {
+    expect(reviewPayloads(review({ comments: [minor] }), "abc123")).toBeNull();
+    expect(reviewPayloads(review({ body: "  " }), "abc123")).toBeNull();
+    const clean = reviewPayloads(review({ body: "No findings." }), "abc123");
+    expect(clean?.review.comments).toEqual([]);
+    expect(clean?.review.body).toBe("No findings.");
   });
 });

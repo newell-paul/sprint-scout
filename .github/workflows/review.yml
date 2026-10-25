@@ -56,18 +56,17 @@ jobs:
 
             Get the diff with `gh pr diff` and read any file you need in full. Run `pnpm test` only to confirm a suspected defect, never as a substitute for reading.
 
-            Post:
-            1. One inline comment per Blocker, Major and Minor finding on the line concerned, using the inline comment tool. State the defect in one sentence and the concrete input or state that triggers it.
-            2. One summary comment with `gh pr comment`: findings grouped by severity (file, line, defect, trigger), then the tally line `Tally: N blocker, N major, N minor, N nit`. Nits go only in the summary, at most five, prefer none. If there are no findings, say so in two sentences.
+            Do not post anything: a later step posts your answer as one review, so the owner gets one email. Return it in the structured output:
+            - `body`: the summary in REVIEW.md's format: findings grouped by severity (file, line, defect, trigger), then the tally line `Tally: N blocker, N major, N minor, N nit`. Nits go only here, at most five, prefer none. If there are no findings, say so in two sentences.
+            - `comments`: one `{ "path", "line", "body" }` per Blocker, Major and Minor finding, in REVIEW.md's inline format. `line` is a line number in the new version of the file and must be inside a hunk of `gh pr diff`.
+            - the counts per severity and a one-sentence verdict.
 
             Never approve, request changes or merge. Do not edit files. Do not comment on files that REVIEW.md excludes.
-
-            Finish by returning the counts of findings per severity, the number of inline comments you posted, and a one-sentence verdict.
           claude_args: |
             --model ${{ env.REVIEW_MODEL }}
             --max-turns 30
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(pnpm test),Bash(pnpm test:*),Read,Glob,Grep"
-            --json-schema '{"type":"object","properties":{"blocker":{"type":"integer","minimum":0},"major":{"type":"integer","minimum":0},"minor":{"type":"integer","minimum":0},"nit":{"type":"integer","minimum":0},"inline":{"type":"integer","minimum":0},"verdict":{"type":"string","maxLength":300}},"required":["blocker","major","minor","nit","inline","verdict"]}'
+            --allowedTools "Bash(gh pr diff:*),Bash(gh pr view:*),Bash(pnpm test),Bash(pnpm test:*),Read,Glob,Grep"
+            --json-schema '{"type":"object","properties":{"blocker":{"type":"integer","minimum":0},"major":{"type":"integer","minimum":0},"minor":{"type":"integer","minimum":0},"nit":{"type":"integer","minimum":0},"verdict":{"type":"string","maxLength":300},"body":{"type":"string","minLength":1},"comments":{"type":"array","items":{"type":"object","properties":{"path":{"type":"string"},"line":{"type":"integer","minimum":1},"body":{"type":"string"}},"required":["path","line","body"]}}},"required":["blocker","major","minor","nit","verdict","body","comments"]}'
       - name: Tally
         # Validates the structured output and writes the artifact. A malformed
         # answer fails this step so the gap is visible; the workflow is not a
@@ -83,6 +82,18 @@ jobs:
             --sha "${{ github.event.pull_request.head.sha }}" \
             --run "${{ github.run_id }}" --model "$REVIEW_MODEL"
           cat reports/review/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Post the review
+        # One review per push: one email. A comment outside the diff makes
+        # GitHub reject the whole review (422), so the fallback posts the same
+        # findings in the body alone.
+        if: always() && steps.review.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEWS: repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews
+        run: |
+          [ -f reports/review/review.json ] || { echo "No review body returned."; exit 1; }
+          gh api "$REVIEWS" --input reports/review/review.json --silent ||
+            gh api "$REVIEWS" --input reports/review/review-fallback.json --silent
       - uses: actions/upload-artifact@v7
         if: always()
         with:
