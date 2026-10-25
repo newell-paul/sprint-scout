@@ -100,3 +100,10 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Found by: building the recent runs strip, which drew that run as a red bar.
 - Fix: `pipelineSummary` drops any empty conclusion; the job fetches 31 runs so 30 completed remain.
 - Test: `dashboard.test.ts`, "leaves out the run still in progress, which gh lists with an empty conclusion".
+
+## 25 October 2026: the dashboard history never carried over
+
+- What broke: the dashboard header read "1 run recorded" on every build since the initial import. The `pnpm dashboard` script passes `--history reports/dashboard/history.json`, CI appends `--history previous/history.json`, and the CLI's `option()` took the first flag. That file is absent on a fresh checkout, so every Checks run on main started from an empty history: trends had one point, and the bands, which compare a run with the runs before it, could never breach. The earlier history cannot be rebuilt, because each saved artifact holds one entry.
+- Found by: the owner, asking whether "1 run recorded" meant only one run had been done. The job log said "(1 runs)".
+- Fix: the last flag wins, so CI's `--history` overrides the script's default. The header now reads "Built from main at `<sha>` on `<date>` · trends over N days", because history keeps one entry per day, not per run.
+- Test: `dashboard.cli.test.ts`, "keeps the history named by the last --history flag", runs the CLI twice as CI does.
