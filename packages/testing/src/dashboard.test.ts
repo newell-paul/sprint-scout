@@ -430,6 +430,10 @@ describe("charts", () => {
     expect(html).toContain(">This wk</text>");
     expect(html).toContain('aria-label="Merges: 3, 0, 7"');
     expect(columns([], [], "Merges")).toBe("");
+    const axis = (html: string) =>
+      [...html.matchAll(/class="axis" x="18"[^>]*>(\d+)</g)].map((m) => m[1]);
+    expect(axis(columns([5], ["w"], "Merges"))).toEqual(["0", "3", "6"]);
+    expect(axis(columns([0], ["w"], "Merges"))).toEqual(["0", "1", "2"]);
   });
 });
 

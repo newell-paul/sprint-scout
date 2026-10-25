@@ -675,7 +675,8 @@ export function meter(
 export function columns(values: number[], labels: string[], label: string) {
   if (!values.length) return "";
   const max = Math.max(...values, 1);
-  const top = Math.ceil(max / 5) * 5 || 5;
+  // An even top keeps the midline on a whole number.
+  const top = Math.ceil(max / 2) * 2;
   const width = 900;
   const height = 220;
   const base = height - 20;
@@ -1089,7 +1090,7 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 <meta name="color-scheme" content="dark">
 <title>SprintScout engineering dashboard</title>
 <style>
-:root{--brand-data:#2dd4bf;--brand-wind:#38bdf8;--bg:#0b0f19;--surface:#111827;--raised:#0f172a;--ink:#f1f5f9;--muted:#94a3b8;--border:#1e293b;--line:#334155;--good:#2dd4bf;--watch:#f97316;--poor:#ef4444;--accent:#2dd4bf;--ease:200ms ease}
+:root{--brand-data:#2dd4bf;--brand-wind:#38bdf8;--bg:#0b0f19;--surface:#111827;--raised:#0f172a;--ink:#f1f5f9;--muted:#94a3b8;--border:#1e293b;--line:#334155;--good:#2dd4bf;--watch:#f97316;--poor:#ef4444;--poor-text:#f87171;--accent:#2dd4bf;--ease:200ms ease}
 @font-face{font-family:Inter;src:url("fonts/inter-latin-variable.woff2") format("woff2");font-weight:400 800;font-display:swap}
 @font-face{font-family:"JetBrains Mono";src:url("fonts/jetbrains-mono-latin-variable.woff2") format("woff2");font-weight:400 700;font-display:swap}
 *{box-sizing:border-box}
@@ -1126,7 +1127,7 @@ table{border-collapse:separate;border-spacing:0;width:100%;background:var(--surf
 caption{padding:0 0 8px;font-size:.85rem}
 th{background:var(--raised);font-size:.82rem;color:var(--muted);font-weight:600}
 th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);font-size:.88rem}tr:last-child td{border-bottom:0}tbody tr{transition:background var(--ease)}tbody tr:hover{background:var(--raised)}
-.num{text-align:right;font-variant-numeric:tabular-nums}td.num[data-tone=poor]{color:var(--poor);font-weight:700}
+.num{text-align:right;font-variant-numeric:tabular-nums}td.num[data-tone=poor]{color:var(--poor-text);font-weight:700}
 code,dd,td.num{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
 code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);padding:2px 7px;border-radius:999px}
 .split{display:grid;gap:0 28px}@media (min-width:1000px){.split{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
@@ -1142,9 +1143,9 @@ code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);
 .intent>a{color:var(--ink);text-decoration:none;font-size:.88rem;line-height:1.3}.intent>a:hover{color:var(--accent)}
 .pills{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 0}.pills code{font-size:.7rem}
 .pr{font:.7rem "JetBrains Mono",ui-monospace,monospace;text-decoration:none;padding:2px 7px;border-radius:999px;background:var(--border);color:var(--muted)}
-[data-checks=failing]{color:var(--poor)}[data-checks=passing]{color:var(--good)}[data-checks=running]{color:var(--watch)}
+[data-checks=failing]{color:var(--poor-text);background:color-mix(in srgb,var(--poor) 16%,var(--surface))}[data-checks=passing]{color:var(--good)}[data-checks=running]{color:var(--watch)}
 .meta{display:flex;justify-content:space-between;gap:8px;margin:8px 0 0;font-size:.7rem;color:var(--muted)}
-.ghost{margin:0;border:1px dashed var(--line);border-radius:10px;padding:22px 8px;text-align:center;font-size:.8rem;color:var(--muted);opacity:.7}
+.ghost{margin:0;border:1px dashed var(--line);border-radius:10px;padding:22px 8px;text-align:center;font-size:.8rem;color:var(--muted)}
 .dropped,.more{margin-top:12px}.more{margin-top:8px}.dropped summary,.more summary{cursor:pointer;color:var(--muted);font-size:.82rem;text-align:center;padding:6px;border-radius:8px;list-style:none;transition:color var(--ease),background var(--ease)}.more summary:hover{color:var(--accent);background:var(--border)}.more ul{margin-top:8px}
 .hero{display:grid;place-content:center;text-align:center;border-color:var(--tone);box-shadow:0 0 36px -10px var(--tone),inset 0 0 24px -16px var(--tone)}.hero dd{font-size:2.4rem;color:var(--tone)}.hero .pills{justify-content:center}
 .card.trend figure{color:var(--watch)}
