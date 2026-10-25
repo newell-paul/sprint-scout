@@ -56,6 +56,10 @@ export default function EffortsPanel({
   const [windConsent, setWindConsent] = useState(false);
   const input = useRef<HTMLInputElement | null>(null);
   const active = useRef<AbortController | null>(null);
+  // An import or archive load finishes after an await; it must build on the
+  // efforts stored then, not the ones it started with, or a removal reverts.
+  const latest = useRef(route.efforts);
+  latest.current = route.efforts;
   const inputId = useId();
   useEffect(
     () => () => {
@@ -89,7 +93,7 @@ export default function EffortsPanel({
         return;
       }
       const known = new Set(
-        (route.efforts ?? []).map((effort) => effort.startedAt),
+        (latest.current ?? []).map((effort) => effort.startedAt),
       );
       const fresh = matches
         .filter((match) => !known.has(match.startedAt))
@@ -104,7 +108,7 @@ export default function EffortsPanel({
           sampleGapSeconds: match.sampleGapSeconds,
           importedAt: new Date().toISOString(),
         }));
-      const merged = [...(route.efforts ?? []), ...fresh];
+      const merged = [...(latest.current ?? []), ...fresh];
       if (merged.length > effortLimits.perRoute) {
         setMessage(
           `This segment already holds ${effortLimits.perRoute} efforts. Remove some before importing more.`,
@@ -136,7 +140,11 @@ export default function EffortsPanel({
     active.current = controller;
     setBusy(true);
     setMessage("");
-    const timer = window.setTimeout(() => controller.abort(), 20000);
+    let timedOut = false;
+    const timer = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, 20000);
     // One press loads as many date runs as the archive limit allows; the rest
     // stay pending and are reported so the next press continues.
     const { now: dates, later } = splitDates(
@@ -150,8 +158,11 @@ export default function EffortsPanel({
         { point: route.points[0], dates, consent: windConsent },
         controller.signal,
       );
-      if (controller.signal.aborted) return;
-      const updated = (route.efforts ?? []).map((effort) => {
+      if (controller.signal.aborted) {
+        if (timedOut) setMessage("Past wind timed out; try again.");
+        return;
+      }
+      const updated = (latest.current ?? []).map((effort) => {
         if (!needsWind(effort) || !dates.includes(utcDate(effort.startedAt)))
           return effort;
         const hour = windAt(archive.hours, effort.startedAt);
@@ -175,7 +186,8 @@ export default function EffortsPanel({
               : ""),
         );
     } catch (cause) {
-      if (!controller.signal.aborted)
+      if (timedOut) setMessage("Past wind timed out; try again.");
+      else if (!controller.signal.aborted)
         setMessage(
           cause instanceof Error ? cause.message : "Could not load past wind.",
         );

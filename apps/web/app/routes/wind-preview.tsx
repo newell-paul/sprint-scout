@@ -40,6 +40,7 @@ export default function WindPreview({
   daylightDryOnly,
   onDaylightDryChange,
   requestedAt = null,
+  requestSeq = 0,
   availability,
   onTargetChange,
   onTerrainChange,
@@ -58,6 +59,8 @@ export default function WindPreview({
   daylightDryOnly: boolean;
   onDaylightDryChange: (value: boolean) => void;
   requestedAt?: string | null;
+  /** Changes on every request, so asking for the same hour again still moves to it. */
+  requestSeq?: number;
   availability: Availability | null;
   onTargetChange: (target: number | null) => boolean;
   onShelterChange: (shelter: Shelter) => boolean;
@@ -241,7 +244,7 @@ export default function WindPreview({
     if (!hours || !requestedAt) return;
     const position = hours.findIndex((h) => h.at === requestedAt);
     if (position !== -1) setIndex(position);
-  }, [requestedAt]);
+  }, [requestedAt, requestSeq]);
   useEffect(() => {
     if (!map || !ready || current?.speedMps == null) return;
     const rotation = current.flowDegrees;

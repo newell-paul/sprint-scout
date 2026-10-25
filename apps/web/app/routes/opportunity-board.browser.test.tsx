@@ -143,3 +143,34 @@ it("error: a forecast outage leaves segments unranked with a reason", async () =
     .toBeDisabled();
   await aria("opportunity-board.error", region);
 });
+
+it("refresh: a later settings save neither refetches nor bypasses the cache", async () => {
+  const fetchSpy = vi.spyOn(window, "fetch");
+  const forecasts = () =>
+    fetchSpy.mock.calls.filter(([url]) => String(url).includes("/v1/forecast"))
+      .length;
+  const initial = routes();
+  const screen = await render(
+    <OpportunityBoard routes={initial} {...props()} />,
+  );
+  const region = screen.getByRole("region", board);
+  await region.getByRole("button", { name: "Rank my segments" }).click();
+  await region.getByRole("button", { name: "Refresh" }).click();
+  await expect
+    .poll(() => region.getByTestId("board-row").elements().length)
+    .toBe(2);
+  const before = forecasts();
+
+  await screen.rerender(
+    <OpportunityBoard
+      routes={initial.map((route) => ({ ...route, targetTimeS: 120 }))}
+      {...props()}
+    />,
+  );
+
+  await expect
+    .element(region.getByRole("row", { name: /Test hill/ }))
+    .toBeVisible();
+  expect(forecasts()).toBe(before);
+  fetchSpy.mockRestore();
+});

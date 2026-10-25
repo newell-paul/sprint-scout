@@ -83,7 +83,9 @@ export default function Routes() {
   const onHour = useCallback((h: RouteWindHour | null) => setHour(h), []);
   const [riderInput, setRiderInput] = useState<RiderInput | null>(null);
   const [daylightDryOnly, setDaylightDryOnly] = useState(false);
-  const [requestedAt, setRequestedAt] = useState<string | null>(null);
+  const [request, setRequest] = useState<{ at: string; seq: number } | null>(
+    null,
+  );
   const rider = useMemo(() => resolveRider(riderInput), [riderInput]);
   useEffect(() => {
     try {
@@ -106,7 +108,7 @@ export default function Routes() {
     }
   }, []);
   const openOpportunity = useCallback((nextSlot: number, at: string) => {
-    setRequestedAt(at);
+    setRequest((previous) => ({ at, seq: (previous?.seq ?? 0) + 1 }));
     setSlot(nextSlot);
   }, []);
   const selectedRoute = editing
@@ -598,7 +600,8 @@ export default function Routes() {
           onRiderChange={changeRider}
           daylightDryOnly={daylightDryOnly}
           onDaylightDryChange={setDaylightDryOnly}
-          requestedAt={requestedAt}
+          requestedAt={request?.at ?? null}
+          requestSeq={request?.seq ?? 0}
           availability={null}
           onShelterChange={(shelter) =>
             persist((current) => {

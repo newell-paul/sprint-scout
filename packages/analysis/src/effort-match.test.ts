@@ -164,6 +164,19 @@ describe("effort matching", () => {
       Math.abs(efforts[0]!.elapsedSeconds - lengthOf(hill) / 12),
     ).toBeLessThan(5);
   });
+  it("never times an effort across a pause longer than the gap limit", () => {
+    const paused = ride(hill, { speedMps: 1, intervalS: 61 });
+    const steady = ride(hill, { speedMps: 1, intervalS: 59 });
+    expect(matchEfforts(hill, paused)).toEqual([]);
+    expect(matchEfforts(hill, steady)).toHaveLength(1);
+  });
+  it("does not start an effort on a pause that straddles the start line", () => {
+    // 300 m lead at 10 m/s and 1 s: sample 30 sits on the start line.
+    const paused = ride(hill, { speedMps: 10 }).map((p, k) =>
+      k > 30 ? { ...p, at: p.at + 3_600_000 } : p,
+    );
+    expect(matchEfforts(hill, paused)).toEqual([]);
+  });
   it("does not invent an effort from crossing the mouth of a U", () => {
     const a: Coordinate = [-0.12, 51.5];
     const at = (from: Coordinate, m: number, deg: number): Coordinate => {
