@@ -347,16 +347,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          newest() { gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$1" --jq '[.artifacts[] | select((.expired | not) and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)][0].workflow_run.id // empty' 2>/dev/null || true; }
+          latest() { gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$1" --jq '[.artifacts[] | select((.expired | not) and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)][0].workflow_run.id // empty'; }
+          newest() { latest "$1" 2>/dev/null || true; }
           run=$(newest mutation-report)
           [ -n "$run" ] && gh run download "$run" --name mutation-report --dir reports/mutation || true
           run=$(newest evals-report)
           [ -n "$run" ] && gh run download "$run" --name evals-report --dir reports/evals || true
           # Red runs keep their day too: a run uploads a dashboard only when it
           # wrote a history.
-          run=$(newest dashboard)
-          [ -n "$run" ] && gh run download "$run" --name dashboard --dir previous || true
-          [ -f previous/history.json ] || { echo "::error::No previous dashboard history could be read (run ${run:-none}). Re-run this job; building without it would restart the history."; exit 1; }
+          # A failed read stops the job, because building without the history
+          # would restart it. None left at all (90-day retention) starts anew.
+          run=$(latest dashboard) || { echo "::error::Could not list dashboard artifacts. Re-run this job."; exit 1; }
+          if [ -z "$run" ]; then
+            echo "::warning::No unexpired dashboard history on main; starting a new one."
+          else
+            gh run download "$run" --name dashboard --dir previous && [ -f previous/history.json ] \
+              || { echo "::error::Could not read the dashboard history from run $run. Re-run this job."; exit 1; }
+          fi
       - name: Read pipeline and delivery data from the GitHub API
         env:
           GH_TOKEN: ${{ github.token }}

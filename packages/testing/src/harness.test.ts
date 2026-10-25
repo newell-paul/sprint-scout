@@ -527,7 +527,7 @@ describe("workflows", () => {
         ".workflow_run.head_repository_id == .workflow_run.repository_id",
       );
     }
-    expect(ci).toMatch(/newest dashboard\)/);
+    expect(ci).toMatch(/latest dashboard\)/);
     expect(ci).not.toContain("test-health");
   });
 
@@ -552,8 +552,10 @@ describe("workflows", () => {
       >;
     };
     const steps = doc.jobs["dashboard"]?.steps ?? [];
-    const fetch = steps.find((s) => s.run?.includes("newest dashboard"));
-    expect(fetch?.run).toContain("previous/history.json ] ||");
+    const fetch = steps.find((s) => s.run?.includes("latest dashboard"));
+    expect(fetch?.run).toContain("previous/history.json ]");
+    expect(fetch?.run).toContain("::warning::No unexpired dashboard history");
+    expect(fetch?.run).not.toMatch(/--name dashboard[^\n]*\|\| true/);
     const upload = steps.find(
       (s) => s.run === undefined && s.if?.includes("history.json"),
     );
