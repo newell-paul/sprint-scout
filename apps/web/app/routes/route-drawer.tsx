@@ -420,13 +420,13 @@ export default function Routes() {
     route: DrawnRoute,
     patch: Partial<DrawnRoute>,
     compare: "whole" | "points" = "points",
+    changed = "Segment changed in another tab.",
   ) {
     const key = (r: DrawnRoute) =>
       JSON.stringify(compare === "whole" ? r : r.points);
     return persist((current) => {
       const stored = current.find((item) => item.id === route.id);
-      if (!stored || key(stored) !== key(route))
-        throw new Error("Segment changed in another tab.");
+      if (!stored || key(stored) !== key(route)) throw new Error(changed);
       return current.map((item) =>
         item.id === route.id ? { ...item, ...patch } : item,
       );
@@ -633,7 +633,12 @@ export default function Routes() {
             updateRoute(selectedRoute, { shelter }, "whole")
           }
           onTerrainChange={(terrain, terrainMode) =>
-            updateRoute(selectedRoute, { terrain, terrainMode })
+            updateRoute(
+              selectedRoute,
+              { terrain, terrainMode },
+              "points",
+              "Segment changed while loading terrain.",
+            )
           }
           onEffortsChange={(efforts) => updateRoute(selectedRoute, { efforts })}
           onTerrainAutoChange={(terrainAuto) =>
