@@ -39,7 +39,8 @@
     "review:tally": "tsx packages/testing/src/review.cli.ts",
     "triage": "tsx packages/testing/src/triage.cli.ts",
     "spec:draft": "tsx packages/testing/src/spec-draft.cli.ts",
-    "band:issue": "tsx packages/testing/src/band-issue.cli.ts"
+    "band:issue": "tsx packages/testing/src/band-issue.cli.ts",
+    "check:intents": "tsx packages/testing/src/intents.cli.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

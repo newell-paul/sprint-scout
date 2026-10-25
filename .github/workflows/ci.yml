@@ -33,6 +33,7 @@ jobs:
       - run: pnpm boundaries
       - run: pnpm knip
       - run: pnpm typecheck
+      - run: pnpm check:intents
       - name: Type coverage
         run: |
           mkdir -p reports

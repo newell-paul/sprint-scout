@@ -305,7 +305,7 @@ export function deliverySummary(pulls: PullRequest[], now: string, weeks = 8) {
   return { medianCycleHours: median, mergesPerWeek };
 }
 
-const intentStatus = (text: string) =>
+export const intentStatus = (text: string) =>
   /^Status:\s*(.+)$/m.exec(text)?.[1]?.trim() ?? "unknown";
 const intentOpened = (text: string) =>
   /^Opened:\s*(.+?)(?: by .*)?$/m.exec(text)?.[1]?.trim() ?? "";

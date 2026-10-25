@@ -312,6 +312,15 @@ describe("intents", () => {
     expect(existsSync(at("intent", slug, "spec.md"))).toBe(true);
     expect(existsSync(at("intent", slug, "plan.md"))).toBe(true);
   });
+
+  // Not in pnpm verify: staged work commits with its intent in build.
+  it("fails Checks when an intent is left in build", () => {
+    const doc = parse(read(".github/workflows/ci.yml")) as {
+      jobs: Record<string, { steps?: { run?: string }[] }>;
+    };
+    const runs = doc.jobs["static"]?.steps?.map((s) => s.run);
+    expect(runs).toContain("pnpm check:intents");
+  });
 });
 
 describe("skills loaded in an eval transcript", () => {
