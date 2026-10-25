@@ -78,7 +78,7 @@ export default function TimeChart({
             {best && index === bestIndex ? "Best hour · " : "Selected · "}
             {timeLabel(forecast.hours[index]!.at)}
           </span>
-          <strong>
+          <strong data-testid="segment-time-value">
             {selected ? formatDuration(selected.windTimeS) : "Unavailable"}
           </strong>
         </div>
