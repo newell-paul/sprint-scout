@@ -1,4 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react/pure";
 import type { RouteEffort } from "./library";
 import EffortsPanel from "./efforts-panel";
@@ -76,4 +77,31 @@ it("a past-wind load that times out says so", async () => {
   await expect
     .element(screen.getByText("Past wind timed out; try again."))
     .toBeVisible();
+});
+
+it("an import that skipped points says how many", async () => {
+  const start = Date.parse("2026-09-12T09:00:00Z");
+  const timed = Array.from({ length: 160 }, (_, k) => {
+    const time = new Date(start + k * 1000).toISOString();
+    return `<trkpt lat="${51.4973 + k * 0.00009}" lon="-0.12"><time>${time}</time></trkpt>`;
+  });
+  const untimed = `<trkpt lat="51.497" lon="-0.12"><ele>1</ele></trkpt>`;
+  const zoneless = `<trkpt lat="51.4971" lon="-0.12"><time>2026-09-12T08:59:59</time></trkpt>`;
+  const file = new File(
+    [
+      `<?xml version="1.0"?><gpx version="1.1"><trk><trkseg>${untimed}${zoneless}${timed.join("")}</trkseg></trk></gpx>`,
+    ],
+    "gappy.gpx",
+    { type: "application/gpx+xml" },
+  );
+  const { screen } = await renderPanel([anEffort("a", "2026-09-01T07:00:00Z")]);
+  await screen.getByLabelText(/my own device recording/).click();
+
+  await userEvent.upload(screen.getByLabelText(/Import GPX/), file);
+
+  await expect
+    .element(screen.getByText(/1 effort added from gappy\.gpx/))
+    .toHaveTextContent(
+      "2 track points were skipped for a missing or out-of-order time or position; 1 had a time with no zone.",
+    );
 });

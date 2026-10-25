@@ -59,7 +59,7 @@ jobs:
       - run: pnpm test:size
       - run: pnpm test:lighthouse
       # The dashboard from the Checks run that triggered this deploy is
-      # published beside the app; a missing artifact is not a deploy failure.
+      # published beside the app; without it the deploy stops.
       - name: Add the latest engineering dashboard
         env:
           GH_TOKEN: ${{ github.token }}
@@ -71,6 +71,8 @@ jobs:
             run=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=dashboard" --jq '[.artifacts[] | select((.expired | not) and .workflow_run.head_branch == "main" and .workflow_run.head_repository_id == .workflow_run.repository_id)][0].workflow_run.id // empty')
           fi
           # Publishing without it would delete the live dashboard and badges.
+          # An empty id must not reach gh, which may then take any run's artifact.
+          [ -n "$run" ] || { echo "::error::No unexpired dashboard artifact from main in this repository."; exit 1; }
           gh run download "$run" --name dashboard --dir apps/web/out/dashboard \
             || { echo "::error::Could not download the dashboard from run ${run:-none}."; exit 1; }
       - name: Refresh the intent board

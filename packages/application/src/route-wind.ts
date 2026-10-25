@@ -288,7 +288,8 @@ export async function loadRouteWind(
     point,
   };
 }
-// Reference-rider effect for a drawn route under one point forecast.
+// Ride effect for a drawn route under one point forecast, for the given rider,
+// terrain and shelter (the reference rider on open, flat ground by default).
 export function estimateRouteRideEffect(
   points: unknown,
   hour: Pick<RouteWindHour, "speedMps" | "fromDegrees" | "at">,

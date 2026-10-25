@@ -55,7 +55,7 @@ export default function WindPreview({
   unit: SpeedUnit;
   rider: Rider;
   riderInput: RiderInput | null;
-  onRiderChange: (input: RiderInput | null) => void;
+  onRiderChange: (input: RiderInput | null) => boolean;
   daylightDryOnly: boolean;
   onDaylightDryChange: (value: boolean) => void;
   requestedAt?: string | null;
@@ -229,7 +229,8 @@ export default function WindPreview({
       active.current = null;
     };
   }, [load]);
-  // Re-fetch automatically when the forecast passes its freshness window.
+  // A planner left open would otherwise keep timing attempts against a stale
+  // forecast; re-fetch once it passes its freshness window.
   useEffect(() => {
     if (!forecast) return;
     const timer = window.setTimeout(

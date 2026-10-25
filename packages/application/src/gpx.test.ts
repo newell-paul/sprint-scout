@@ -37,6 +37,20 @@ describe("GPX reader", () => {
       ),
     );
     expect(track.points.map((p) => p.lat)).toEqual([51.5, 51.502]);
+    expect(track.skipped).toBe(2);
+    expect(track.zoneless).toBe(0);
+  });
+  it("counts points dropped for a time without a zone", () => {
+    const track = parseGpx(
+      gpx(
+        point(51.5, -0.12, "2026-09-12T09:00:00Z") +
+          point(51.5005, -0.12, "2026-09-12T09:00:01") +
+          point(51.501, -0.12, "2026-09-12T09:00:02Z"),
+      ),
+    );
+    expect(track.points).toHaveLength(2);
+    expect(track.skipped).toBe(1);
+    expect(track.zoneless).toBe(1);
   });
   it("rejects files that are not GPX, have no points or have no timed points", () => {
     expect(() => parseGpx("<html></html>")).toThrow("Not a GPX file.");

@@ -60,7 +60,7 @@ export function alongRouteSigmaMps(
 const gravity = 9.80665;
 // Forecast wind is reported at 10 m. Scale to handlebar height (1.5 m) with a
 // logarithmic profile over open grassland (roughness length 0.03 m). Shelter
-// from hedges or buildings reduces it further and is not modelled.
+// from hedges or buildings is a separate factor the caller applies.
 export const forecastHeightM = 10;
 export const riderHeightM = 1.5;
 export const roughnessLengthM = 0.03;

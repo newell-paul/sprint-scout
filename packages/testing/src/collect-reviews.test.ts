@@ -28,8 +28,14 @@ const [, endpoint] = process.argv.slice(2);
 const fail = process.env.FAKE_FAIL;
 if (endpoint.includes("artifacts?")) {
   if (fail === "list") process.exit(1);
-  for (const id of Object.keys(JSON.parse(process.env.FAKE_TALLIES)))
-    console.log(JSON.stringify({ id: Number(id), created_at: "2026-10-25T00:00:00Z" }));
+  // Artifact 9 comes from a fork's pull request, 8 has expired and 7 names no run.
+  const run = (head) => ({ repository_id: 1, head_repository_id: head });
+  const artifacts = Object.keys(JSON.parse(process.env.FAKE_TALLIES)).map((id) => ({
+    id: Number(id),
+    expired: id === "8",
+    workflow_run: id === "7" ? undefined : run(id === "9" ? 2 : 1),
+  }));
+  console.log(JSON.stringify({ artifacts }));
 } else if (endpoint.endsWith("/zip")) {
   process.stdout.write("zip");
 } else if (endpoint === "graphql") {
@@ -76,11 +82,14 @@ function collect(tallies: Record<number, unknown>, fail = "") {
 }
 
 describe("review tally collector", () => {
-  it("keeps valid tallies with their thread counts and skips malformed ones", () => {
+  it("keeps valid tallies from this repository with their thread counts", () => {
     const { status, written } = collect({
       1: tally(10, { minor: 2 }),
       2: tally(11, { minor: -1 }),
       3: tally(12, { nit: 1.5 }),
+      7: tally(15, {}),
+      8: tally(13, {}),
+      9: tally(14, {}),
     });
     expect(status).toBe(0);
     expect(written).toEqual([

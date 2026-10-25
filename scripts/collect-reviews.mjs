@@ -38,17 +38,19 @@ const gh = (ghArgs, options = {}) =>
   });
 
 function listArtifacts() {
-  const text = gh([
-    "api",
-    `repos/${repo}/actions/artifacts?name=review-report&per_page=${limit}`,
-    "--jq",
-    // A fork's pull request can upload an artifact of the same name.
-    ".artifacts[] | select((.expired | not) and .workflow_run.head_repository_id == .workflow_run.repository_id) | {id, created_at}",
-  ]);
-  return text
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
+  const { artifacts } = JSON.parse(
+    gh([
+      "api",
+      `repos/${repo}/actions/artifacts?name=review-report&per_page=${limit}`,
+    ]),
+  );
+  // A fork's pull request can upload an artifact of the same name.
+  return artifacts.filter(
+    (a) =>
+      !a.expired &&
+      a.workflow_run?.repository_id != null &&
+      a.workflow_run.head_repository_id === a.workflow_run.repository_id,
+  );
 }
 
 function readTally(artifact, dir) {

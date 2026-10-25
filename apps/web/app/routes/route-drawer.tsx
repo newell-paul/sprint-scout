@@ -103,8 +103,10 @@ export default function Routes() {
           riderStorageValue(localStorage.getItem(riderStorageKey), input),
         );
       else localStorage.removeItem(riderStorageKey);
+      return true;
     } catch {
       /* Keep the in-memory rider for this session. */
+      return false;
     }
   }, []);
   const openOpportunity = useCallback((nextSlot: number, at: string) => {

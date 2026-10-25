@@ -13,6 +13,8 @@ const fields: {
   { key: "massKg", label: "Rider + bike", unitLabel: "kg", step: "1" },
   { key: "cdaM2", label: "CdA", unitLabel: "m²", step: "0.01" },
 ];
+const unsaved =
+  "Could not save your numbers in this browser; they apply until you close the page.";
 export default function RiderSettings({
   input,
   calmSpeedMps,
@@ -22,7 +24,8 @@ export default function RiderSettings({
   input: RiderInput | null;
   calmSpeedMps: number;
   unit: SpeedUnit;
-  onChange: (input: RiderInput | null) => void;
+  /** Returns false when the browser could not store the numbers. */
+  onChange: (input: RiderInput | null) => boolean;
 }) {
   const shown = input ?? referenceInput;
   const [drafts, setDrafts] = useState<Record<keyof RiderInput, string>>({
@@ -41,8 +44,7 @@ export default function RiderSettings({
       );
       return;
     }
-    setMessage("");
-    onChange({ ...shown, [key]: parsed });
+    setMessage(onChange({ ...shown, [key]: parsed }) ? "" : unsaved);
   };
   const reset = () => {
     setDrafts({
@@ -50,8 +52,7 @@ export default function RiderSettings({
       massKg: String(referenceInput.massKg),
       cdaM2: String(referenceInput.cdaM2),
     });
-    setMessage("");
-    onChange(null);
+    setMessage(onChange(null) ? "" : unsaved);
   };
   return (
     <details className="rider-settings" data-testid="rider-settings">
