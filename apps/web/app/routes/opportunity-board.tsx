@@ -5,7 +5,7 @@ import { formatDuration, formatWeekdayHour } from "../components/time";
 import { getRouteForecast } from "./forecast-cache";
 import type { DrawnRoute, Point } from "./library";
 import { shelterPresets } from "@scout/application/shelter";
-import { targetDifference, type Availability } from "./attempt";
+import { targetDifference } from "./attempt";
 import {
   nextExpiry,
   rankOpportunities,
@@ -65,14 +65,12 @@ export default function OpportunityBoard({
   daylightDryOnly,
   activeSlot,
   onOpen,
-  availability,
 }: {
   routes: DrawnRoute[];
   rider: Rider;
   daylightDryOnly: boolean;
   activeSlot: number;
   onOpen: (slot: number, at: string) => void;
-  availability: Availability | null;
 }) {
   const [enabled, setEnabled] = useState(false);
   const [forecasts, setForecasts] = useState<Map<string, ForecastState>>(
@@ -155,15 +153,9 @@ export default function OpportunityBoard({
   const rows = useMemo(
     () =>
       enabled
-        ? rankOpportunities(
-            routes,
-            forecasts,
-            rider,
-            daylightDryOnly,
-            availability,
-          )
+        ? rankOpportunities(routes, forecasts, rider, daylightDryOnly)
         : [],
-    [enabled, routes, forecasts, rider, daylightDryOnly, availability],
+    [enabled, routes, forecasts, rider, daylightDryOnly],
   );
   const pending = rows.filter((row) => row.status === "loading").length;
   const gainLabel = (gainS: number) => {
@@ -183,9 +175,6 @@ export default function OpportunityBoard({
           <span>
             Every saved segment at its own best hour in the next 48 hours ·
             {daylightDryOnly ? " dry daylight only" : " any hour"}
-            {availability
-              ? ` · Within availability (${availability.timeZone})`
-              : ""}
           </span>
         </div>
         {!enabled ? (

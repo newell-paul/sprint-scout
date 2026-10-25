@@ -26,7 +26,6 @@ const props = () => ({
   onRiderChange: vi.fn(),
   daylightDryOnly: false,
   onDaylightDryChange: vi.fn(),
-  availability: null,
   onTargetChange: vi.fn(() => true),
   onTerrainChange: vi.fn(() => true),
   onTerrainAutoChange: vi.fn(() => true),

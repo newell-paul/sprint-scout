@@ -25,7 +25,6 @@ import TerrainPanel from "./terrain-panel";
 import EffortsPanel from "./efforts-panel";
 import type { TerrainProfile } from "@scout/application/terrain";
 import ConditionsDetail from "./conditions-detail";
-import { withinAvailability, type Availability } from "./attempt";
 import { startWindParticles } from "./wind-particles";
 import { routeEffect } from "./route-effect";
 export default function WindPreview({
@@ -41,7 +40,6 @@ export default function WindPreview({
   onDaylightDryChange,
   requestedAt = null,
   requestSeq = 0,
-  availability,
   onTargetChange,
   onTerrainChange,
   onTerrainAutoChange,
@@ -61,7 +59,6 @@ export default function WindPreview({
   requestedAt?: string | null;
   /** Changes on every request, so asking for the same hour again still moves to it. */
   requestSeq?: number;
-  availability: Availability | null;
   onTargetChange: (target: number | null) => boolean;
   onShelterChange: (shelter: Shelter) => boolean;
   onTerrainChange: (
@@ -134,7 +131,7 @@ export default function WindPreview({
     [current, route.points],
   );
   const bestIndex = forecast
-    ? bestHourIndex(effects, forecast.hours, daylightDryOnly, availability)
+    ? bestHourIndex(effects, forecast.hours, daylightDryOnly)
     : -1;
   const days = forecast
     ? [0, 1].map((offset) => {
@@ -357,14 +354,8 @@ export default function WindPreview({
             />
             {bestIndex === -1 && (
               <p role="status">
-                No eligible forecast hour matches your filters. Widen
-                availability or clear the dry daylight filter.
-              </p>
-            )}
-            {current && !withinAvailability(current.at, availability) && (
-              <p role="status">
-                Viewing an hour outside your availability. Best hour and the
-                board still use your window.
+                No eligible forecast hour matches your filters. Clear the dry
+                daylight filter.
               </p>
             )}
           </div>
@@ -423,9 +414,9 @@ export default function WindPreview({
               range includes the exposed scenario.
             </p>
             <p id="best-hour-explanation">
-              Largest modelled speed benefit within your availability and these
-              48 hours, or the smallest loss if all hours are unfavourable.
-              Missing hours are skipped; ties choose the earliest hour.{" "}
+              Largest modelled speed benefit in these 48 hours, or the smallest
+              loss if all hours are unfavourable. Missing hours are skipped;
+              ties choose the earliest hour.{" "}
               {daylightDryOnly
                 ? "Only daylight hours without forecast precipitation are considered; hours with unknown conditions are skipped."
                 : "Rain and daylight are not filtered unless you tick Dry daylight only. Neither setting assesses road safety."}
