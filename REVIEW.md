@@ -23,7 +23,7 @@ Applies to every pull request, whether reviewed by a person, by a second model r
 
 Findings grouped by severity, each with file, line, the defect in one sentence and the concrete input or state that triggers it. End with the tally. Repeated findings across reviews become a line in `AGENTS.md` under "Known mistakes".
 
-Every comment uses the same Markdown, so the notification emails read alike. Each inline comment:
+The findings reach the pull request as one GitHub review, so the owner gets one email per reviewed push: the summary is the review body and each Blocker, Major and Minor finding is a comment on its line. Each line comment:
 
 ```markdown
 **Minor** · <the defect, under ten words>
@@ -33,7 +33,7 @@ Every comment uses the same Markdown, so the notification emails read alike. Eac
 **Fix:** <the smallest change that closes it>
 ```
 
-The summary comment:
+The review body:
 
 ```markdown
 ### Review
@@ -53,4 +53,4 @@ Only severities with findings get a heading. With no findings, the summary is th
 
 ## Automation
 
-The `Review` workflow applies this policy with `claude-code-action` to every non-draft pull request from this repository when the repository variable `REVIEW_ENABLED` is `true`: inline comments for Blocker, Major and Minor findings, one summary comment with the tally, and a `review-report` artifact that the dashboard reads. It never approves or requests changes. A comment containing `@claude` on a pull request starts the fix loop, which changes only what the comment asks, runs the relevant check and pushes to that pull request's branch only.
+The `Review` workflow applies this policy with `claude-code-action` to every non-draft pull request from this repository when the repository variable `REVIEW_ENABLED` is `true`: the agent returns the review as structured output and a later step posts it as one review by `github-actions[bot]`, with the line comments attached, and writes a `review-report` artifact that the dashboard reads. If GitHub rejects a line comment that falls outside the diff, the same findings are posted in the review body alone. It never approves or requests changes. A comment containing `@claude` on a pull request starts the fix loop, which changes only what the comment asks, runs the relevant check and pushes to that pull request's branch only.
