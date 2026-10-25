@@ -1,5 +1,5 @@
 // Deterministic bands over the dashboard history. Each metric is compared
-// with the mean and standard deviation of the previous runs in its window;
+// with the mean and standard deviation of the previous days in its window;
 // the number of standard deviations in the worse direction sets the level:
 // 1 logs, 2 annotates the dashboard, 3 fails the dashboard job.
 import type { Snapshot } from "./dashboard";

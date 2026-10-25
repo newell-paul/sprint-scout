@@ -74,6 +74,8 @@ describe("guard hook", () => {
     ["pushing HEAD to main", bash("git push origin HEAD:main")],
     ["force pushing", bash("git push -f origin feature")],
     ["force pushing with lease", bash("git push --force-with-lease")],
+    ["pushing to main after git options", bash("git -C . push origin main")],
+    ["force pushing with a + refspec", bash("git push origin +feature")],
   ] as const;
   const allowed = [
     ["reading the env example", file("Read", `${envFile}.example`)],
@@ -102,6 +104,13 @@ describe("guard hook", () => {
     const { status, stderr } = runGuard(call);
     expect(status).toBe(2);
     expect(stderr).toMatch(/^Blocked:/);
+  });
+
+  // The example file was deleted on 24 October 2026; the owner edits the
+  // real one by hand.
+  it("does not send the agent to a deleted example file", () => {
+    for (const call of [file("Read", envFile), bash(`cat ${envFile}`)])
+      expect(runGuard(call).stderr).not.toContain("example");
   });
 
   it.each(allowed)("allows %s", (_name, call) => {
@@ -505,6 +514,61 @@ describe("workflows", () => {
     const pages = read(".github/workflows/pages.yml");
     expect(pages).toContain("github.event.workflow_run.event == 'push'");
     expect(pages.match(sameRepository)).toHaveLength(1);
+  });
+
+  // `gh run list --branch main` also matches a fork's pull request from its
+  // own main, whose edited ci.yml can upload any `dashboard` artifact.
+  it("takes the dashboard artifact only from main in this repository", () => {
+    const ci = read(".github/workflows/ci.yml");
+    const pages = read(".github/workflows/pages.yml");
+    for (const text of [ci, pages]) {
+      expect(text).not.toMatch(/gh run list[^\n]*--status success/);
+      expect(text).toContain(
+        ".workflow_run.head_repository_id == .workflow_run.repository_id",
+      );
+    }
+    expect(ci).toMatch(/newest dashboard\)/);
+    expect(ci).not.toContain("test-health");
+  });
+
+  it("publishes the commit that passed Checks, never without the dashboard", () => {
+    const pages = read(".github/workflows/pages.yml");
+    expect(pages).toContain("ref: ${{ github.event.workflow_run.head_sha");
+    expect(pages).not.toMatch(/--name dashboard[^\n]*\|\| true/);
+  });
+
+  it("keeps the dashboard history honest about failures", () => {
+    const doc = parse(read(".github/workflows/ci.yml")) as {
+      jobs: Record<
+        string,
+        {
+          steps?: {
+            name?: string;
+            id?: string;
+            if?: string;
+            run?: string;
+          }[];
+        }
+      >;
+    };
+    const steps = doc.jobs["dashboard"]?.steps ?? [];
+    const fetch = steps.find((s) => s.run?.includes("newest dashboard"));
+    expect(fetch?.run).toContain("previous/history.json ] ||");
+    const upload = steps.find(
+      (s) => s.run === undefined && s.if?.includes("history.json"),
+    );
+    expect(upload?.if).toContain("hashFiles('reports/dashboard/history.json')");
+    const breach = steps.find((s) => s.name === "Fail on a 3σ band breach");
+    expect(breach?.if).toBe("steps.breach.outputs.breach == 'true'");
+    const crash = steps.find((s) => s.name?.includes("build failed"));
+    expect(crash?.if).toContain("steps.build.outcome == 'failure'");
+    for (const s of steps.filter((s) => /gh (run|pr) list/.test(s.run ?? "")))
+      expect(s.run).not.toMatch(/> reports\/github\/\w+\.json/);
+    for (const s of steps.filter((s) => s.run?.includes("scripts/collect-")))
+      expect(s.run).toContain("::warning::");
+    expect(read("scripts/collect-reviews.mjs")).toContain(
+      ".workflow_run.head_repository_id == .workflow_run.repository_id",
+    );
   });
 
   it("triages failed runs read-only, from the default branch, behind its switch", () => {

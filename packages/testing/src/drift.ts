@@ -1,6 +1,6 @@
-// Nightly contract drift check: fetch live Open-Meteo responses with the exact
-// parameters the app uses and validate them against the contract schemas and
-// the recorded fixtures' unit tables. Exits non-zero on any drift.
+// Contract drift check, advisory in Checks: fetch live Open-Meteo responses
+// and validate them against the contract schemas and the recorded fixtures'
+// unit tables. Exits non-zero on any drift.
 import {
   openMeteoArchiveResponse,
   openMeteoElevationResponse,

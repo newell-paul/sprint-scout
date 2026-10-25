@@ -169,7 +169,7 @@ for (const [name, badge] of Object.entries(badges(merged.at(-1)))) {
   );
 }
 console.log(
-  `Dashboard written to ${resolve(out)}/index.html (${merged.length} runs)`,
+  `Dashboard written to ${resolve(out)}/index.html (${merged.length} days)`,
 );
 for (const band of bands.filter((b) => b.level >= 1)) {
   console.log(`band ${band.level}σ ${band.label}: ${band.reason}`);

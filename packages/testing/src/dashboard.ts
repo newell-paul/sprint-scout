@@ -1,6 +1,6 @@
-// Builds the engineering dashboard on main: one snapshot per run appended to
-// a 90-run history, rendered as a static page with no scripts, plus shields
-// endpoint badges. Every input is optional; a missing report leaves its cards
+// Builds the engineering dashboard on main: one snapshot per day, which a
+// later run that day replaces, 90 days kept, rendered as a static page with
+// no scripts, plus shields endpoint badges. Every input is optional; a missing report leaves its cards
 // at "n/a" and never fails the build.
 import {
   reviewSummary,
@@ -565,7 +565,7 @@ export function badges(latest: Snapshot | undefined): Record<string, Badge> {
         }
       : na("evals"),
     mutation:
-      latest.mutationScore !== null
+      latest.mutationScore != null
         ? {
             schemaVersion: 1,
             label: "mutation",
@@ -650,7 +650,7 @@ export function sparkline(
   values: (number | null | undefined)[],
   label: string,
   unit = "",
-  { area, over = "runs" }: { area?: string; over?: string } = {},
+  { area, over = "days" }: { area?: string; over?: string } = {},
 ) {
   const points = values
     .map((v, i) => [i, v ?? null] as const)
