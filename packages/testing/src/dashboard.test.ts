@@ -660,6 +660,31 @@ describe("render", () => {
     expect(html).not.toContain("Not collected yet");
   });
 
+  it("shows a PR cycle time under two hours in minutes", () => {
+    const html = render([
+      {
+        ...snapshot({ date: "2026-10-24" }),
+        delivery: { medianCycleHours: 0.455, mergesPerWeek: [3] },
+      },
+    ]);
+    expect(html).toMatch(/<dt>PR cycle time<\/dt>.*?<dd>27 min<\/dd>/s);
+  });
+
+  it("switches PR cycle time to hours and then days as it grows", () => {
+    const cycle = (medianCycleHours: number) =>
+      render([
+        {
+          ...snapshot({ date: "2026-10-24" }),
+          delivery: { medianCycleHours, mergesPerWeek: [3] },
+        },
+      ]).match(/<dt>PR cycle time<\/dt>.*?<dd>(.*?)<\/dd>/s)?.[1];
+    expect(cycle(1.99)).toBe("119 min");
+    expect(cycle(2)).toBe("2.0 h");
+    expect(cycle(1.9995)).toBe("2.0 h");
+    expect(cycle(47.97)).toBe("2.0 d");
+    expect(cycle(72)).toBe("3.0 d");
+  });
+
   it("links the build line to the repository on GitHub", () => {
     const html = render([{ ...snapshot({ date: "2026-10-24" }), repo: "o/r" }]);
     expect(html).toContain(
