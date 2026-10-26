@@ -1158,8 +1158,9 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <title>SprintScout engineering dashboard</title>
+<link rel="icon" type="image/png" href="logo-mark.png">
 <style>
-:root{--brand-data:#2dd4bf;--brand-wind:#38bdf8;--bg:#0b0f19;--surface:#111827;--raised:#0f172a;--ink:#f1f5f9;--muted:#94a3b8;--border:#1e293b;--line:#334155;--good:#2dd4bf;--watch:#f97316;--poor:#ef4444;--poor-text:#f87171;--accent:#2dd4bf;--ease:200ms ease}
+:root{--brand-wind:#38bdf8;--bg:#0b0f19;--surface:#111827;--raised:#0f172a;--ink:#f1f5f9;--muted:#94a3b8;--border:#1e293b;--line:#334155;--good:#2dd4bf;--watch:#f97316;--poor:#ef4444;--poor-text:#f87171;--accent:#2dd4bf;--ease:200ms ease}
 @font-face{font-family:Inter;src:url("fonts/inter-latin-variable.woff2") format("woff2");font-weight:400 800;font-display:swap}
 @font-face{font-family:"JetBrains Mono";src:url("fonts/jetbrains-mono-latin-variable.woff2") format("woff2");font-weight:400 700;font-display:swap}
 *{box-sizing:border-box}
@@ -1225,8 +1226,8 @@ code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);
 .stack{display:grid;gap:12px;align-content:start}
 .columns{display:block;width:100%;height:auto;margin-top:8px}.columns .grid line{stroke:var(--border);stroke-dasharray:3 4}.columns .axis{fill:var(--muted);font:10px "JetBrains Mono",ui-monospace,monospace}
 .columns path{transition:opacity var(--ease)}.columns path:not(.now){opacity:.72}.columns path:hover{opacity:1}.columns .now{filter:drop-shadow(0 0 6px var(--watch))}
-.brand{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;color:var(--ink);text-decoration:none}.brand svg{display:block}.brand span{font-weight:800;font-size:2.4rem;line-height:1;letter-spacing:-.035em}.brand b{font-weight:800;color:var(--brand-wind);margin-left:.18em}
-@media (max-width:600px){.brand{gap:8px}.brand svg{width:40px;height:40px}.brand span{font-size:1.7rem}h1{font-size:1.6rem}th:nth-child(2),td:nth-child(2){display:none}}
+.brand{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;color:var(--ink);text-decoration:none}.brand img{display:block}.brand span{font-weight:800;font-size:2.4rem;line-height:1;letter-spacing:-.035em}.brand b{font-weight:800;color:var(--brand-wind);margin-left:.18em}
+@media (max-width:600px){.brand{gap:8px}.brand img{width:40px;height:40px}.brand span{font-size:1.7rem}h1{font-size:1.6rem}th:nth-child(2),td:nth-child(2){display:none}}
 footer{margin-top:48px;font-size:.85rem;color:var(--muted)}
 .bands{margin-top:18px;border-radius:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border)}
 p.bands{display:flex;gap:12px;align-items:center;font-size:.88rem;color:var(--muted);background:linear-gradient(100deg,color-mix(in srgb,var(--good) 14%,var(--surface)),var(--surface) 70%);border-color:color-mix(in srgb,var(--good) 45%,var(--border))}
@@ -1238,7 +1239,7 @@ p.bands strong{display:block;color:var(--ink)}p.bands svg{flex:none;filter:drop-
 </head>
 <body>
 <main>
-<a class="brand" href="../" aria-label="SprintScout planner"><svg viewBox="0 0 48 48" width="56" height="56" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12 L20 24 L6 36" stroke="var(--brand-data)" stroke-opacity="0.55" stroke-width="5"/><path d="M20 12 L34 24 L20 36" stroke="var(--brand-data)" stroke-width="5"/><path d="M34 24 H44" stroke="var(--brand-wind)" stroke-width="3"/></svg><span>Sprint<b>Scout</b></span></a>
+<a class="brand" href="../" aria-label="SprintScout planner"><img src="logo-mark.png" width="56" height="56" alt=""><span>Sprint<b>Scout</b></span></a>
 <header><h1>Engineering dashboard</h1><p class="muted">Built from main${commit} on ${escapeHtml(latest.date)} · trends over ${history.length} day${history.length === 1 ? "" : "s"}</p></header>
 <nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#board">Intent board</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a><a href="#slowest">Slowest tests</a></nav>
 ${bandsPanel(annotations)}
