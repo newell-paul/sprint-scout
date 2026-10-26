@@ -1147,9 +1147,13 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
       : `<p class="ghost">No pull request data</p>`
   }</div></div>`;
 
-  const grid = (cards: string[]) => `<dl class="grid">${cards.join("")}</dl>`;
+  const grid = (cards: string[], variant = "") =>
+    `<dl class="grid${variant ? ` ${variant}` : ""}">${cards.join("")}</dl>`;
   const commit = latest.sha
     ? ` at <code>${escapeHtml(latest.sha.slice(0, 7))}</code>`
+    : "";
+  const source = latest.repo
+    ? `<a class="gh" href="https://github.com/${escapeHtml(latest.repo)}" aria-label="Source on GitHub"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>`
     : "";
   return `<!doctype html>
 <html lang="en">
@@ -1167,22 +1171,24 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 body{font:15px/1.5 Inter,"Helvetica Neue",Arial,system-ui,sans-serif;margin:0;padding:28px 16px 56px;color:var(--ink);background:radial-gradient(1200px 600px at 10% -10%,#12233a 0,transparent 60%),var(--bg);background-attachment:fixed;min-height:100vh}
 main{max-width:76rem;margin-inline:auto}
 a{color:var(--accent)}
-header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:12px}
-h1{font:800 2.2rem/1.15 Inter,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.025em;margin:0}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.title{text-align:right}.title p{margin:6px 0 0;display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:.88rem}
+.gh{display:inline-flex;color:var(--ink);transition:color var(--ease)}.gh:hover,.gh:focus-visible{color:var(--accent)}
+h1{font:800 2rem/1.15 Inter,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.025em;margin:0}
 h2{font:700 1.15rem/1.3 Inter,"Helvetica Neue",Arial,sans-serif;margin:40px 0 2px;letter-spacing:-.01em}
 h3{font-weight:600}
 .lead,.muted,.note{color:var(--muted)}.lead{margin:0 0 14px;font-size:.9rem}
 header code{border:1px solid var(--line)}
-nav{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
-nav a{color:var(--ink);text-decoration:none;font-size:.88rem;padding:6px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);transition:border-color var(--ease),box-shadow var(--ease),color var(--ease)}
+nav{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 0}
+nav a{color:var(--ink);text-decoration:none;font-size:.95rem;padding:8px 18px;border-radius:999px;background:var(--surface);border:1px solid var(--line);transition:border-color var(--ease),box-shadow var(--ease),color var(--ease)}
 nav a:hover,nav a:focus-visible{border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px -4px var(--accent);outline:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:12px;margin:0}
-.card{--tone:var(--line);position:relative;background:linear-gradient(160deg,color-mix(in srgb,var(--tone) 9%,var(--surface)),var(--surface) 60%);border:1px solid color-mix(in srgb,var(--tone) 45%,var(--border));border-radius:14px;padding:14px 16px;min-width:0;transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease)}
+.card{--tone:var(--line);position:relative;background:linear-gradient(160deg,color-mix(in srgb,var(--tone) 9%,var(--surface)),var(--surface) 60%);border:1px solid color-mix(in srgb,var(--tone) 45%,var(--border));border-radius:14px;padding:18px 20px;min-width:0;transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease)}
 .card[data-tone=good]{--tone:var(--good)}.card[data-tone=watch]{--tone:var(--watch)}.card[data-tone=poor]{--tone:var(--poor)}
 .card[data-tone]{box-shadow:0 0 28px -14px var(--tone)}
 .card:hover{transform:translateY(-2px);box-shadow:0 0 32px -10px var(--tone)}
 .head{display:flex;justify-content:space-between;align-items:center;gap:12px}
-dt{font-size:.8rem;color:var(--muted);font-weight:500}dd{margin:2px 0 0;font-size:1.55rem;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;letter-spacing:-.01em}
+dt{font-size:.8rem;color:var(--muted);font-weight:500}dd{margin:6px 0 0;font-size:1.85rem;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;letter-spacing:-.01em}
 .note{margin:4px 0 0;font-size:.8rem}
 figure{margin:10px 0 0;color:var(--tone)}.card:not([data-tone]) figure{color:var(--accent)}.spark{display:block;width:100%;height:auto;max-height:56px}
 .ring{width:56px;height:56px;flex:none;--tone:var(--muted)}.ring[data-tone=good]{--tone:var(--good)}.ring[data-tone=watch]{--tone:var(--watch)}.ring[data-tone=poor]{--tone:var(--poor)}
@@ -1203,6 +1209,7 @@ code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);
 .split{display:grid;gap:0 28px}@media (min-width:1000px){.split{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
 .split .grid{grid-template-columns:repeat(auto-fill,minmax(13rem,1fr))}
 .wide{grid-column:1/-1}@media (min-width:560px){.span2{grid-column:span 2}}
+@media (min-width:900px){.pipeline{grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,1.6fr)}.pipeline .span2{grid-column:auto}}
 .runs{display:block;width:100%;height:auto;margin-top:10px}.runs line{stroke:var(--border)}.runs .axis{fill:var(--muted);font:10px "JetBrains Mono",ui-monospace,monospace}.runs rect{fill:var(--run);opacity:.8;transition:opacity var(--ease)}.runs rect:hover,.runs .now{opacity:1}.runs .now{filter:drop-shadow(0 0 5px var(--run))}
 [data-run=pass]{--run:var(--good)}[data-run=rerun]{--run:var(--watch)}[data-run=fail]{--run:var(--poor)}[data-run=cancelled]{--run:var(--line)}
 .legend{list-style:none;display:flex;flex-wrap:wrap;gap:4px 16px;margin:12px 0 0;padding:0;font-size:.8rem;color:var(--muted)}.legend li::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;background:var(--run)}.legend span{font-family:"JetBrains Mono",ui-monospace,monospace;color:var(--ink)}
@@ -1226,8 +1233,8 @@ code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);
 .stack{display:grid;gap:12px;align-content:start}
 .columns{display:block;width:100%;height:auto;margin-top:8px}.columns .grid line{stroke:var(--border);stroke-dasharray:3 4}.columns .axis{fill:var(--muted);font:10px "JetBrains Mono",ui-monospace,monospace}
 .columns path{transition:opacity var(--ease)}.columns path:not(.now){opacity:.72}.columns path:hover{opacity:1}.columns .now{filter:drop-shadow(0 0 6px var(--watch))}
-.brand{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;color:var(--ink);text-decoration:none}.brand img{display:block;filter:drop-shadow(0 0 6px rgba(45,212,191,.45))}.brand span{font-weight:800;font-size:2.6rem;line-height:1;letter-spacing:-.03em;white-space:nowrap}.brand b{font-weight:600;color:var(--brand-scout);margin-left:.12em}
-@media (max-width:600px){.brand{gap:10px}.brand img{width:40px;height:40px}.brand span{font-size:2rem}h1{font-size:1.6rem}th:nth-child(2),td:nth-child(2){display:none}}
+.brand{display:inline-flex;align-items:center;gap:14px;margin:0;color:var(--ink);text-decoration:none}.brand img{display:block;filter:drop-shadow(0 0 6px rgba(45,212,191,.45))}.brand span{font-weight:800;font-size:2.6rem;line-height:1;letter-spacing:-.03em;white-space:nowrap}.brand b{font-weight:600;color:var(--brand-scout);margin-left:.12em}
+@media (max-width:600px){.brand{gap:10px}.brand img{width:40px;height:40px}.brand span{font-size:2rem}h1{font-size:1.6rem}.title{text-align:left}.title p{justify-content:flex-start}th:nth-child(2),td:nth-child(2){display:none}}
 footer{margin-top:48px;font-size:.85rem;color:var(--muted)}
 .bands{margin-top:18px;border-radius:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border)}
 p.bands{display:flex;gap:12px;align-items:center;font-size:.88rem;color:var(--muted);background:linear-gradient(100deg,color-mix(in srgb,var(--good) 14%,var(--surface)),var(--surface) 70%);border-color:color-mix(in srgb,var(--good) 45%,var(--border))}
@@ -1239,11 +1246,11 @@ p.bands strong{display:block;color:var(--ink)}p.bands svg{flex:none;filter:drop-
 </head>
 <body>
 <main>
-<a class="brand" href="../" aria-label="SprintScout planner"><img src="logo-mark.svg" width="52" height="52" alt=""><span>Sprint<b>Scout</b></span></a>
-<header><h1>Engineering dashboard</h1><p class="muted">Built from main${commit} on ${escapeHtml(latest.date)} · trends over ${history.length} day${history.length === 1 ? "" : "s"}</p></header>
+<header class="top"><a class="brand" href="../" aria-label="SprintScout planner"><img src="logo-mark.svg" width="52" height="52" alt=""><span>Sprint<b>Scout</b></span></a>
+<div class="title"><h1>Engineering dashboard</h1><p class="muted">${source}<span>Built from main${commit} on ${escapeHtml(latest.date)} · trends over ${history.length} day${history.length === 1 ? "" : "s"}</span></p></div></header>
 <nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#board">Intent board</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a><a href="#slowest">Slowest tests</a></nav>
 ${bandsPanel(annotations)}
-${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, deploy gate.", grid(pipelineCards))}
+${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, deploy gate.", grid(pipelineCards, "pipeline"))}
 ${section("tests", "Tests", "Counts per level from the latest run; trend over the recorded runs.", grid(testCards))}
 <div class="split">
 ${section("board", "Intent board", "Intents on main and on open pull requests, as they stood when this dashboard was built.", boardHtml(latest))}

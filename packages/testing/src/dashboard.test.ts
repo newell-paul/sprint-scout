@@ -598,7 +598,10 @@ describe("render", () => {
     expect(html).not.toContain("<script");
     // The page loads nothing external; the board's GitHub links are the only URLs.
     expect(
-      html.replace(/<a href="https:\/\/github\.com\/[^"]*">/g, ""),
+      html.replace(
+        /<a (?:class="gh" )?href="https:\/\/github\.com\/[^"]*"/g,
+        "",
+      ),
     ).not.toMatch(/https?:\/\//);
     expect(html).toContain('<meta name="color-scheme" content="dark">');
     expect(html).toContain('aria-label="Performance 97"');
@@ -645,7 +648,7 @@ describe("render", () => {
       resolvedShare: 75,
     });
     const html = render([latest]);
-    expect(html).toContain("· trends over 1 day</p>");
+    expect(html).toContain("· trends over 1 day</span></p>");
     expect(html).toContain(
       "0 blocker · 1 major · 3 minor · 1 nit over 2 pull requests",
     );
@@ -657,12 +660,22 @@ describe("render", () => {
     expect(html).not.toContain("Not collected yet");
   });
 
+  it("links the build line to the repository on GitHub", () => {
+    const html = render([{ ...snapshot({ date: "2026-10-24" }), repo: "o/r" }]);
+    expect(html).toContain(
+      '<a class="gh" href="https://github.com/o/r" aria-label="Source on GitHub">',
+    );
+    expect(render([snapshot({ date: "2026-10-24" })])).not.toContain(
+      'class="gh"',
+    );
+  });
+
   it("carries the planner's logo and fonts from its own origin", () => {
     const html = render([snapshot({ date: "2026-10-24" })]);
     expect(html).toContain('url("fonts/inter-latin-variable.woff2")');
     expect(html).toContain('url("fonts/jetbrains-mono-latin-variable.woff2")');
     expect(html).toMatch(
-      /<a class="brand" href="\.\.\/" aria-label="SprintScout planner"><img src="logo-mark\.svg" width="52" height="52" alt="">/,
+      /<header class="top"><a class="brand" href="\.\.\/" aria-label="SprintScout planner"><img src="logo-mark\.svg" width="52" height="52" alt="">/,
     );
     expect(html).toContain(
       '<link rel="icon" type="image/png" href="logo-mark.png">',
