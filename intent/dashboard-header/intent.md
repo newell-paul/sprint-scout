@@ -1,6 +1,6 @@
 # Dashboard header in one row
 
-Status: accepted
+Status: done
 Opened: 26 October 2026 by Paul Newell
 
 ## Problem
