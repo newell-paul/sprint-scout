@@ -3,7 +3,7 @@
 ## Files
 
 - `apps/web/app/components/logo-mark.svg`: the new mark, one file for the planner and the dashboard.
-- `apps/web/app/components/logo.tsx`: show `logo-mark.svg` at 36 px in place of the PNG tile.
+- `apps/web/app/components/logo.tsx`: show `logo-mark.svg` at 52 px in place of the PNG tile (36 px in the first release).
 - `apps/web/app/globals.css`: smaller mark and wordmark, teal glow, `--data` accent at weight 600, no wrap; phone sizes.
 - `packages/testing/src/dashboard.ts`: the brand shows `logo-mark.svg` with the same colours and sizes.
 - `packages/testing/src/dashboard.cli.ts`: copy `logo-mark.svg` beside the page too.

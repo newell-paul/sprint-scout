@@ -22,5 +22,5 @@ No new network request: the SVG replaces the PNG from the same origin. No change
 ## Open questions
 
 1. Header band or page background? Resolved: page background, as the mock-up shows (owner, 26 October 2026).
-2. Size? Resolved: 36 px mark and 30 px text on desktop, 30 px and 24 px on phones (owner, 26 October 2026).
+2. Size? Resolved: 36 px mark and 30 px text on desktop, 30 px and 24 px on phones (owner, 26 October 2026); enlarged the same day to 52 px and 42 px, 40 px and 32 px on phones, after the owner found it too small.
 3. Segment buttons beside the logo or on their own row? Resolved: their own row (owner, 26 October 2026).
