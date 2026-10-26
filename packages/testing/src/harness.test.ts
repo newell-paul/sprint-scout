@@ -495,6 +495,55 @@ describe("workflows", () => {
   const sameRepository =
     /github\.event\.workflow_run\.head_repository\.full_name == github\.repository/g;
 
+  // A hung step otherwise waits for GitHub's six-hour job limit.
+  it("gives every Checks and Pages job a timeout", () => {
+    for (const name of ["ci.yml", "pages.yml"]) {
+      const doc = parse(read(".github/workflows", name)) as {
+        jobs: Record<string, { "timeout-minutes"?: number }>;
+      };
+      for (const [id, job] of Object.entries(doc.jobs))
+        expect(job["timeout-minutes"], `${name} ${id}`).toBeGreaterThan(0);
+    }
+  });
+
+  // Installing browsers and their system libraries on the runner hung twice
+  // on 26 October 2026; the image ships them for the locked version.
+  it("runs the browser jobs in the Playwright image without installing browsers", () => {
+    const doc = parse(read(".github/workflows/ci.yml")) as {
+      jobs: Record<
+        string,
+        {
+          needs?: string | string[];
+          container?: { image?: string };
+          steps?: { run?: string }[];
+        }
+      >;
+    };
+    for (const id of ["component", "budgets", "e2e"]) {
+      const job = doc.jobs[id]!;
+      expect([job.needs].flat()).toContain("playwright-image");
+      expect(job.container?.image).toBe(
+        "${{ needs.playwright-image.outputs.image }}",
+      );
+      expect(job.steps?.map((s) => s.run ?? "").join("\n")).not.toContain(
+        "playwright install",
+      );
+    }
+  });
+
+  it("names the Playwright image for the locked version", () => {
+    const locked = /^ {2}'@playwright\/test@([\d.]+)':$/m.exec(
+      read("pnpm-lock.yaml"),
+    )?.[1];
+    const result = spawnSync("bash", [at("scripts/playwright-image.sh")], {
+      encoding: "utf8",
+    });
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim()).toBe(
+      `mcr.microsoft.com/playwright:v${locked}-noble`,
+    );
+  });
+
   it("feeds the dashboard the newest mutation and evals reports, not the newest run", () => {
     const ci = read(".github/workflows/ci.yml");
     expect(ci).not.toMatch(/latest (mutation|evals)\.yml/);

@@ -13,6 +13,7 @@ jobs:
   static:
     name: Static gates
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       # gitleaks lists the pull request's commits through the API.
@@ -53,6 +54,7 @@ jobs:
   unit:
     name: Unit and contract (shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -80,6 +82,7 @@ jobs:
     name: Coverage gate
     needs: unit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -124,6 +127,7 @@ jobs:
   vulnerabilities:
     name: OSV scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       security-events: write
@@ -168,9 +172,31 @@ jobs:
         with:
           sarif_file: osv.sarif
           category: osv-scanner
+  playwright-image:
+    name: Playwright image
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            pnpm-lock.yaml
+            scripts/playwright-image.sh
+          sparse-checkout-cone-mode: false
+      - id: image
+        run: echo "image=$(scripts/playwright-image.sh)" >> "$GITHUB_OUTPUT"
   component:
     name: Components (Chromium)
+    needs: playwright-image
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Browsers and their system libraries come with the image; installing them
+    # on the runner hung for more than 20 minutes twice on 26 October 2026.
+    container:
+      image: ${{ needs.playwright-image.outputs.image }}
+      options: --ipc=host
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -179,7 +205,6 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:component --reporter=default --reporter=json --outputFile=reports/component/report.json
       - uses: actions/upload-artifact@v7
         if: always()
@@ -196,7 +221,12 @@ jobs:
           retention-days: 7
   budgets:
     name: Deploy gate (export smoke, size, Lighthouse)
+    needs: playwright-image
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: ${{ needs.playwright-image.outputs.image }}
+      options: --ipc=host
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -205,12 +235,12 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm build:static
       - run: pnpm test:smoke:static
       - run: pnpm test:size
       - run: mkdir -p reports && pnpm exec size-limit --json > reports/size.json
-      - run: pnpm test:lighthouse
+      # The image has Playwright's Chromium but no Google Chrome.
+      - run: CHROME_PATH=$(node -p "require('playwright').chromium.executablePath()") pnpm test:lighthouse
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -229,8 +259,12 @@ jobs:
           retention-days: 14
   e2e:
     name: End to end (shard ${{ matrix.shard }})
-    needs: [static, unit, component]
+    needs: [static, unit, component, playwright-image]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: ${{ needs.playwright-image.outputs.image }}
+      options: --ipc=host
     strategy:
       fail-fast: false
       matrix:
@@ -246,7 +280,6 @@ jobs:
       # The browser tests run against `next start`. A production build means no
       # test waits for a route to compile, as every test did under `next dev`.
       - run: pnpm --filter @scout/web build
-      - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm exec playwright test --shard=${{ matrix.shard }}/4
       - uses: actions/upload-artifact@v7
         if: always()
@@ -259,6 +292,7 @@ jobs:
     needs: e2e
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -478,6 +512,7 @@ jobs:
     needs: dashboard
     if: always() && needs.dashboard.outputs.breach == 'true' && vars.SPEC_ENABLED != 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - run: |
           {
