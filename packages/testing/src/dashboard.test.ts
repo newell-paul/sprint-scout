@@ -660,6 +660,16 @@ describe("render", () => {
     expect(html).not.toContain("Not collected yet");
   });
 
+  it("shows PR cycle time in minutes", () => {
+    const html = render([
+      {
+        ...snapshot({ date: "2026-10-24" }),
+        delivery: { medianCycleHours: 0.455, mergesPerWeek: [3] },
+      },
+    ]);
+    expect(html).toMatch(/<dt>PR cycle time<\/dt>.*?<dd>27 min<\/dd>/s);
+  });
+
   it("links the build line to the repository on GitHub", () => {
     const html = render([{ ...snapshot({ date: "2026-10-24" }), repo: "o/r" }]);
     expect(html).toContain(
