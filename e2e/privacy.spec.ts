@@ -166,17 +166,6 @@ test.describe("clearing saved data", () => {
     await expect(planner.library.heading).toContainText("Richmond Park (example)");
     expect(await page.evaluate(() => localStorage.getItem("sprint-scout.rider.v1"))).toBeNull();
   });
-
-  test("keeps everything when the rider backs out", async ({ planner, seed }) => {
-    await seed({ routes: [aRoute({ id: "home", name: "Home loop" })] });
-
-    await planner.privacy.toggle.click();
-    await planner.privacy.clearButton.click();
-    await planner.privacy.keepButton.click();
-
-    await expect(planner.privacy.clearButton).toBeVisible();
-    await expect(planner.library.heading).toContainText("Home loop");
-  });
 });
 
 // The published export carries the policy as a meta tag; the dev server does

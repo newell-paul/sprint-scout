@@ -7,9 +7,8 @@ export class Attempt {
   readonly saveTargetButton: Locator;
   readonly removeTargetButton: Locator;
   readonly comparison: Locator;
-  readonly targetError: Locator;
 
-  constructor(private readonly page: Page) {
+  constructor(page: Page) {
     this.conditions = page.getByRole("region", { name: "Attempt conditions" });
     this.targetField = page.getByLabel("Target time (minutes:seconds)");
     this.saveTargetButton = page.getByRole("button", {
@@ -21,13 +20,6 @@ export class Attempt {
       exact: true,
     });
     this.comparison = page.getByTestId("target-comparison");
-    this.targetError = page.getByText("Enter minutes:seconds, from 0:01 to 1440:00.", { exact: true });
-  }
-
-  targetHeading(target: string) {
-    return this.page.getByRole("heading", {
-      name: `Segment target · ${target}`,
-    });
   }
 
   async setTarget(time: string) {

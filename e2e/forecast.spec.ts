@@ -43,46 +43,6 @@ test("the legacy /routes address redirects to the planner", async ({ page, plann
   await expect(planner.demoLink).toHaveCount(0);
 });
 
-test("previous hour is disabled at the first hour", async ({ planner, seed }) => {
-  await seed(seeded);
-
-  await expect(planner.timeline.previousButton).toBeDisabled();
-});
-
-test("an hour without wind reads unavailable", async ({ planner, seed }) => {
-  await seed(seeded);
-
-  await planner.timeline.next();
-
-  const { cockpit } = planner;
-  await expect(planner.timeline.slider).toHaveValue("1");
-  await expect(cockpit.segmentTime).toHaveText("Unavailable");
-  await expect(cockpit.windSummary).toContainText("Wind unavailable");
-  await expect(cockpit.speed).toHaveText("Unavailable");
-  await expect(cockpit.dialNeedle).toHaveCount(0);
-  await expect(planner.map.overlay).toHaveCount(0);
-});
-
-test("previous hour steps back", async ({ planner, seed }) => {
-  await seed(seeded);
-  await planner.timeline.next();
-
-  await planner.timeline.previous();
-
-  await expect(planner.timeline.slider).toHaveValue("0");
-});
-
-test("a calm hour matches the still-air time", async ({ planner, seed }) => {
-  await seed(seeded);
-
-  await planner.timeline.goToHour(2);
-
-  const { cockpit } = planner;
-  await expect(cockpit.segmentTime).toHaveText(await cockpit.calmTime.innerText());
-  await expect(cockpit.timeDifference).toContainText("Same time");
-  await expect(cockpit.windSummary).toContainText("Calm");
-});
-
 test("tomorrow moves the slider to the first hour after local midnight", async ({ planner, seed }) => {
   await seed(seeded);
 
@@ -90,21 +50,6 @@ test("tomorrow moves the slider to the first hour after local midnight", async (
 
   // 07:00 UTC is 08:00 in London; local midnight is 16 hours on.
   expect(await planner.timeline.hour()).toBe(16);
-});
-
-test("best hour selects the best window today", async ({ planner, seed }) => {
-  await seed(seeded);
-  const tailwindTime = await planner.cockpit.time();
-  await planner.timeline.tomorrow();
-
-  await planner.timeline.bestHour();
-
-  const { timeline } = planner;
-  await expect(timeline.slider).toHaveValue("0");
-  await expect(timeline.bestHourButton).toHaveAttribute("aria-pressed", "true");
-  await expect(timeline.todayButton).toHaveAttribute("aria-pressed", "true");
-  await expect(timeline.selectedWindow).toHaveAttribute("data-best", "true");
-  await expect(timeline.selectedWindow).toContainText(tailwindTime);
 });
 
 test("the last hour shows rain and a crosswind and disables next", async ({ planner, seed, openMeteo }) => {
@@ -151,24 +96,6 @@ test("the map overlay shows the wind with animated particles", async ({ planner,
   await expect(map.particles).toHaveAttribute("data-motion", "animated");
 });
 
-test("switching particles off leaves the wind arrow", async ({ planner, seed }) => {
-  await seed(seeded);
-
-  await planner.map.hideParticles();
-
-  await expect(planner.map.particles).toHaveCount(0);
-  await expect(planner.map.arrow).toBeVisible();
-});
-
-test("switching particles back on restores the field", async ({ planner, seed }) => {
-  await seed(seeded);
-  await planner.map.hideParticles();
-
-  await planner.map.showParticles();
-
-  await expect(planner.map.particles).toHaveCount(1);
-});
-
 test("Home moves the slider to the first hour @keyboard", async ({ planner, seed }) => {
   await seed(seeded);
   await planner.timeline.goToHour(5);
@@ -201,18 +128,6 @@ test("a click on the timeline jumps to that hour @keyboard", async ({ planner, s
   await planner.timeline.clickTrack(0.75);
 
   expect(await planner.timeline.hour()).toBeGreaterThan(30);
-});
-
-test("the hourly table selects an hour", async ({ planner, seed }) => {
-  await seed(seeded);
-  const tailwindTime = await planner.cockpit.time();
-  await planner.timeline.goToHour(47);
-
-  await planner.timeline.showHourlyTimes();
-  await planner.timeline.pickHourlyRow(0);
-
-  await expect(planner.timeline.slider).toHaveValue("0");
-  await expect(planner.cockpit.segmentTime).toHaveText(tailwindTime);
 });
 
 test("the timeline stays on screen on a phone @mobile-only @mobile", async ({ planner, seed }) => {

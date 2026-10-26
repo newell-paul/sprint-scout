@@ -73,4 +73,13 @@ describe("timeline conditions", () => {
       -1,
     );
   });
+  it("lets the best hour fall in rain without the filter", () => {
+    const effects = [
+      { speedDeltaMps: 2 },
+      { speedDeltaMps: 3 },
+      { speedDeltaMps: 1 },
+    ];
+    const hours = [hour(false, 1), hour(true, 61), hour(true, 1)];
+    expect(bestHourIndex(effects, hours, false)).toBe(1);
+  });
 });

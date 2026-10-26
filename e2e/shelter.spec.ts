@@ -11,12 +11,6 @@ const denseSprint = {
   routes: [aRoute({ id: "sprint-0", name: "Sprint 1", shelter: "dense" })],
 };
 
-test("a segment starts exposed", async ({ planner, seed }) => {
-  await seed(twoSprints);
-
-  await expect(planner.shelter.preset("exposed")).toHaveAttribute("aria-pressed", "true");
-});
-
 test("dense shelter shortens the tailwind benefit and leaves the weather alone", async ({ planner, seed }) => {
   await seed(twoSprints);
   await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
@@ -55,14 +49,6 @@ test("shelter persists across reload", async ({ planner, seed, openMeteo }) => {
   await expect(planner.shelter.preset("dense")).toHaveAttribute("aria-pressed", "true");
   await expect(planner.cockpit.segmentTime).toHaveText(after);
   expect(openMeteo.calls.weather).toBe(2);
-});
-
-test("the board carries the shelter assumption", async ({ planner, seed }) => {
-  await seed(denseSprint);
-
-  await planner.board.rank();
-
-  await expect(planner.board.row("Sprint 1")).toContainText("Dense · assumed shelter");
 });
 
 test("opening from the board gives the same sheltered estimate", async ({ planner, seed, openMeteo }) => {

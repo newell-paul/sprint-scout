@@ -75,6 +75,29 @@ it("calm: no direction and a neutral tone", async () => {
   await aria("ride-cockpit.calm", region);
 });
 
+it("calm: the estimate matches the still-air time", async () => {
+  const hour = anHour({ speedMps: 0, gustMps: 0 });
+  const effect = anEffect(hour)!;
+  const screen = await render(
+    <RideCockpit
+      effect={effect}
+      hour={hour}
+      unit="km/h"
+      description={describe(hour)}
+    />,
+  );
+  const region = screen.getByRole("region", instruments);
+  await expect
+    .element(region.getByText(/^Same time as still air/))
+    .toBeVisible();
+  await expect
+    .element(region.getByRole("definition").first())
+    .toHaveTextContent(formatDuration(effect.windTimeS));
+  await expect
+    .element(region.getByText("Calm", { exact: true }).first())
+    .toBeVisible();
+});
+
 it("wind missing: every instrument reads unavailable with the reason", async () => {
   const hour = anHour({ speedMps: null, fromDegrees: null, flowDegrees: null });
   const screen = await render(

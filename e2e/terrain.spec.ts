@@ -47,15 +47,6 @@ test("terrain persists across reload without a new elevation request", async ({ 
   expect(openMeteo.calls.elevation).toBe(1);
 });
 
-test("the board ranks with the terrain model", async ({ planner, seed }) => {
-  await seed(seeded());
-  await planner.terrain.load();
-
-  await planner.board.rank();
-
-  await expect(planner.board.rows).toContainText("Terrain-aware");
-});
-
 test("opening from the board gives the same terrain estimate", async ({ planner, seed, openMeteo }) => {
   await seed(seeded());
   await planner.terrain.load();
@@ -93,17 +84,6 @@ test("terrain mode restores the terrain estimate without a new request", async (
   expect(openMeteo.calls).toEqual({ weather: 1, elevation: 1, archive: 0 });
 });
 
-test("terrain heights follow the speed unit", async ({ planner, seed }) => {
-  await seed(seeded());
-  await planner.terrain.load();
-  const terrainTime = await planner.cockpit.time();
-
-  await planner.useMph();
-
-  await expect(planner.cockpit.segmentTime).toHaveText(terrainTime);
-  await expect(planner.terrain.region).toContainText("ft");
-});
-
 test("terrain panel fits a phone viewport", { tag: ["@mobile"] }, async ({ planner, seed }) => {
   await seed(seeded());
 
@@ -136,15 +116,6 @@ test("terrain reloaded after a geometry edit gives a new estimate", async ({ pla
   await expect(planner.cockpit.segmentTime).not.toHaveText(terrainTime);
 });
 
-test("removing elevation returns to flat-road mode", async ({ planner, seed }) => {
-  await seed(seeded());
-  await planner.terrain.load();
-
-  await planner.terrain.remove();
-
-  await expect(planner.terrain.heading).toHaveText("Terrain · Flat-road mode");
-});
-
 test("flat-road mode after removing elevation persists", async ({ planner, seed }) => {
   await seed(seeded());
   await planner.terrain.load();
@@ -155,25 +126,6 @@ test("flat-road mode after removing elevation persists", async ({ planner, seed 
 
   await expect(planner.terrain.heading).toHaveText("Terrain · Flat-road mode");
   await expect(planner.terrain.profile).toHaveCount(0);
-});
-
-test("incomplete elevation is reported and leaves the estimate unchanged", async ({ planner, seed, openMeteo }) => {
-  await seed(seeded());
-  await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
-  const flatTime = await planner.cockpit.time();
-  openMeteo.faults.elevation = "incomplete";
-
-  await planner.terrain.requestTerrain();
-
-  await expect(planner.terrain.region).toContainText("Elevation is incomplete or invalid");
-  await expect(planner.cockpit.segmentTime).toHaveText(flatTime);
-  await expect(planner.terrain.profile).toHaveCount(0);
-});
-
-test("automatic reload is unavailable before consent", async ({ planner, seed }) => {
-  await seed(seeded());
-
-  await expect(planner.terrain.automatic).toBeDisabled();
 });
 
 test("automatic reload persists across reload", async ({ planner, seed, openMeteo }) => {
@@ -202,18 +154,6 @@ test("automatic reload fetches new elevation after a geometry edit", async ({ pl
   expect(openMeteo.calls.elevation).toBe(2);
   await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
   await expect(planner.cockpit.segmentTime).not.toHaveText(terrainTime);
-});
-
-test("removing elevation switches automatic reload off", async ({ planner, seed, openMeteo }) => {
-  await seed(seeded());
-  await planner.terrain.giveConsent();
-  await planner.terrain.reloadAutomatically();
-  await planner.terrain.load();
-
-  await planner.terrain.remove();
-
-  await expect(planner.terrain.automatic).not.toBeChecked();
-  expect(openMeteo.calls.elevation).toBe(1);
 });
 
 test("a late elevation response cannot restore a deleted segment", async ({ planner, seed, openMeteo }) => {

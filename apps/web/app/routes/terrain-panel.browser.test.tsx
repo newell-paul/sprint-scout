@@ -163,6 +163,29 @@ it("error: an elevation outage leaves the previous model alone", async () => {
   await aria("terrain-panel.error", region);
 });
 
+it("incomplete: a missing elevation sample is reported and nothing is saved", async () => {
+  openMeteo.faults.elevation = "incomplete";
+  const { onChange, onAutoChange } = handlers();
+  const screen = await render(
+    <TerrainPanel
+      route={aRoute()}
+      unit="km/h"
+      onChange={onChange}
+      onAutoChange={onAutoChange}
+    />,
+  );
+  const region = screen.getByRole("region", panel);
+  await region
+    .getByRole("checkbox", { name: /Share sampled coordinates/ })
+    .click();
+  await region.getByRole("button", { name: "Load terrain" }).click();
+  await expect
+    .element(region.getByRole("status"))
+    .toHaveTextContent("Elevation is incomplete or invalid");
+  expect(onChange).not.toHaveBeenCalled();
+  await expect.element(region.getByRole("img")).not.toBeInTheDocument();
+});
+
 it("save refused: says the segment may have changed", async () => {
   const screen = await render(
     <TerrainPanel
@@ -199,4 +222,29 @@ it("remove elevation: clears the profile and returns to flat road", async () => 
   await expect
     .element(region.getByRole("status"))
     .toHaveTextContent("Elevation removed; flat-road mode selected.");
+});
+
+it("remove elevation: switches automatic reload off", async () => {
+  const { onChange, onAutoChange } = handlers();
+  const route = aRoute({
+    terrain: aTerrain(),
+    terrainMode: "terrain",
+    terrainAuto: true,
+  });
+  const screen = await render(
+    <TerrainPanel
+      route={route}
+      unit="km/h"
+      onChange={onChange}
+      onAutoChange={onAutoChange}
+    />,
+  );
+  const region = screen.getByRole("region", panel);
+  await expect
+    .element(
+      region.getByRole("checkbox", { name: /Reload terrain automatically/ }),
+    )
+    .toBeChecked();
+  await region.getByRole("button", { name: "Remove elevation" }).click();
+  expect(onAutoChange).toHaveBeenCalledExactlyOnceWith(false);
 });
