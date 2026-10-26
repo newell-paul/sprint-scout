@@ -10,8 +10,8 @@ export default function Logo({ className }: { className?: string }) {
         className="logo-mark"
         src={mark}
         alt=""
-        width={36}
-        height={36}
+        width={52}
+        height={52}
         unoptimized
         loading="eager"
       />
