@@ -616,8 +616,14 @@ const seconds = (ms: number | null | undefined) =>
 const minutes = (ms: number | null | undefined) =>
   ms === null || ms === undefined ? "n/a" : `${(ms / 60_000).toFixed(1)} min`;
 const kb = (bytes: number) => `${(bytes / 1000).toFixed(0)} kB`;
-const cycleMinutes = (h: number | null | undefined) =>
-  h === null || h === undefined ? "n/a" : `${Math.round(h * 60)} min`;
+const cycleTime = (h: number | null | undefined) =>
+  h === null || h === undefined
+    ? "n/a"
+    : h < 2
+      ? `${Math.round(h * 60)} min`
+      : h < 48
+        ? `${h.toFixed(1)} h`
+        : `${(h / 24).toFixed(1)} d`;
 
 type Tone = "good" | "watch" | "poor" | "none";
 const rate = (
@@ -1124,7 +1130,7 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
   const delivery = latest.delivery;
   const deliveryCards = `<div class="delivery"><div class="stack">${card(
     "PR cycle time",
-    cycleMinutes(delivery?.medianCycleHours),
+    cycleTime(delivery?.medianCycleHours),
     {
       tone: under(delivery?.medianCycleHours, 48),
       note: "Median from opened to merged",

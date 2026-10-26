@@ -660,7 +660,7 @@ describe("render", () => {
     expect(html).not.toContain("Not collected yet");
   });
 
-  it("shows PR cycle time in minutes", () => {
+  it("shows a PR cycle time under two hours in minutes", () => {
     const html = render([
       {
         ...snapshot({ date: "2026-10-24" }),
@@ -668,6 +668,19 @@ describe("render", () => {
       },
     ]);
     expect(html).toMatch(/<dt>PR cycle time<\/dt>.*?<dd>27 min<\/dd>/s);
+  });
+
+  it("switches PR cycle time to hours and then days as it grows", () => {
+    const cycle = (medianCycleHours: number) =>
+      render([
+        {
+          ...snapshot({ date: "2026-10-24" }),
+          delivery: { medianCycleHours, mergesPerWeek: [3] },
+        },
+      ]).match(/<dt>PR cycle time<\/dt>.*?<dd>(.*?)<\/dd>/s)?.[1];
+    expect(cycle(1.99)).toBe("119 min");
+    expect(cycle(2)).toBe("2.0 h");
+    expect(cycle(72)).toBe("3.0 d");
   });
 
   it("links the build line to the repository on GitHub", () => {
