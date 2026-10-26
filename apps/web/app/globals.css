@@ -553,24 +553,28 @@ hr {
 .segment-logo {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+  flex-shrink: 0;
   color: var(--ink);
 }
 .segment-logo .logo-mark {
   display: block;
-  width: 56px;
-  height: 56px;
+  width: 36px;
+  height: 36px;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
 }
 .logo-word {
   font-weight: 800;
-  font-size: 38px;
+  font-size: 30px;
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   color: var(--ink);
+  white-space: nowrap;
 }
 .logo-word-accent {
-  color: var(--wind);
-  margin-left: 0.18em;
+  font-weight: 600;
+  color: var(--data);
+  margin-left: 0.12em;
 }
 .segment-slots {
   display: flex;
@@ -1068,11 +1072,11 @@ hr {
     gap: 8px;
   }
   .segment-logo .logo-mark {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
   }
   .logo-word {
-    font-size: 27px;
+    font-size: 24px;
   }
   .unit-control {
     margin-left: auto;

@@ -91,10 +91,8 @@ function copyAssets(dir: string) {
   mkdirSync(join(dir, "fonts"), { recursive: true });
   for (const file of readdirSync(fonts).filter((f) => /\.(woff2|txt)$/.test(f)))
     copyFileSync(join(fonts, file), join(dir, "fonts", file));
-  copyFileSync(
-    "apps/web/app/components/logo-mark.png",
-    join(dir, "logo-mark.png"),
-  );
+  for (const file of ["logo-mark.png", "logo-mark.svg"])
+    copyFileSync(join("apps/web/app/components", file), join(dir, file));
 }
 
 const refreshDir = option("--refresh-board");

@@ -1160,7 +1160,7 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 <title>SprintScout engineering dashboard</title>
 <link rel="icon" type="image/png" href="logo-mark.png">
 <style>
-:root{--brand-wind:#38bdf8;--bg:#0b0f19;--surface:#111827;--raised:#0f172a;--ink:#f1f5f9;--muted:#94a3b8;--border:#1e293b;--line:#334155;--good:#2dd4bf;--watch:#f97316;--poor:#ef4444;--poor-text:#f87171;--accent:#2dd4bf;--ease:200ms ease}
+:root{--brand-scout:#2dd4bf;--bg:#0b0f19;--surface:#111827;--raised:#0f172a;--ink:#f1f5f9;--muted:#94a3b8;--border:#1e293b;--line:#334155;--good:#2dd4bf;--watch:#f97316;--poor:#ef4444;--poor-text:#f87171;--accent:#2dd4bf;--ease:200ms ease}
 @font-face{font-family:Inter;src:url("fonts/inter-latin-variable.woff2") format("woff2");font-weight:400 800;font-display:swap}
 @font-face{font-family:"JetBrains Mono";src:url("fonts/jetbrains-mono-latin-variable.woff2") format("woff2");font-weight:400 700;font-display:swap}
 *{box-sizing:border-box}
@@ -1226,8 +1226,8 @@ code{font-size:.8em;background:color-mix(in srgb,var(--accent) 12%,transparent);
 .stack{display:grid;gap:12px;align-content:start}
 .columns{display:block;width:100%;height:auto;margin-top:8px}.columns .grid line{stroke:var(--border);stroke-dasharray:3 4}.columns .axis{fill:var(--muted);font:10px "JetBrains Mono",ui-monospace,monospace}
 .columns path{transition:opacity var(--ease)}.columns path:not(.now){opacity:.72}.columns path:hover{opacity:1}.columns .now{filter:drop-shadow(0 0 6px var(--watch))}
-.brand{display:inline-flex;align-items:center;gap:14px;margin:0 0 18px;color:var(--ink);text-decoration:none}.brand img{display:block}.brand span{font-weight:800;font-size:2.4rem;line-height:1;letter-spacing:-.035em}.brand b{font-weight:800;color:var(--brand-wind);margin-left:.18em}
-@media (max-width:600px){.brand{gap:8px}.brand img{width:40px;height:40px}.brand span{font-size:1.7rem}h1{font-size:1.6rem}th:nth-child(2),td:nth-child(2){display:none}}
+.brand{display:inline-flex;align-items:center;gap:10px;margin:0 0 18px;color:var(--ink);text-decoration:none}.brand img{display:block;filter:drop-shadow(0 0 6px rgba(45,212,191,.45))}.brand span{font-weight:800;font-size:1.9rem;line-height:1;letter-spacing:-.03em;white-space:nowrap}.brand b{font-weight:600;color:var(--brand-scout);margin-left:.12em}
+@media (max-width:600px){.brand{gap:8px}.brand img{width:30px;height:30px}.brand span{font-size:1.5rem}h1{font-size:1.6rem}th:nth-child(2),td:nth-child(2){display:none}}
 footer{margin-top:48px;font-size:.85rem;color:var(--muted)}
 .bands{margin-top:18px;border-radius:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border)}
 p.bands{display:flex;gap:12px;align-items:center;font-size:.88rem;color:var(--muted);background:linear-gradient(100deg,color-mix(in srgb,var(--good) 14%,var(--surface)),var(--surface) 70%);border-color:color-mix(in srgb,var(--good) 45%,var(--border))}
@@ -1239,7 +1239,7 @@ p.bands strong{display:block;color:var(--ink)}p.bands svg{flex:none;filter:drop-
 </head>
 <body>
 <main>
-<a class="brand" href="../" aria-label="SprintScout planner"><img src="logo-mark.png" width="56" height="56" alt=""><span>Sprint<b>Scout</b></span></a>
+<a class="brand" href="../" aria-label="SprintScout planner"><img src="logo-mark.svg" width="36" height="36" alt=""><span>Sprint<b>Scout</b></span></a>
 <header><h1>Engineering dashboard</h1><p class="muted">Built from main${commit} on ${escapeHtml(latest.date)} · trends over ${history.length} day${history.length === 1 ? "" : "s"}</p></header>
 <nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#board">Intent board</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a><a href="#slowest">Slowest tests</a></nav>
 ${bandsPanel(annotations)}
