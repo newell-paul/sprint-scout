@@ -581,6 +581,47 @@ describe("workflows", () => {
     expect(ci).not.toContain("test-health");
   });
 
+  // Rebuilding in Pages meant installing Chromium on the runner, which hung
+  // or failed three times on 26 October 2026, and published a second build.
+  it("deploys the export that passed the deploy gate without rebuilding it", () => {
+    const pages = read(".github/workflows/pages.yml");
+    for (const step of [
+      "build:static",
+      "playwright install",
+      "test:smoke:static",
+      "test:size",
+      "test:lighthouse",
+    ])
+      expect(pages).not.toContain(step);
+    expect(pages).toMatch(/gh run download "\$run" --name site /);
+
+    const ci = parse(read(".github/workflows/ci.yml")) as {
+      jobs: Record<
+        string,
+        {
+          steps: {
+            uses?: string;
+            run?: string;
+            if?: string;
+            with?: { name?: string; path?: string };
+          }[];
+        }
+      >;
+    };
+    const steps = ci.jobs.budgets!.steps;
+    const upload = steps.findIndex((s) => s.with?.name === "site");
+    expect(upload).toBeGreaterThan(-1);
+    expect(steps[upload]!.with?.path).toBe("apps/web/out");
+    expect(steps[upload]!.if).toBe(
+      "github.event_name == 'push' && github.ref == 'refs/heads/main'",
+    );
+    const lighthouse = steps.findIndex((s) =>
+      s.run?.includes("test:lighthouse"),
+    );
+    expect(lighthouse).toBeGreaterThan(-1);
+    expect(upload).toBeGreaterThan(lighthouse);
+  });
+
   it("publishes the commit that passed Checks, never without the dashboard", () => {
     const pages = read(".github/workflows/pages.yml");
     expect(pages).toContain("ref: ${{ github.event.workflow_run.head_sha");
