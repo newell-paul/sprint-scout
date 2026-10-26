@@ -1,6 +1,6 @@
 # Start end-to-end tests alongside the other gates
 
-Status: accepted
+Status: done
 Opened: 26 October 2026 by Paul Newell
 
 ## Problem

@@ -531,6 +531,15 @@ describe("workflows", () => {
     }
   });
 
+  // Waiting for the static, unit and component jobs put about 1.5 minutes on
+  // every run; branch protection still requires each of them before a merge.
+  it("starts the end-to-end shards without waiting for the other gates", () => {
+    const doc = parse(read(".github/workflows/ci.yml")) as {
+      jobs: Record<string, { needs?: string | string[] }>;
+    };
+    expect([doc.jobs.e2e!.needs].flat()).toEqual(["playwright-image"]);
+  });
+
   it("names the Playwright image for the locked version", () => {
     const locked = /^ {2}'@playwright\/test@([\d.]+)':$/m.exec(
       read("pnpm-lock.yaml"),
