@@ -26,7 +26,41 @@ const anEffort = (id: string, startedAt: string): RouteEffort => ({
   wind: null,
 });
 
-/** Renders the panel over a stored list that onChange updates, as the planner does. */
+/** A GPX file of 11 m/s laps along `northbound`, run in from 200 m out and on 200 m past the finish. */
+function aRide(name: string, { laps = 2, reverse = false } = {}) {
+  const metresPerDegree = 111_195;
+  const latitudes = northbound.map(([, lat]) => lat);
+  const [from, to] = (reverse ? latitudes.reverse() : latitudes) as [
+    number,
+    number,
+  ];
+  const lengthM = Math.abs(to - from) * metresPerDegree;
+  const step = Math.sign(to - from) / metresPerDegree;
+  const points: string[] = [];
+  let at = Date.parse("2026-09-12T09:00:00Z");
+  for (let lap = 0; lap < laps; lap++) {
+    for (let d = -200; d <= lengthM + 200; d += 11) {
+      const time = new Date(at).toISOString();
+      points.push(
+        `<trkpt lat="${(from + d * step).toFixed(6)}" lon="-0.12"><time>${time}</time></trkpt>`,
+      );
+      at += 1000;
+    }
+    at += 90_000;
+  }
+  return new File(
+    [
+      `<?xml version="1.0"?><gpx version="1.1"><trk><trkseg>${points.join("")}</trkseg></trk></gpx>`,
+    ],
+    name,
+    { type: "application/gpx+xml" },
+  );
+}
+
+/**
+ * Renders the panel over a stored list that onChange updates, as the planner
+ * does; the past wind consent only exists once there are efforts.
+ */
 async function renderPanel(efforts: RouteEffort[]) {
   let stored = efforts;
   const saved: RouteEffort[][] = [];
@@ -44,7 +78,10 @@ async function renderPanel(efforts: RouteEffort[]) {
     />
   );
   const screen = await render(panel(stored));
-  await screen.getByLabelText(/Share this segment.s start coordinate/).click();
+  if (efforts.length > 0)
+    await screen
+      .getByLabelText(/Share this segment.s start coordinate/)
+      .click();
   return { screen, saved };
 }
 
@@ -148,4 +185,122 @@ it("a file over 25 MB is refused before it is read", async () => {
     .toBeVisible();
   expect(read).not.toHaveBeenCalled();
   read.mockRestore();
+});
+
+it("the same ride imported twice adds no duplicate efforts", async () => {
+  const { screen, saved } = await renderPanel([]);
+  await screen.getByLabelText(/my own device recording/).click();
+  const input = screen.getByLabelText("Import GPX ride");
+  await userEvent.upload(input, aRide("northbound-two-laps.gpx"));
+  await expect
+    .element(screen.getByText(/2 efforts added from northbound-two-laps\.gpx/))
+    .toBeVisible();
+
+  await userEvent.upload(input, aRide("northbound-two-laps.gpx"));
+
+  await expect
+    .element(screen.getByRole("status"))
+    .toHaveTextContent("Those efforts are already saved for this segment.");
+  expect(screen.getByTestId("effort-row").elements()).toHaveLength(2);
+  expect(saved).toHaveLength(1);
+});
+
+it("a ride in the opposite direction matches nothing", async () => {
+  const { screen, saved } = await renderPanel([]);
+  await screen.getByLabelText(/my own device recording/).click();
+
+  await userEvent.upload(
+    screen.getByLabelText("Import GPX ride"),
+    aRide("northbound-reversed.gpx", { laps: 1, reverse: true }),
+  );
+
+  await expect
+    .element(screen.getByRole("status"))
+    .toHaveTextContent(
+      "No traversal of this segment found in northbound-reversed.gpx",
+    );
+  expect(screen.getByTestId("effort-row").elements()).toHaveLength(0);
+  expect(saved).toEqual([]);
+});
+
+it("a file without track points is rejected with a clear message", async () => {
+  const waypointOnly = new File(
+    [
+      `<?xml version="1.0"?><gpx version="1.1"><wpt lat="51.5" lon="-0.12"><name>Cafe</name></wpt></gpx>`,
+    ],
+    "not-a-track.gpx",
+    { type: "application/gpx+xml" },
+  );
+  const { screen, saved } = await renderPanel([]);
+  await screen.getByLabelText(/my own device recording/).click();
+
+  await userEvent.upload(
+    screen.getByLabelText("Import GPX ride"),
+    waypointOnly,
+  );
+
+  await expect
+    .element(screen.getByRole("status"))
+    .toHaveTextContent("GPX file contains no track points.");
+  expect(saved).toEqual([]);
+});
+
+it("import is disabled until the recording is confirmed as the rider's own", async () => {
+  const { screen } = await renderPanel([]);
+
+  await expect.element(screen.getByLabelText("Import GPX ride")).toBeDisabled();
+});
+
+it("confirming the recording as the rider's own enables import", async () => {
+  const { screen } = await renderPanel([]);
+
+  await screen.getByLabelText(/my own device recording/).click();
+
+  await expect.element(screen.getByLabelText("Import GPX ride")).toBeEnabled();
+});
+
+/** An effort as imported: no wind key yet, which reads "Not loaded" where null reads "Unavailable". */
+const unloaded = (id: string, startedAt: string): RouteEffort => {
+  const effort = anEffort(id, startedAt);
+  delete effort.wind;
+  return effort;
+};
+
+it("past wind loads after consent and is saved with the effort", async () => {
+  const { screen, saved } = await renderPanel([
+    unloaded("a", "2026-09-12T09:00:00Z"),
+    unloaded("b", "2026-09-12T09:03:30Z"),
+  ]);
+
+  await screen.getByRole("button", { name: "Load past wind" }).click();
+
+  await expect
+    .element(screen.getByRole("status"))
+    .toHaveTextContent("Past wind saved for 2 efforts");
+  const wind = screen.getByTestId("effort-wind").first();
+  await expect.element(wind).toHaveTextContent("Tailwind");
+  await expect.element(wind).toHaveTextContent("18.0 km/h");
+  await expect.element(wind).toHaveTextContent("model −");
+  await expect
+    .element(screen.getByRole("button", { name: "Load past wind" }))
+    .toBeDisabled();
+  expect(saved.at(-1)!.map((effort) => effort.wind?.speedMps)).toEqual([5, 5]);
+});
+
+it("an archive outage leaves efforts without wind and says so", async () => {
+  openMeteo.faults.archive = "outage";
+  const { screen, saved } = await renderPanel([
+    unloaded("a", "2026-09-12T09:00:00Z"),
+    unloaded("b", "2026-09-12T09:03:30Z"),
+  ]);
+
+  await screen.getByRole("button", { name: "Load past wind" }).click();
+
+  await expect
+    .element(screen.getByRole("status"))
+    .toHaveTextContent("Weather archive unavailable");
+  await expect
+    .element(screen.getByTestId("effort-wind").first())
+    .toHaveTextContent(/^Not loaded$/);
+  expect(saved).toEqual([]);
 });
