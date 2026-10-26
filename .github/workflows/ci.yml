@@ -268,7 +268,8 @@ jobs:
           retention-days: 14
   e2e:
     name: End to end (shard ${{ matrix.shard }})
-    needs: [static, unit, component, playwright-image]
+    # Starts alongside the other gates; branch protection still requires them all.
+    needs: playwright-image
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:

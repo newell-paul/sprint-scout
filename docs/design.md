@@ -729,3 +729,7 @@ The Pages workflow no longer builds. On a push to main, the Checks deploy gate u
 ## Dashboard header in one row — 26 October 2026
 
 The engineering dashboard's header is one row: the SprintScout wordmark on the left, and on the right the "Engineering dashboard" heading over the build line, which opens with a GitHub mark linking to the repository, with a hairline beneath. The navigation pills, card padding and headline values are larger, and from 900 px wide the "Last 30 runs" chart shares a row with the two pipeline cards instead of dropping to its own. On phones the header stacks and aligns left. The GitHub mark is inline SVG, so the page still has no scripts and loads nothing from another origin. See `intent/dashboard-header/`.
+
+## End-to-end tests start alongside the other gates — 26 October 2026
+
+The four end-to-end shards in Checks now need only the Playwright image job, so they run in parallel with the static gates, the unit shards, the component tests and the deploy gate instead of waiting for the first three. None of their steps used anything those jobs produce, and the wait put about 1.5 minutes on every run. Branch protection still requires every gate, so nothing merges with a failing lint, type or unit check; the cost is that a run failing those gates also spends the e2e shards' runner minutes, which are free on a public repository. Building the app once for the shards was measured first and dropped: `next build` takes 13 seconds per shard, so sharing it would save about 10 seconds. See `intent/e2e-parallel/`.
