@@ -2022,6 +2022,7 @@ hr {
   display: block;
   width: 160px;
   height: 36px;
+  overflow: visible;
 }
 .spark-empty {
   color: var(--muted);
