@@ -560,7 +560,6 @@ hr {
   display: block;
   width: 56px;
   height: 56px;
-  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
 }
 .logo-word {
   font-weight: 800;
