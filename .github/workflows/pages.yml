@@ -30,6 +30,7 @@ jobs:
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
@@ -52,7 +53,17 @@ jobs:
             echo "NEXT_PUBLIC_BASE_PATH=/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
           fi
       - run: pnpm --filter @scout/web build:static
-      - run: pnpm exec playwright install --with-deps chromium
+      # This job needs gh for the dashboard, so it stays on the runner rather
+      # than in the Playwright image. A stalled install is cut off and retried
+      # once instead of holding the deploy.
+      - name: Install Chromium
+        timeout-minutes: 10
+        run: |
+          for attempt in 1 2; do
+            timeout 240 pnpm exec playwright install --with-deps chromium && exit 0
+            echo "::warning::Chromium install attempt $attempt failed or stalled."
+          done
+          exit 1
       # Deploy gate: the export must pass the smoke journeys, the size ceiling
       # and the Lighthouse budgets before it is uploaded.
       - run: pnpm test:smoke:static
@@ -94,6 +105,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
