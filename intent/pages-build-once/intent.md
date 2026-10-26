@@ -1,6 +1,6 @@
 # Pages deploys the export that passed Checks
 
-Status: accepted
+Status: done
 Opened: 26 October 2026 by Paul Newell
 
 ## Problem

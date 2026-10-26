@@ -20,6 +20,7 @@ None.
 ## Tests
 
 `harness.test.ts`:
+
 - Pages has no `build:static`, `playwright install`, `test:smoke:static`, `test:size` or `test:lighthouse`, and downloads `--name site`.
 - The deploy gate uploads `site` from `apps/web/out` only on a push to main, and after `test:lighthouse`.
 - Existing tests still hold: every job has a timeout, Pages deploys only after a push to main in this repository, artifact lookups filter on the head repository.

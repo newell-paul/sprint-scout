@@ -241,6 +241,15 @@ jobs:
       - run: mkdir -p reports && pnpm exec size-limit --json > reports/size.json
       # The image has Playwright's Chromium but no Google Chrome.
       - run: CHROME_PATH=$(node -p "require('playwright').chromium.executablePath()") pnpm test:lighthouse
+      # Pages publishes this exact export, so what goes live is what passed.
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          name: site
+          path: apps/web/out
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
       - uses: actions/upload-artifact@v7
         if: always()
         with:
