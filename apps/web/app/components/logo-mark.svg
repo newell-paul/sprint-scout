@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="chevron" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <path d="M3 24C7 9 21 1.5 29 5.5C31.5 7 30.5 9.5 27.5 11.5" fill="none" stroke="#ef4444" stroke-width="1.6" stroke-linecap="round"/>
+  <g stroke="#2dd4bf" stroke-width="1.6" stroke-linecap="round" opacity="0.55">
+    <path d="M1.5 12.5h4"/>
+    <path d="M0.5 16h5"/>
+    <path d="M1.5 19.5h4"/>
+  </g>
+  <g fill="url(#chevron)" stroke="#5eead4" stroke-width="0.6" stroke-linejoin="round">
+    <path d="M5.5 5.5h5.5l10.5 10.5-10.5 10.5H5.5l10.5-10.5z"/>
+    <path d="M14.5 5.5h5.5l10.5 10.5-10.5 10.5h-5.5l10.5-10.5z"/>
+  </g>
+</svg>

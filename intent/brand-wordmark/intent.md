@@ -1,6 +1,6 @@
 # Borderless Aero Stealth wordmark in the header
 
-Status: accepted
+Status: done
 Opened: 26 October 2026 by Paul Newell
 
 ## Problem
@@ -13,11 +13,11 @@ The planner header shows a transparent, borderless mark: two forward-leaning tea
 
 ## Affected users and parts
 
-`apps/web/app/components/logo.tsx`, `apps/web/app/globals.css`, `packages/testing/src/dashboard.ts` and its test, the header screenshot baselines.
+`apps/web/app/components/logo.tsx`, `apps/web/app/globals.css`, `apps/web/app/components/logo-mark.svg` (new), `packages/testing/src/dashboard.ts`, `dashboard.cli.ts` and its test, `e2e/library.spec.ts`.
 
 ## Constraints
 
-No new network request: the mark is inline SVG. No change to page state, routing or the segment row. Bundle size stays under its ceiling. The logo stays decorative for assistive tech, so the heading still reads "SprintScout".
+No new network request: the SVG replaces the PNG from the same origin. No change to page state, routing or the segment row. Bundle size stays under its ceiling. The logo stays decorative for assistive tech, so the heading still reads "SprintScout".
 
 ## Open questions
 

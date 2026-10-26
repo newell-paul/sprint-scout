@@ -58,3 +58,12 @@ test("the planner opens on the lowest saved slot", async ({ planner, seed }) => 
   await expect(planner.library.slot(4)).toHaveAttribute("aria-pressed", "true");
   await expect(planner.library.heading).toContainText("Later slot");
 });
+
+test("the header heading reads SprintScout and its mark stays decorative", async ({ page, seed }) => {
+  await seed({ routes: fiveSaved() });
+  const heading = page.getByRole("heading", { level: 1 });
+
+  await expect(heading).toHaveAccessibleName("SprintScout");
+  await expect(heading.getByRole("img")).toHaveCount(0);
+  await expect(heading.locator("img")).toHaveAttribute("src", /logo-mark.*\.svg/);
+});

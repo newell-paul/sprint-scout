@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { body } from "../fonts";
-import mark from "./logo-mark.png";
+import mark from "./logo-mark.svg";
 export default function Logo({ className }: { className?: string }) {
   return (
     <span
@@ -10,8 +10,8 @@ export default function Logo({ className }: { className?: string }) {
         className="logo-mark"
         src={mark}
         alt=""
-        width={56}
-        height={56}
+        width={36}
+        height={36}
         unoptimized
         loading="eager"
       />

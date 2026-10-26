@@ -662,7 +662,7 @@ describe("render", () => {
     expect(html).toContain('url("fonts/inter-latin-variable.woff2")');
     expect(html).toContain('url("fonts/jetbrains-mono-latin-variable.woff2")');
     expect(html).toMatch(
-      /<a class="brand" href="\.\.\/" aria-label="SprintScout planner"><img src="logo-mark\.png" width="56" height="56" alt="">/,
+      /<a class="brand" href="\.\.\/" aria-label="SprintScout planner"><img src="logo-mark\.svg" width="36" height="36" alt="">/,
     );
     expect(html).toContain(
       '<link rel="icon" type="image/png" href="logo-mark.png">',
