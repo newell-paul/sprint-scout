@@ -85,18 +85,6 @@ test("refresh asks every segment again", async ({ planner, seed, openMeteo }) =>
   expect(openMeteo.calls.weather).toBe(4);
 });
 
-test("a segment whose forecast fails stays unranked with the reason", async ({ planner, seed, openMeteo }) => {
-  await seed(both);
-  openMeteo.faults.weather = "outage";
-
-  await planner.board.rank();
-
-  const { board } = planner;
-  await expect(board.rows).toHaveCount(2);
-  await expect(board.row("Southbound")).toHaveAttribute("data-status", "unavailable");
-  await expect(board.openButton(board.row("Southbound"))).toBeDisabled();
-});
-
 test("the board is fine on a phone @mobile-only @mobile", async ({ planner, seed }) => {
   await seed(both);
 

@@ -21,49 +21,11 @@ const freeStorage = (page: Page) =>
     for (const key of Object.keys(localStorage)) if (key.startsWith("filler-")) localStorage.removeItem(key);
   });
 
-test.describe("forecast timeout", () => {
-  test.use({ installClock: true });
-
-  test.beforeEach(({ openMeteo }) => {
-    openMeteo.faults.weather = "timeout";
-  });
-
-  test("a forecast that never answers times out", async ({ page, planner, seed }) => {
-    await seed(seeded);
-    await expect(planner.timeline.placeholder).toBeVisible();
-
-    await page.clock.runFor(12_500);
-
-    await expect(planner.alert).toContainText("Forecast request timed out or was cancelled.");
-  });
-
-  test("try again recovers after a timeout", async ({ page, planner, seed, openMeteo }) => {
-    await seed(seeded);
-    await expect(planner.timeline.placeholder).toBeVisible();
-    await page.clock.runFor(12_500);
-    await expect(planner.alert).toBeVisible();
-    openMeteo.faults.weather = "ok";
-
-    await planner.timeline.tryAgain();
-
-    await expect(planner.timeline.slider).toBeVisible();
-    await expect(planner.alert).toHaveCount(0);
-    expect(openMeteo.calls.weather).toBe(2);
-  });
-});
-
 test.describe("rate limit", () => {
   test.use({ installClock: true });
 
   test.beforeEach(({ openMeteo }) => {
     openMeteo.faults.weather = "rateLimit";
-  });
-
-  test("a rate-limited forecast says so and offers a retry", async ({ planner, seed }) => {
-    await seed(seeded);
-
-    await expect(planner.alert).toContainText("Weather service rate limit reached. Try again later.");
-    await expect(planner.timeline.tryAgainButton).toBeVisible();
   });
 
   test("a rate-limited forecast does not retry on its own", async ({ page, planner, seed, openMeteo }) => {
@@ -75,15 +37,6 @@ test.describe("rate limit", () => {
 
     expect(openMeteo.calls.weather).toBe(1);
   });
-});
-
-test("an empty forecast body is reported as unusable", async ({ planner, seed, openMeteo }) => {
-  openMeteo.faults.weather = "empty";
-
-  await seed(seeded);
-
-  await expect(planner.alert).toBeVisible();
-  await expect(planner.timeline.slider).toHaveCount(0);
 });
 
 test("map tiles failing to load leaves the map usable", async ({ planner, seed, externalRequests }) => {

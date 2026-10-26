@@ -5,13 +5,11 @@ export class DataPrivacy {
   readonly toggle: Locator;
   readonly clearButton: Locator;
   readonly confirmButton: Locator;
-  readonly keepButton: Locator;
 
   constructor(page: Page) {
     this.toggle = page.getByText("Data & privacy", { exact: true });
     this.clearButton = page.getByRole("button", { name: "Clear saved data" });
     this.confirmButton = page.getByRole("button", { name: "Delete everything" });
-    this.keepButton = page.getByRole("button", { name: "Keep my data" });
   }
 
   async clearSavedData() {

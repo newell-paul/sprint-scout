@@ -1,6 +1,6 @@
 # Push e2e checks down to the lowest level that proves them
 
-Status: accepted
+Status: done
 Opened: 26 October 2026 by Paul Newell
 
 ## Problem
