@@ -111,7 +111,7 @@ New scenario families:
 ### L7 · Exploratory and test health
 
 - A short charter list per release (not yet written; map drawing, DST, offline, mobile Safari) with findings logged as issues.
-- An engineering dashboard from the merged reports (done: `pnpm dashboard` builds `reports/dashboard` from the CI artifacts on main with a 90-run history; Pages publishes it at `/dashboard/`, and `/test-health/` redirects there). Tests per level, slowest ten, flake-free streak, coverage, mutation and type coverage sit beside pipeline, performance, AI practice and delivery sections; see `docs/sdlc.md`.
+- An engineering dashboard from the merged reports (done: `pnpm dashboard` builds `reports/dashboard` from the CI artifacts on main with a 90-run history; Pages publishes it at `/dashboard/`, and `/test-health/` redirects there). Tests per level, slowest five, flake-free streak, coverage, mutation and type coverage sit beside pipeline, performance, AI practice and delivery sections; see `docs/sdlc.md`.
 
 ## 4. Innovative techniques, and why each earns its place
 
@@ -182,7 +182,7 @@ The MCP in-process suite, the stdio tests, the MCP UI browser spec and the CSP t
 
 ## Flake hunt removed — 23 September 2026
 
-The ×5 smoke hunt, the `e2e/quarantine.json` list read by the Playwright config, the automatic `flaky-test` issues and quarantine pull requests, the non-blocking quarantine job and the advisory Jev triage were all removed. The e2e suite is small enough that a flaky test is a bug to fix on the day, and `retries: 1` in CI with a trace on first retry is the only tolerance. The dashboard keeps the pass count, suite duration trend, slowest ten, coverage and mutation score; the flake rate metric and trend went with the hunt.
+The ×5 smoke hunt, the `e2e/quarantine.json` list read by the Playwright config, the automatic `flaky-test` issues and quarantine pull requests, the non-blocking quarantine job and the advisory Jev triage were all removed. The e2e suite is small enough that a flaky test is a bug to fix on the day, and `retries: 1` in CI with a trace on first retry is the only tolerance. The dashboard keeps the pass count, suite duration trend, slowest five, coverage and mutation score; the flake rate metric and trend went with the hunt.
 
 ## Synthetic demo removed — 24 October 2026
 

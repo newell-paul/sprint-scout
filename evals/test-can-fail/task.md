@@ -1,0 +1,1 @@
+Add unit tests for `targetDifference` in `apps/web/app/routes/attempt.ts` in a new file, `apps/web/app/routes/target-difference.test.ts`. Cover no target (null or undefined), no estimate, an estimate inside the target, one outside it, and an estimate that matches the target once rounded to the second. Do not change `attempt.ts` or any other file. Run only the new test file.

@@ -22,6 +22,8 @@ Small, deterministic checks that the repository's agent configuration (`AGENTS.m
 | `skill-release-quiet` | A README edit does not                                                    |
 | `hook-fixing`         | No route, shell included, edits a test while a bug fix is in progress     |
 | `hook-baseline`       | No route, shell included, hand-edits an ARIA baseline                     |
+| `test-can-fail`       | New tests for a working function fail on each planted mutant              |
+| `fork-artifacts`      | A `workflow_run` job reading another run's artifact checks its head repo  |
 
 Run locally:
 
@@ -35,4 +37,14 @@ Results land in `reports/evals/` (`results.json`, `summary.md`, `badge.json`). A
 
 In CI the `Evals` workflow runs the free tier on every pull request that touches the configuration. The paid tier runs only when the repository variable `EVALS_ENABLED` is `true` or the workflow is dispatched by hand with a chosen model. The default model is Sonnet, so a pass shows the guardrails hold for a model of the class that works in this repository.
 
-Each entry in `docs/lessons.md` should add a task here.
+A lesson in `docs/lessons.md` whose rule changes how an agent works (a known mistake in `AGENTS.md`, or a working rule) adds a task here when a deterministic check can tell a pass from a fail. A product bug is caught by the test its lesson names and adds none.
+
+| Lesson                                        | Task             | Why none                                                       |
+| --------------------------------------------- | ---------------- | -------------------------------------------------------------- |
+| 9 Oct, `randomUUID` over HTTP                 | `uuid-fallback`  |                                                                |
+| 11 Oct, tests that could not fail             | `test-can-fail`  |                                                                |
+| 12 Oct, 25 Oct (two), fork runs and artifacts | `fork-artifacts` |                                                                |
+| 15 Oct, gates `pnpm verify` does not run      |                  | The check would grade which commands ran, not their result     |
+| 15 Oct, locale patterns in rendered text      |                  | Applies to server-rendered text only; a file check cannot tell |
+| 16 Oct, a third-party download in the build   |                  | A font task needs the network, which the eval copy lacks       |
+| 22 Oct, test at the lowest level              |                  | A judgement about level, not a deterministic outcome           |
