@@ -616,14 +616,14 @@ const seconds = (ms: number | null | undefined) =>
 const minutes = (ms: number | null | undefined) =>
   ms === null || ms === undefined ? "n/a" : `${(ms / 60_000).toFixed(1)} min`;
 const kb = (bytes: number) => `${(bytes / 1000).toFixed(0)} kB`;
-const cycleTime = (h: number | null | undefined) =>
-  h === null || h === undefined
-    ? "n/a"
-    : h < 2
-      ? `${Math.round(h * 60)} min`
-      : h < 48
-        ? `${h.toFixed(1)} h`
-        : `${(h / 24).toFixed(1)} d`;
+// Each unit is chosen after rounding, so 1.9995 h reads "2.0 h", not "120 min".
+const cycleTime = (h: number | null | undefined) => {
+  if (h === null || h === undefined) return "n/a";
+  const minutes = Math.round(h * 60);
+  if (minutes < 120) return `${minutes} min`;
+  const hours = h.toFixed(1);
+  return Number(hours) < 48 ? `${hours} h` : `${(h / 24).toFixed(1)} d`;
+};
 
 type Tone = "good" | "watch" | "poor" | "none";
 const rate = (

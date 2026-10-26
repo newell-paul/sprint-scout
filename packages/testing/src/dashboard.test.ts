@@ -680,6 +680,8 @@ describe("render", () => {
       ]).match(/<dt>PR cycle time<\/dt>.*?<dd>(.*?)<\/dd>/s)?.[1];
     expect(cycle(1.99)).toBe("119 min");
     expect(cycle(2)).toBe("2.0 h");
+    expect(cycle(1.9995)).toBe("2.0 h");
+    expect(cycle(47.97)).toBe("2.0 d");
     expect(cycle(72)).toBe("3.0 d");
   });
 
