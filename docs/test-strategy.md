@@ -99,7 +99,7 @@ New scenario families:
 - **Keyboard-only journeys**: draw, save, change hour, switch shelter, load terrain, without a pointer.
 - **Fault injection**: one test each for forecast timeout, 429 with retry, elevation partial nulls, tile failure, storage quota exceeded, storage changed in another tab.
 - **Clock edge cases**: DST gap, DST overlap, forecast expiry triggering the refresh.
-- **Static export smoke**: build `apps/web/out`, serve it under a project base path, and run three `@smoke` tests. The Pages workflow runs this before `deploy-pages`.
+- **Static export smoke**: build `apps/web/out`, serve it under a project base path, and run three `@smoke` tests. The Checks deploy gate runs this, and Pages publishes the export it tested.
 - **Privacy gates**: no request leaves the page until the consent box is ticked, for both weather and elevation; assert on the network log.
 
 ### L6 · Non-functional
@@ -115,19 +115,19 @@ New scenario families:
 
 ## 4. Innovative techniques, and why each earns its place
 
-| Technique                         | Where          | What it catches that nothing else does                                         |
-| --------------------------------- | -------------- | ------------------------------------------------------------------------------ |
-| ARIA snapshots                    | L3, L5         | Structural regressions in the accessibility tree without brittle DOM selectors |
-| Consumer-driven contract + drift  | L2 advisory    | Provider changes before a user sees "Unavailable"                              |
-| Single MSW fixture source         | L1, L3, L5     | Mocks drifting apart between levels                                            |
-| Property-based tests              | L1             | Invariant violations across inputs no human would enumerate                    |
-| Mutation testing                  | L1 on demand   | Tests that pass without asserting anything meaningful                          |
-| axe-per-state fixture             | L3, L5         | Accessibility regressions in states journeys never pause on                    |
-| Visual diff with masked tiles     | L5             | Theme and instrument regressions the DOM cannot express                        |
-| Fault injection as atomic tests   | L5             | Error-path UX, which is the part users remember                                |
-| Static-export smoke before deploy | Pages workflow | Publishing a broken site                                                       |
-| Privacy network assertions        | L5             | Requests before consent, which the design forbids                              |
-| Test impact analysis              | Local, PR      | Minutes per iteration for developers                                           |
+| Technique                         | Where        | What it catches that nothing else does                                         |
+| --------------------------------- | ------------ | ------------------------------------------------------------------------------ |
+| ARIA snapshots                    | L3, L5       | Structural regressions in the accessibility tree without brittle DOM selectors |
+| Consumer-driven contract + drift  | L2 advisory  | Provider changes before a user sees "Unavailable"                              |
+| Single MSW fixture source         | L1, L3, L5   | Mocks drifting apart between levels                                            |
+| Property-based tests              | L1           | Invariant violations across inputs no human would enumerate                    |
+| Mutation testing                  | L1 on demand | Tests that pass without asserting anything meaningful                          |
+| axe-per-state fixture             | L3, L5       | Accessibility regressions in states journeys never pause on                    |
+| Visual diff with masked tiles     | L5           | Theme and instrument regressions the DOM cannot express                        |
+| Fault injection as atomic tests   | L5           | Error-path UX, which is the part users remember                                |
+| Static-export smoke before deploy | Deploy gate  | Publishing a broken site                                                       |
+| Privacy network assertions        | L5           | Requests before consent, which the design forbids                              |
+| Test impact analysis              | Local, PR    | Minutes per iteration for developers                                           |
 
 ## 5. Pipeline
 
