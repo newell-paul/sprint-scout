@@ -118,7 +118,7 @@ describe("effort matching", () => {
     expect(effort.startedAt).toBe("2026-09-12T09:00:30.000Z");
     expect(effort.maxDeviationM).toBeLessThan(2);
     expect(effort.sampleGapSeconds).toBe(1);
-    expect(effort.version).toBe("effort-match-v3");
+    expect(effort.version).toBe("effort-match-v2");
   });
   it("finds every lap of a repeated segment in order", () => {
     const lap1 = ride(hill, { speedMps: 10 });

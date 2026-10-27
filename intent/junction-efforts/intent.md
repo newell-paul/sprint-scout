@@ -1,6 +1,6 @@
 # Efforts joined or left at a junction
 
-Status: accepted
+Status: dropped
 Opened: 27 October 2026 by Paul Newell
 
 ## Problem
@@ -22,3 +22,7 @@ Pure and deterministic, 100 % coverage in `packages/analysis`, property tests wi
 ## Open questions
 
 None.
+
+## Dropped
+
+Dropped on 27 October 2026 by the owner. SprintScout's segments are mostly straight sprints, not junction-to-junction or loops. Comparing the matcher before and after the drafted fix on 4,800 straight rides (150 m to 1 km segments; 6 to 17 m/s; 1 to 5 s sampling; 0 to 10 m noise; 0 to 4 m lane offset) gave identical efforts for every ride, so the fix had nothing to improve for them. It also made rides that took a side road within about 24 m of either end count, skipping that distance: 2.1 to 2.5 s fast at one end and 4.6 s at both on a 500 m segment at 8 m/s, which could set a false best on a short sprint. On 1,200 noisy far-side junction rides it moved 5 matched efforts' starts onto the approach road, 1.3 to 4 s slow. The matcher stays at `effort-match-v2`; the failing tests are reverted.
