@@ -143,3 +143,10 @@ One entry per bug that reached `main` or a shipped build, newest first. Each nam
 - Found by: the owner asking what a loop segment would do; probed with synthetic rides.
 - Fix: loops are detected from the start gate; positions unwrap across the shared point, and its gates are timed at the closest approach.
 - Test: `effort-match.test.ts`, describe "loop segments", including a property over laps, speed, sampling and noise.
+
+## 27 October 2026: the map credit showed a second, clipped info icon
+
+- What broke: the app's `button { min-height: 44px }` touch-target rule also reached MapLibre's attribution button, stretching it from 24 px to 44 px. Its icon is a repeating background image, so a second (i) tiled under the first and the map's rounded corner clipped it.
+- Found by: the owner, from a screenshot of the map's bottom-right corner.
+- Fix: the attribution button keeps its 24 px height and does not repeat its icon.
+- Test: `e2e/attribution.spec.ts`, "the credit's info button sits inside the credit".

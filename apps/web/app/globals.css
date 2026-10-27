@@ -1285,6 +1285,8 @@ hr {
 }
 .segment-screen .maplibregl-ctrl-attrib-button {
   filter: var(--ctrl-icon-filter);
+  min-height: 0;
+  background-repeat: no-repeat;
 }
 .wind-time {
   align-items: center;

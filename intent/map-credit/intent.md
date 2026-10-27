@@ -1,6 +1,6 @@
 # Map credit
 
-Status: accepted
+Status: done
 Opened: 27 October 2026 by Paul Newell
 
 ## Problem
@@ -17,7 +17,7 @@ One (i) icon, inside the credit pill. The credit shows in full when the map load
 
 ## Constraints
 
-OSMF attribution guidelines: the credit must be visible without interaction, in a corner of the map, and may collapse automatically after five seconds or on map interaction if an (i) in the corner brings it back. No new network request.
+OpenStreetMap Foundation attribution guidelines: the credit must be visible without interaction, in a corner of the map, and may collapse automatically after five seconds or on map interaction if an (i) in the corner brings it back. No new network request.
 
 ## Open questions
 
