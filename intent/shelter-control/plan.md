@@ -3,7 +3,7 @@
 ## Files
 
 - `apps/web/app/routes/shelter-settings.tsx`: wrap " wind reduction" in its own span so it can be hidden visually on unchosen segments.
-- `apps/web/app/globals.css`: `.shelter-choices` becomes the track, buttons become segments, the reduction caption sits below each segment; the chosen outline and glow.
+- `apps/web/app/globals.css`: `.shelter-choices` becomes the track (a `::before` behind the segments, isolated so it stays under them), buttons become segments, the reduction caption sits below each segment in room reserved by the track's padding (one line on desktop, two on phones); the chosen outline and glow.
 - `apps/web/app/routes/shelter-settings.browser.test.tsx`: the caption test.
 - `docs/design.md`: dated entry.
 

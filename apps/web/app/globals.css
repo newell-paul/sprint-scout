@@ -57,21 +57,66 @@
   display: block;
   margin-top: 6px;
 }
+/* One pill track; each level's reduction hangs below its segment, so the
+   track's padding-bottom reserves room for the caption. */
 .shelter-choices {
+  --caption-room: 2.4em;
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  padding: 4px 4px var(--caption-room);
+  isolation: isolate;
 }
-.shelter-choices button {
+.shelter-choices::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 calc(var(--caption-room) - 4px);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: -1;
+}
+.segment-screen .shelter-settings .shelter-choices button {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: 6px;
-  padding: 10px 6px;
+  gap: 2px;
+  padding: 8px 6px;
   min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  box-shadow: none;
+  color: var(--muted);
+}
+.segment-screen .shelter-settings .shelter-choices button[aria-pressed="true"] {
+  border-color: rgba(45, 212, 191, 0.7);
+  background: rgba(45, 212, 191, 0.14);
+  box-shadow:
+    0 0 16px rgba(45, 212, 191, 0.35),
+    inset 0 0 12px rgba(45, 212, 191, 0.12);
+  color: var(--ink);
+}
+.shelter-choices button[aria-pressed="true"] svg {
+  color: #5eead4;
+  filter: drop-shadow(0 0 4px rgba(45, 212, 191, 0.7));
+}
+@media (max-width: 600px) {
+  .shelter-choices {
+    /* The chosen caption wraps to two lines on phones. */
+    --caption-room: 3.6em;
+  }
+}
+.shelter-choices button > span {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  text-align: center;
 }
 .shelter-choices svg {
-  width: 48px;
-  height: 32px;
+  width: 40px;
+  height: 26px;
   stroke: currentColor;
   stroke-width: 1.5;
   stroke-linecap: round;

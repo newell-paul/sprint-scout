@@ -64,3 +64,23 @@ it("error: a refused save raises an alert and keeps the setting", async () => {
     screen.getByRole("region", { name: "Manual wind shelter" }),
   );
 });
+
+it("captions: unchosen levels show the bare percentage, the chosen one in full", async () => {
+  const screen = await render(
+    <ShelterSettings value="dense" onChange={() => true} />,
+  );
+  const sheltered = screen.getByRole("button", {
+    name: "Sheltered 35% wind reduction",
+    exact: true,
+  });
+  await expect
+    .element(sheltered.getByText("wind reduction"))
+    .toHaveClass("sr-only");
+  await expect
+    .element(
+      screen
+        .getByRole("button", { name: "Dense 65% wind reduction", exact: true })
+        .getByText("wind reduction"),
+    )
+    .not.toHaveClass("sr-only");
+});

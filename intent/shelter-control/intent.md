@@ -1,6 +1,6 @@
 # Shelter as one segmented control
 
-Status: accepted
+Status: done
 Opened: 27 October 2026 by Paul Newell
 
 ## Problem
