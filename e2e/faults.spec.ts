@@ -43,7 +43,7 @@ test("map tiles failing to load leaves the map usable", async ({ planner, seed, 
   await seed(seeded);
 
   await expect(planner.map.region).toBeVisible();
-  await expect(planner.map.overlay).toBeVisible();
+  await expect(planner.map.windToggle).toBeVisible();
   await expect
     .poll(() => externalRequests.filter((url) => url.includes("tile.openstreetmap.org")).length)
     .toBeGreaterThan(0);

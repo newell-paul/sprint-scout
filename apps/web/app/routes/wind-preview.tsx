@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Map as RouteMap } from "maplibre-gl";
 import type { Rider, RiderInput } from "@scout/analysis";
 import {
@@ -236,30 +237,8 @@ export default function WindPreview({
             .matches,
         },
       );
-    const el = document.createElement("div");
-    el.dataset.testid = "wind-map-overlay";
-    el.className = "wind-map-key";
-    el.setAttribute("aria-hidden", "true");
-    if (rotation !== null) {
-      const arrow = document.createElement("span");
-      arrow.className = "wind-direction-arrow";
-      arrow.textContent = "↑";
-      arrow.style.transform = `rotate(${rotation}deg)`;
-      el.append(arrow);
-    }
-    const speed = document.createElement("div");
-    speed.className = "wind-speed-badge";
-    speed.textContent =
-      current.speedMps === 0
-        ? "Calm"
-        : `${formatSpeed(current.speedMps, unit)} · ${rotation === null ? "Direction unavailable" : compassDirection(rotation)}`;
-    el.append(speed);
-    map.getContainer().append(el);
-    return () => {
-      stopParticles();
-      el.remove();
-    };
-  }, [map, ready, current, unit, particlesEnabled]);
+    return stopParticles;
+  }, [map, ready, current, particlesEnabled]);
   const calmSpeedMps = rider.calmSpeedKmh / 3.6;
   const targetSettings = (
     <TargetSettings
@@ -272,6 +251,24 @@ export default function WindPreview({
       className="wind-strip forecast-console"
       aria-label="Route wind forecast"
     >
+      {forecast &&
+        map &&
+        ready &&
+        createPortal(
+          <button
+            type="button"
+            className="wind-toggle"
+            aria-label="Wind particles"
+            aria-pressed={particlesEnabled}
+            onClick={() => setParticlesEnabled(!particlesEnabled)}
+          >
+            <span aria-hidden="true" className="wind-toggle-dot" />
+            <span aria-hidden="true">
+              Wind {particlesEnabled ? "on" : "off"}
+            </span>
+          </button>,
+          map.getContainer(),
+        )}
       {forecast && (
         <>
           <div
@@ -385,16 +382,6 @@ export default function WindPreview({
             unit={unit}
             onChange={onRiderChange}
           />
-          <div className="wind-display-controls">
-            <button
-              type="button"
-              aria-pressed={particlesEnabled}
-              onClick={() => setParticlesEnabled(!particlesEnabled)}
-            >
-              Wind particles {particlesEnabled ? "on" : "off"}
-            </button>
-            <span>Arrow points where wind blows.</span>
-          </div>
           <details className="weather-details">
             <summary>About this estimate & best hour</summary>
             <p>

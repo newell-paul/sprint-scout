@@ -709,41 +709,6 @@ hr {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   pointer-events: none;
 }
-.wind-map-key {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(30, 42, 58, 0.88);
-  color: var(--data);
-  border: 1px solid var(--data);
-  box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  pointer-events: none;
-}
-.wind-direction-arrow {
-  display: inline-block;
-  font-size: 28px;
-  line-height: 1;
-  color: var(--data);
-}
-.wind-map-key .wind-speed-badge {
-  font-size: 14px;
-  background: none;
-  border: 0;
-  padding: 0;
-}
-.wind-display-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--muted);
-}
 .segment-slot.active {
   border-color: var(--best);
   background: color-mix(in srgb, var(--best) 10%, var(--raised));
@@ -1191,14 +1156,64 @@ hr {
     transparent 160%
   );
 }
-.wind-speed-badge {
-  font-size: 22px;
-  font-weight: bold;
+.segment-screen .segment-map .wind-toggle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  padding: 3px 12px 3px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  background: var(--bg);
   color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+}
+/* The dot shows the state, not the screen-wide pressed glow. */
+.segment-screen .segment-map .wind-toggle[aria-pressed] {
+  background: var(--bg);
+  border-color: rgba(148, 163, 184, 0.35);
+  box-shadow: none;
+}
+.segment-screen .segment-map .wind-toggle[aria-pressed="false"] {
+  color: var(--muted);
+}
+/* .segment-screen outranks the screen-wide button type. The pill stays
+   small; ::after widens its tap target to 44 px. */
+.segment-screen .segment-map .wind-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -9px -6px;
+}
+.segment-screen .segment-map .wind-toggle:hover {
+  border-color: var(--data);
+}
+.wind-toggle-dot {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--muted);
+  border-radius: 50%;
+}
+.wind-toggle[aria-pressed="true"] .wind-toggle-dot {
+  border-color: var(--data);
+  background: var(--data);
+  box-shadow: 0 0 6px rgba(45, 212, 191, 0.6);
+}
+@media (max-width: 600px) {
+  .segment-screen .segment-map .wind-toggle {
+    top: 8px;
+    left: 8px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .segment-screen .segment-map .wind-toggle::after {
+    inset: -9px -6px -11px;
+  }
 }
 .segment-map .maplibregl-ctrl-group,
 .segment-map .maplibregl-ctrl-attrib {
@@ -1645,8 +1660,7 @@ hr {
 .forecast-console .weather-details {
   margin: 0;
 }
-.forecast-console .wind-actions,
-.forecast-console .wind-display-controls {
+.forecast-console .wind-actions {
   margin: 0;
 }
 @media (max-width: 800px) {
@@ -1694,7 +1708,6 @@ hr {
   .compass-dial {
     max-width: 150px;
   }
-  .forecast-console > .wind-display-controls,
   .forecast-console > .weather-details,
   .forecast-console > .wind-actions,
   .forecast-console > [role="alert"] {
@@ -1758,7 +1771,6 @@ hr {
     .time-chart-ticks span,
     .weather-details,
     .segment-footer,
-    .wind-display-controls,
     .unit-control,
     .wind-actions small
   ) {
@@ -1780,8 +1792,7 @@ hr {
     .timing-facts dd,
     .drawing-guidance,
     .drawing-steps,
-    .wind-time,
-    .wind-speed-badge
+    .wind-time
   ) {
   font-size: var(--type-body);
   line-height: 1.5;
@@ -1940,11 +1951,6 @@ hr {
   border-color: var(--data);
   color: var(--bg);
   box-shadow: 0 0 10px rgba(45, 212, 191, 0.35);
-}
-.wind-display-controls button {
-  background: transparent;
-  border-color: var(--border);
-  min-height: 38px;
 }
 .forecast-console .forecast-navigation .best-hour-button[aria-pressed="true"] {
   background: color-mix(in srgb, var(--best) 28%, var(--raised));

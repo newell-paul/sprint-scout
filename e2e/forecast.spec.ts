@@ -82,15 +82,14 @@ test("mph converts every readout without a new request", async ({ planner, seed,
   await expect(cockpit.region).toContainText("24.9 mph");
   await expect(cockpit.speed).toContainText("mph");
   await expect(cockpit.segmentTime).toHaveText(crosswindTime);
-  await expect(planner.map.overlay).toContainText("11.2 mph");
   expect(openMeteo.calls.weather).toBe(1);
 });
 
-test("the map overlay shows the wind with animated particles", async ({ planner, seed }) => {
+test("the map shows the wind as animated particles with the toggle on", async ({ planner, seed }) => {
   await seed(seeded);
 
   const { map } = planner;
-  await expect(map.overlay).toContainText("18.0 km/h");
+  await expect(map.windToggle).toHaveAttribute("aria-pressed", "true");
   await expect(map.particles).toHaveAttribute("data-flow-degrees", "0");
   await expect(map.particles).toHaveAttribute("data-speed-mps", "5.0");
   await expect(map.particles).toHaveAttribute("data-motion", "animated");
@@ -140,13 +139,13 @@ test("the timeline stays on screen on a phone @mobile-only @mobile", async ({ pl
   expect(await planner.horizontalOverflow()).toBe(0);
 });
 
-test("deleting the segment removes the timeline and the map overlay", async ({ planner, seed }) => {
+test("deleting the segment removes the timeline and the wind toggle", async ({ planner, seed }) => {
   await seed(seeded);
-  await expect(planner.map.overlay).toHaveCount(1);
+  await expect(planner.map.windToggle).toHaveCount(1);
 
   await planner.library.delete();
 
   await expect(planner.timeline.slider).toHaveCount(0);
   await expect(planner.library.slot(1)).toHaveAttribute("data-defined", "false");
-  await expect(planner.map.overlay).toHaveCount(0);
+  await expect(planner.map.windToggle).toHaveCount(0);
 });
