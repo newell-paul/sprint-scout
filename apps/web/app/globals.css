@@ -622,7 +622,6 @@ hr {
 .logo-word-accent {
   font-weight: 700;
   color: var(--data);
-  margin-left: 0.26em;
 }
 .segment-slots {
   display: flex;

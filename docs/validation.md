@@ -137,7 +137,7 @@ Initial checks found a missing shared map stylesheet import and a type-only SDK 
 
 ## Remaining acceptance and boundaries
 
-The named tested host is **Sprint Scout AppBridge test host 0.5.0**, a Playwright harness using the official SDK. It contains no language model. A chosen conversational desktop host must still run the documented example prompt and demonstrate actual embedded rendering/interaction, permissions and fallback. Host configurations and personal accounts were not accessed or changed.
+The named tested host is **SprintScout AppBridge test host 0.5.0**, a Playwright harness using the official SDK. It contains no language model. A chosen conversational desktop host must still run the documented example prompt and demonstrate actual embedded rendering/interaction, permissions and fallback. Host configurations and personal accounts were not accessed or changed.
 
 The web fallback is a local synthetic demo. An authenticated remote link is unavailable until milestone 7; the plan/design explicitly record that sequencing limitation. Real Strava access and the user-linked gateway remain disabled pending source/workflow verification. Live weather was not enabled, no database work or migration was needed, no services were purchased and nothing was deployed. No milestone 6 or later implementation began. The directory still has no Git repository, so no commit was created.
 

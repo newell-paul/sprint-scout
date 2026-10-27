@@ -732,10 +732,11 @@ describe("render", () => {
     expect(html.match(/<style>[\s\S]*<\/style>/)![0]).not.toMatch(/https?:/);
   });
 
-  it("slants the wordmark like the planner's, with Scout bold after a word gap", () => {
+  it("slants the wordmark like the planner's, with Scout bold and no word gap", () => {
     const html = render([snapshot({ date: "2026-10-24" })]);
     expect(html).toMatch(/\.brand\{[^}]*transform:skewX\(-12deg\)/);
-    expect(html).toMatch(/\.brand b\{font-weight:700;[^}]*margin-left:\.26em/);
+    expect(html).toMatch(/\.brand b\{font-weight:700;/);
+    expect(html).not.toMatch(/\.brand b\{[^}]*margin-left/);
   });
 
   it("shares the planner's page and panel colours", () => {
