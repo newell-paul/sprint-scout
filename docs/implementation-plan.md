@@ -130,7 +130,7 @@ Release checkpoint: the demo MVP is now useful and can be handed over even if li
 
 Implementation status (8 September 2026): tools, stdio, embedded resource and skill implemented and locally tested; **milestone acceptance remained open** for the chosen conversational desktop host until the 22 September 2026 withdrawal. The MCP guide was removed with the server on 22 September 2026; see the Milestone 5 section of [validation.md](validation.md). No desktop settings were changed. The fallback is explicitly local/synthetic; authenticated remote access remains milestone 7. Do not start milestone 6 to work around this acceptance item or the source-permission gate.
 
-Removed (22 September 2026): the owner chose to keep Sprint Scout as a focused web app. `apps/mcp`, `apps/mcp-ui`, `skills/sprint-scout`, `docs/mcp.md` and the MCP tool contracts were deleted; milestone 5 is closed as withdrawn, not accepted. Remote MCP items in milestone 7 no longer apply.
+Removed (22 September 2026): the owner chose to keep SprintScout as a focused web app. `apps/mcp`, `apps/mcp-ui`, `skills/sprint-scout`, `docs/mcp.md` and the MCP tool contracts were deleted; milestone 5 is closed as withdrawn, not accepted. Remote MCP items in milestone 7 no longer apply.
 
 ## Milestone 6 — Approved personal data integration
 
