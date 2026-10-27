@@ -541,8 +541,19 @@ export function badges(latest: Snapshot | undefined): Record<string, Badge> {
     message: "n/a",
     color: "lightgrey",
   });
+  const level = (label: string, counts: Counts | null | undefined): Badge =>
+    counts
+      ? {
+          schemaVersion: 1,
+          label,
+          message: `${counts.tests - counts.failed}/${counts.tests} pass`,
+          color: counts.failed === 0 ? "brightgreen" : "red",
+        }
+      : na(label);
   if (!latest)
     return {
+      unit: na("unit"),
+      component: na("component"),
       evals: na("evals"),
       mutation: na("mutation"),
       coverage: na("coverage"),
@@ -556,6 +567,8 @@ export function badges(latest: Snapshot | undefined): Record<string, Badge> {
     ? Math.min(lh.performance, lh.accessibility, lh.bestPractices)
     : null;
   return {
+    unit: level("unit", latest.unit),
+    component: level("component", latest.component),
     evals: ev
       ? {
           schemaVersion: 1,

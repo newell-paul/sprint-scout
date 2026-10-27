@@ -506,6 +506,24 @@ describe("badges", () => {
     expect(result.coverage?.message).toBe("91 % lines");
     expect(result.lighthouse?.message).toBe("97 · 100 · 100");
     expect(result.e2e?.color).toBe("red");
+    expect(result.unit).toEqual({
+      schemaVersion: 1,
+      label: "unit",
+      message: "377/377 pass",
+      color: "brightgreen",
+    });
+    expect(result.component).toMatchObject({
+      label: "component",
+      message: "45/45 pass",
+      color: "brightgreen",
+    });
+  });
+
+  it("turns the unit badge red when a unit test failed", () => {
+    const failing = { ...vitest, numFailedTests: 1 };
+    expect(
+      badges(snapshot({ date: "2026-10-27", unit: failing })).unit,
+    ).toMatchObject({ message: "376/377 pass", color: "red" });
   });
 
   it("passes the e2e badge with a flaky note when a retry passed", () => {
@@ -522,7 +540,12 @@ describe("badges", () => {
         color: "lightgrey",
       });
     }
-    expect(badges(snapshot({ date: "2026-10-10" })).evals?.message).toBe("n/a");
+    expect(badges(undefined)).toHaveProperty("unit");
+    expect(badges(undefined)).toHaveProperty("component");
+    const empty = badges(snapshot({ date: "2026-10-10" }));
+    expect(empty.evals?.message).toBe("n/a");
+    expect(empty.unit?.message).toBe("n/a");
+    expect(empty.component?.message).toBe("n/a");
   });
 
   // History is read from JSON without validation, and older entries predate

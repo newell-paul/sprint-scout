@@ -753,3 +753,7 @@ The engineering dashboard drops its own near-black palette (`#0b0f19` page, `#11
 ## README banner rendered from the planner — 27 October 2026
 
 The README banner and the GitHub social preview were AI-generated images that kept the old upright wordmark after the italic logo shipped. Both are now rendered by `pnpm banner` from `scripts/banner/banner.html`, which uses the planner's own mark file, the committed Inter font and the planner's colours, beside a live screenshot of the planner cropped to the map and the "Find your window" chart. The next brand change is a rerun, not a redraw. The social preview, seen without the README heading above it, leads with a 72 px logo; the README banner gives logo and tag line equal weight (v2 of the drafts). The script runs only by hand against a local dev server: the screenshot shows a live forecast and map tiles, so a CI render would not be reproducible. See `intent/readme-banner/`.
+
+## Unit and component badges — 27 October 2026
+
+The README badge row gains "unit" and "component" badges before e2e, so the test levels read bottom-up before the quality gates (coverage, mutation, Lighthouse, evals). Each reads "passed/total pass" from the counts the dashboard already takes from the merged unit report and the component report, green with no failures and red with any; a run without the report reads grey "n/a". Vitest runs without retries, so unlike e2e there is no flaky state. Option A of three: one badge per level, matching the dashboard's cards. See `intent/test-badges/`.
