@@ -2,8 +2,8 @@
 
 ## Files
 
-- `apps/web/app/globals.css`: `.segment-logo` gains `transform: skewX(-12deg)`; `.logo-word-accent` weight 700 and `margin-left: 0.26em`.
-- `packages/testing/src/dashboard.ts`: `.brand` gains the same skew; `.brand b` weight 700 and `margin-left: .26em`.
+- `apps/web/app/globals.css`: `.segment-logo` gains `transform: skewX(-12deg)` anchored at `left bottom`, so the mark never slides past the left edge; `.logo-word-accent` weight 700 and `margin-left: 0.26em`.
+- `packages/testing/src/dashboard.ts`: `.brand` gains the same skew and origin; `.brand b` weight 700 and `margin-left: .26em`.
 - `packages/testing/src/dashboard.test.ts`: assert the slant, weight and gap in the dashboard CSS.
 - `docs/design.md`: dated entry.
 

@@ -1,6 +1,6 @@
 # High-velocity italic logo
 
-Status: accepted
+Status: done
 Opened: 27 October 2026 by Paul Newell
 
 ## Problem
