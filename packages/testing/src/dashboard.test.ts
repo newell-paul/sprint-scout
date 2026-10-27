@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   appendHistory,
@@ -712,6 +713,39 @@ describe("render", () => {
     const html = render([snapshot({ date: "2026-10-24" })]);
     expect(html).toMatch(/\.brand\{[^}]*transform:skewX\(-12deg\)/);
     expect(html).toMatch(/\.brand b\{font-weight:700;[^}]*margin-left:\.26em/);
+  });
+
+  it("shares the planner's page and panel colours", () => {
+    const planner = readFileSync(
+      new URL("../../../apps/web/app/globals.css", import.meta.url),
+      "utf8",
+    );
+    const css = render([snapshot({ date: "2026-10-24" })]);
+    const token = (source: string, name: string) =>
+      source
+        .match(new RegExp(`${name}:\\s*([^;]+);`))?.[1]
+        ?.replace(/\s/g, "")
+        .replace(/\b0\./g, ".");
+    const names = [
+      "--bg",
+      "--surface",
+      "--raised",
+      "--ink",
+      "--muted",
+      "--border",
+    ];
+    const tokens = (source: string) =>
+      Object.fromEntries(names.map((name) => [name, token(source, name)]));
+    expect(tokens(css)).toEqual(tokens(planner));
+    expect(css).toContain("rgba(56,189,248,.08)");
+  });
+
+  it("draws cards as the planner's panels, with no status glow", () => {
+    const css = render([snapshot({ date: "2026-10-24" })]);
+    expect(css).toMatch(
+      /\.card\{[^}]*background:rgba\(41,54,72,\.85\);border:1px solid rgba\(45,212,191,\.22\);border-radius:16px;[^}]*box-shadow:0 12px 40px rgba\(0,0,0,\.35\)/,
+    );
+    expect(css).not.toMatch(/\.card\[data-tone\]\{box-shadow/);
   });
 
   it("renders an old history entry without the new fields", () => {
