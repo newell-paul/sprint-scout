@@ -7,12 +7,18 @@ export class PlannerMap {
   readonly canvas: Locator;
   readonly windToggle: Locator;
   readonly particles: Locator;
+  readonly credit: Locator;
+  readonly creditText: Locator;
+  readonly creditButton: Locator;
 
   constructor(private readonly page: Page) {
     this.region = page.getByRole("region", { name: "Route drawing map" });
     this.canvas = this.region.locator("canvas.maplibregl-canvas");
     this.windToggle = page.getByRole("button", { name: "Wind particles" });
     this.particles = page.getByTestId("wind-particle-field");
+    this.credit = this.region.locator(".maplibregl-ctrl-attrib");
+    this.creditText = this.region.getByRole("link", { name: "OpenStreetMap contributors" });
+    this.creditButton = this.region.getByTitle("Toggle attribution");
   }
 
   /** The map installs its click-to-activate handling once MapLibre loads. */

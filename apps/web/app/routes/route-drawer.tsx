@@ -342,6 +342,21 @@ export default function Routes() {
     m.setPaintProperty("background", "background-color", "#1e2a3a");
   }, [ready]);
   useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    // The OpenStreetMap attribution guidelines let the credit shrink to its (i)
+    // five seconds after it appears; MapLibre itself only shrinks it on a drag.
+    const shrink = window.setTimeout(
+      () =>
+        m
+          .getContainer()
+          .querySelector(".maplibregl-compact-show")
+          ?.classList.remove("maplibregl-compact-show"),
+      5_000,
+    );
+    return () => window.clearTimeout(shrink);
+  }, [ready]);
+  useEffect(() => {
     if (!ready || !selectedRoute || !map.current) return;
     const lon = selectedRoute.points.map((p) => p[0]),
       lat = selectedRoute.points.map((p) => p[1]);

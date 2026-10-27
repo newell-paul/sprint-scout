@@ -697,7 +697,12 @@ hr {
   font-size: 12px;
 }
 .unit-control > span:first-child {
-  color: var(--muted);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .unit-switch {
   display: inline-flex;
@@ -1096,14 +1101,6 @@ hr {
   .unit-switch button {
     padding: 0 9px;
   }
-  .unit-control > span:first-child {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
   .segment-carousel {
     grid-template-columns: 32px minmax(0, 1fr) 32px;
   }
@@ -1285,6 +1282,8 @@ hr {
 }
 .segment-screen .maplibregl-ctrl-attrib-button {
   filter: var(--ctrl-icon-filter);
+  min-height: 0;
+  background-repeat: no-repeat;
 }
 .wind-time {
   align-items: center;
