@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SprintScout banner</title>
+    <!-- Rendered by scripts/render-banner.mjs, which sets the size variables
+    and passes the planner screenshot in as --shot-image. -->
+    <style>
+      @font-face {
+        font-family: Inter;
+        src: url(../../apps/web/app/fonts/inter-latin-variable.woff2)
+          format("woff2");
+        font-weight: 400 800;
+      }
+      :root {
+        --bg: #1e2a3a;
+        --ink: #ffffff;
+        --muted: #a5b4c8;
+        --data: #2dd4bf;
+        --border: rgba(148, 163, 184, 0.28);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        position: relative;
+        width: var(--w);
+        height: var(--h);
+        overflow: hidden;
+        font-family: Inter, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(
+            60% 90% at 0% 0%,
+            rgba(56, 189, 248, 0.12),
+            transparent 60%
+          ),
+          radial-gradient(
+            55% 80% at 100% 100%,
+            rgba(45, 212, 191, 0.1),
+            transparent 60%
+          ),
+          var(--bg);
+      }
+      .streaks {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          180deg,
+          transparent 0 22px,
+          rgba(165, 180, 200, 0.07) 22px 23px
+        );
+        mask-image: linear-gradient(
+          90deg,
+          transparent 0%,
+          #000 35%,
+          #000 70%,
+          transparent 100%
+        );
+      }
+      .copy {
+        position: absolute;
+        left: calc(var(--h) * 0.11);
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.33em;
+        font-size: var(--logo);
+        transform: skewX(-12deg);
+        transform-origin: left bottom;
+      }
+      .logo img {
+        width: 1.24em;
+        height: 1.24em;
+        filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
+      }
+      .logo span {
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+      }
+      .logo b {
+        font-weight: 700;
+        color: var(--data);
+        margin-left: 0.26em;
+      }
+      h1 {
+        margin: 0.55em 0 0;
+        font-size: var(--head);
+        line-height: 1.08;
+        font-weight: 800;
+        letter-spacing: -0.025em;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--data);
+      }
+      .pills {
+        display: flex;
+        gap: 12px;
+        margin-top: calc(var(--head) * 0.6);
+      }
+      .pill {
+        font-size: var(--pill);
+        font-weight: 600;
+        padding: 0.6em 1.05em;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        background: rgba(15, 23, 42, 0.35);
+        white-space: nowrap;
+      }
+      .pill.on {
+        color: var(--ink);
+        border-color: rgba(45, 212, 191, 0.7);
+        background: rgba(45, 212, 191, 0.14);
+        box-shadow: 0 0 18px rgba(45, 212, 191, 0.35);
+      }
+      /* The screenshot is 1440 × 1000 CSS px; 125% wide anchored bottom-centre
+      keeps the map and chart and drops the planner's own header. */
+      .shot {
+        position: absolute;
+        right: calc(var(--w) * -0.06);
+        top: 50%;
+        width: var(--shot);
+        aspect-ratio: 2304 / 1518;
+        transform: translateY(-50%) perspective(1400px) rotateY(-14deg)
+          rotateX(4deg);
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(45, 212, 191, 0.35);
+        box-shadow:
+          0 24px 70px rgba(0, 0, 0, 0.55),
+          0 0 60px rgba(45, 212, 191, 0.18);
+        background: var(--shot-image) no-repeat 50% 100% / 125% auto;
+      }
+      .shot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent 60%,
+          rgba(30, 42, 58, 0.55)
+        );
+      }
+    </style>
+  </head>
+  <body>
+    <div class="streaks"></div>
+    <div class="shot"></div>
+    <div class="copy">
+      <div class="logo">
+        <img src="../../apps/web/app/components/logo-mark.svg" alt="" /><span
+          >Sprint<b>Scout</b></span
+        >
+      </div>
+      <h1>Chase the <em>Tailwind</em><br />Find your Window</h1>
+      <div class="pills">
+        <span class="pill on">Free on GitHub Pages</span
+        ><span class="pill">Cycling weather &amp; segment analytics</span>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 # README banner from the real logo
 
-Status: accepted
+Status: done
 Opened: 27 October 2026 by Paul Newell
 
 ## Problem
