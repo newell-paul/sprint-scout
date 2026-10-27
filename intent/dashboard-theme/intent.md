@@ -1,6 +1,6 @@
 # Dashboard in the planner's colours
 
-Status: accepted
+Status: done
 Opened: 27 October 2026 by Paul Newell
 
 ## Problem
