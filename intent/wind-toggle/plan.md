@@ -18,5 +18,5 @@
 ## Proof
 
 - Component tests for on, off and the no-wind hour pass and fail against a toggle that does nothing.
-- E2E toggle checks pass; pressing the toggle while drawing leaves the point count unchanged.
+- E2E toggle checks pass, including the axe colour-contrast check over the map.
 - `pnpm verify` green.

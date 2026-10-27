@@ -42,8 +42,6 @@
     - definition: 0.0 mm · 20% chance
     - text: Near-start forecast · Wind at 10 m; crosswind averaged along segment direction. Gusts and precipitation cover the preceding hour. Not a road-safety assessment.
   - group: Rider Reference rider · 40.0 km/h in still air
-  - button "Wind particles on" [pressed]
-  - text: Arrow points where wind blows.
   - group: About this estimate & best hour
   - region "Manual wind shelter":
     - heading "Assumed shelter" [level=3]

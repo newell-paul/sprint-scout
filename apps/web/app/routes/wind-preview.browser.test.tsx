@@ -497,13 +497,15 @@ it("full motion: the particle field animates", async () => {
     .toHaveAttribute("data-motion", "animated");
 });
 
-it("wind missing on the next hour: cockpit and map overlay go blank", async () => {
+it("wind missing on the next hour: cockpit and particles go blank", async () => {
   openMeteo.hours = { 1: { speed: null } };
   const screen = await render(
     <WindPreview route={fresh()} {...props()} {...readyMap()} />,
   );
   const region = screen.getByRole("region", console);
-  await expect.element(screen.getByTestId("wind-map-overlay")).toBeVisible();
+  await expect
+    .element(screen.getByTestId("wind-particle-field"))
+    .toBeInTheDocument();
 
   await region.getByRole("button", { name: "Next hour" }).click();
 
@@ -523,40 +525,59 @@ it("wind missing on the next hour: cockpit and map overlay go blank", async () =
     region.getByTestId("ride-cockpit").element().querySelector(".dial-needle"),
   ).toBeNull();
   await expect
-    .element(screen.getByTestId("wind-map-overlay"))
-    .not.toBeInTheDocument();
-});
-
-it("particles off: the field goes and the wind arrow stays", async () => {
-  const screen = await render(
-    <WindPreview route={fresh()} {...props()} {...readyMap()} />,
-  );
-  await expect
-    .element(screen.getByTestId("wind-particle-field"))
-    .toBeInTheDocument();
-
-  await screen.getByRole("button", { name: "Wind particles on" }).click();
-
-  await expect
     .element(screen.getByTestId("wind-particle-field"))
     .not.toBeInTheDocument();
   await expect
-    .element(screen.getByTestId("wind-map-overlay").getByText("↑"))
+    .element(screen.getByRole("button", { name: "Wind particles" }))
     .toBeVisible();
 });
 
-it("particles back on: the field is restored", async () => {
+it("wind off: the map toggle stops the particle field", async () => {
   const screen = await render(
     <WindPreview route={fresh()} {...props()} {...readyMap()} />,
   );
-  await screen.getByRole("button", { name: "Wind particles on" }).click();
+  const toggle = screen.getByRole("button", { name: "Wind particles" });
+  await expect.element(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect
+    .element(screen.getByTestId("wind-particle-field"))
+    .toBeInTheDocument();
+
+  await toggle.click();
+
+  await expect.element(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect
+    .element(screen.getByTestId("wind-particle-field"))
+    .not.toBeInTheDocument();
+});
+
+it("wind back on: the map toggle restores the field", async () => {
+  const screen = await render(
+    <WindPreview route={fresh()} {...props()} {...readyMap()} />,
+  );
+  const toggle = screen.getByRole("button", { name: "Wind particles" });
+  await toggle.click();
   await expect
     .element(screen.getByTestId("wind-particle-field"))
     .not.toBeInTheDocument();
 
-  await screen.getByRole("button", { name: "Wind particles off" }).click();
+  await toggle.click();
 
+  await expect.element(toggle).toHaveAttribute("aria-pressed", "true");
   await expect
     .element(screen.getByTestId("wind-particle-field"))
     .toBeInTheDocument();
+});
+
+it("no map yet: no wind toggle", async () => {
+  const screen = await render(<WindPreview route={fresh()} {...props()} />);
+  await expect
+    .element(
+      screen
+        .getByRole("region", console)
+        .getByRole("group", { name: "Forecast navigation" }),
+    )
+    .toBeVisible();
+  await expect
+    .element(screen.getByRole("button", { name: "Wind particles" }))
+    .not.toBeInTheDocument();
 });

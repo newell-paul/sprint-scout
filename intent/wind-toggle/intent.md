@@ -1,6 +1,6 @@
 # Wind on/off toggle on the map
 
-Status: accepted
+Status: done
 Opened: 27 October 2026 by Paul Newell
 
 ## Problem
@@ -9,7 +9,7 @@ The map's top-left corner carries a chip with the wind arrow, speed and directio
 
 ## Proposed outcome
 
-The chip is gone. In its corner sits a small segmented toggle, "Wind | On | Off", that turns the wind particles on and off. It stays discreet on desktop and phones, while a phone tap still lands on it comfortably. The particles button and its caption in the forecast console are gone.
+The chip is gone. In its corner sits a small text chip, "Wind on" or "Wind off" beside a status dot, that turns the wind particles on and off. It stays discreet on desktop and phones, while a phone tap still lands on it comfortably. The particles button and its caption in the forecast console are gone.
 
 ## Affected users and parts
 
