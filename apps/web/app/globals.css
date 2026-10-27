@@ -556,6 +556,9 @@ hr {
   gap: 14px;
   flex-shrink: 0;
   color: var(--ink);
+  /* Leans from the baseline so the mark never slides past the left edge. */
+  transform: skewX(-12deg);
+  transform-origin: left bottom;
 }
 .segment-logo .logo-mark {
   display: block;
@@ -572,9 +575,9 @@ hr {
   white-space: nowrap;
 }
 .logo-word-accent {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--data);
-  margin-left: 0.12em;
+  margin-left: 0.26em;
 }
 .segment-slots {
   display: flex;
