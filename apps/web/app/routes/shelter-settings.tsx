@@ -46,8 +46,11 @@ export default function ShelterSettings({
             <ShelterIcon level={level} />
             <strong>{shelterPresets[level].label}</strong>
             <span>
-              {Math.round((1 - shelterPresets[level].windFactor) * 100)}% wind
-              reduction
+              {Math.round((1 - shelterPresets[level].windFactor) * 100)}%
+              <span className={value === level ? undefined : "sr-only"}>
+                {" "}
+                wind reduction
+              </span>
             </span>
           </button>
         ))}
