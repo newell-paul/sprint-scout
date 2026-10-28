@@ -33,9 +33,4 @@ The useful path is the first "Build" row. Most riders already have the ride with
 
 ## Decisions
 
-1. **A way out at every step.** From the moment "Add segment" is pressed, a bar directly above the map holds "Cancel" and "Undo point", on every screen size. Escape cancels too. Cancel goes back to the segment the rider was on.
-2. **No lock, no dialog.** Picking another segment tab while drawing discards the drawing, the same as Cancel. Either way a "Drawing discarded. Undo" notice brings it back, like the existing "Undo delete". No browser dialog, no stored drafts.
-3. **The first tap counts on a new segment.** On an empty slot the tap that activates the map also places the start. A saved segment keeps today's rule, so scrolling past it never drops anything.
-4. **A name is filled in.** A new segment starts as "Segment N", selected when the field is focused, so the Name step is already done.
-5. **The independent-source tick stays per segment.** It is the recorded data-rights gate, not friction to design away.
-6. **Segment from a ride is its own intent** (`intent/segment-from-ride/`). It needs a dated owner entry in `docs/integration-decisions.md` that extends the own-recording permission from efforts to segment geometry.
+Recorded in the [intent](intent.md): one bar above the map with Undo and Cancel, no tab lock with Restore after a discard, the first tap placing a point while drawing, a default name, the independent-source tick kept, and segment from a ride as its own intent behind a dated owner entry in `docs/integration-decisions.md`.
