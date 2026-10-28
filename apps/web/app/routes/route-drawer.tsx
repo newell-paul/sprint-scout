@@ -21,6 +21,7 @@ import WeatherIcon from "../components/weather-icon";
 import type { RouteWindHour } from "@scout/application/route-wind";
 import type { RiderInput } from "@scout/analysis";
 import type { SpeedUnit } from "../components/speed";
+import BuildStamp from "./build-stamp";
 import OpportunityBoard from "./opportunity-board";
 import {
   readRiderInput,
@@ -841,6 +842,10 @@ export default function Routes() {
           © OpenStreetMap contributors
         </a>
         <span aria-hidden="true">·</span>
+        <BuildStamp />
+        <span aria-hidden="true" className="footer-wrap-dot">
+          ·
+        </span>
         <details>
           <summary>Data & privacy</summary>
           <p>

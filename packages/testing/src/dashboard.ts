@@ -105,6 +105,7 @@ export type Counts = { tests: number; failed: number; durationMs: number };
 export type Snapshot = {
   date: string;
   sha?: string;
+  version?: string;
   e2e:
     | (Counts & {
         flaky?: number;
@@ -144,6 +145,7 @@ export type Snapshot = {
 export type Inputs = {
   date: string;
   sha?: string | undefined;
+  version?: string | undefined;
   playwright?: PlaywrightReport | undefined;
   unit?: VitestReport | undefined;
   component?: VitestReport | undefined;
@@ -437,6 +439,7 @@ export function snapshot(inputs: Inputs): Snapshot {
     mutationScore: inputs.mutation ? mutationScore(inputs.mutation) : null,
   };
   if (inputs.sha) base.sha = inputs.sha;
+  if (inputs.version) base.version = inputs.version;
   const extra: { [K in keyof Snapshot]?: Snapshot[K] | undefined } = {
     unit: inputs.unit ? summariseVitest(inputs.unit) : undefined,
     component: inputs.component ? summariseVitest(inputs.component) : undefined,
@@ -1164,6 +1167,7 @@ export function render(history: Snapshot[], annotations: Annotation[] = []) {
 
   const grid = (cards: string[], variant = "") =>
     `<dl class="grid${variant ? ` ${variant}` : ""}">${cards.join("")}</dl>`;
+  const version = latest.version ? ` v${escapeHtml(latest.version)}` : "";
   const commit = latest.sha
     ? ` at <code>${escapeHtml(latest.sha.slice(0, 7))}</code>`
     : "";
@@ -1261,7 +1265,7 @@ p.bands strong{display:block;color:var(--ink)}p.bands svg{flex:none;filter:drop-
 <body>
 <main>
 <header class="top"><a class="brand" href="../" aria-label="SprintScout planner"><img src="logo-mark.svg" width="52" height="52" alt=""><span>Sprint<b>Scout</b></span></a>
-<div class="title"><h1>Engineering dashboard</h1><p class="muted">${source}<span>Built from main${commit} on ${escapeHtml(latest.date)} · trends over ${history.length} day${history.length === 1 ? "" : "s"}</span></p></div></header>
+<div class="title"><h1>Engineering dashboard</h1><p class="muted">${source}<span>Built from main${version}${commit} on ${escapeHtml(latest.date)} · trends over ${history.length} day${history.length === 1 ? "" : "s"}</span></p></div></header>
 <nav aria-label="Sections"><a href="#pipeline">Pipeline</a><a href="#tests">Tests</a><a href="#board">Intent board</a><a href="#quality">Quality gates</a><a href="#performance">Performance</a><a href="#ai">AI practice</a><a href="#delivery">Delivery</a><a href="#slowest">Slowest tests</a></nav>
 ${bandsPanel(annotations)}
 ${section("pipeline", "Pipeline", "The Checks workflow on main: static gates, unit, component, end-to-end, deploy gate.", grid(pipelineCards, "pipeline"))}

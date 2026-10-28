@@ -1,6 +1,6 @@
 ---
 name: release
-description: Publish or roll back the planner on GitHub Pages. Use when the owner asks to publish, release, deploy, revert or roll back.
+description: Publish, version or roll back the planner on GitHub Pages. Use when the owner asks to publish, release, cut or bump a version, deploy, revert or roll back.
 ---
 
 # Release and rollback
@@ -18,6 +18,15 @@ Everything reaches `main` by pull request. When the owner asks, an agent merges 
 ## Routine release
 
 Work lands on `main` by pull request. A green Checks run on `main` triggers the Pages workflow. Nothing else to do.
+
+## Cut a release
+
+Only when the owner asks for one. See the versioning rules in `docs/sdlc.md`.
+
+1. Branch `release-<x.y.z>` from `main`.
+2. `pnpm release:bump <x.y.z>`. It refuses a version that isn't greater than the current one.
+3. `pnpm release:notes --tag v<x.y.z>` to preview the notes; put them in the pull request body.
+4. Open the pull request. After the owner merges it and Checks passes on `main`, the Release workflow creates the tag and the GitHub release. Never create or push a tag by hand.
 
 ## Rollback
 
