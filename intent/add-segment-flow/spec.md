@@ -56,6 +56,7 @@ E2e, in `e2e/drawing.spec.ts` unless noted:
 - Escape cancels a drawing.
 - Picking another tab while drawing discards the drawing and opens that tab; Restore brings it back (replaces "the other slots are locked during a redraw").
 - A new segment saves under its default name.
+- The board shows on a saved segment and not on a new one.
 - With an empty library and nothing drawn, there is no Cancel.
 - Existing tests move to the new names: the save reason text, "Segment saved on this browser." in the page object and `keyboard.spec.ts`, "Ordered route points" opening before Reverse.
 - The two Clear drawing tests go with the button. Undo still covers removing points; the "a cleared draft that is never saved leaves the segment in place" case becomes the same check after Cancel.

@@ -103,6 +103,15 @@ test.describe("with the forecast unavailable", () => {
     await expect(planner.editor.pointCount(2)).toBeVisible();
   });
 
+  test("the board stays with the saved segments, not the new one", async ({ planner, seed }) => {
+    await seed(saved);
+    await expect(planner.board.region).toBeVisible();
+
+    await planner.library.selectSlot(2);
+
+    await expect(planner.board.region).toHaveCount(0);
+  });
+
   test("Escape cancels a drawing", async ({ page, planner, seed }) => {
     await seed(saved);
     await planner.library.selectSlot(2);
