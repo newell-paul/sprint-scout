@@ -2,25 +2,21 @@ import { aRoute, expect, test } from "./fixtures";
 
 const saved = { routes: [aRoute({ name: "Independent ride" })] };
 
-test("the click that hands the map control places no point; the next click does", async ({ planner }) => {
+test("the click that hands a new segment's map control also places the start", async ({ planner }) => {
   await planner.open();
   await expect(planner.map.region).toHaveAttribute("data-map-active", "false");
 
   await planner.map.clickAt(120, 120);
 
   await expect(planner.map.region).toHaveAttribute("data-map-active", "true");
-  await expect(planner.editor.pointCount(0)).toBeVisible();
-
-  await planner.map.clickAt(220, 160);
-
   await expect(planner.editor.pointCount(1)).toBeVisible();
+  await expect(planner.editor.guidance).toHaveText("Now tap the finish. Lines go straight between points.");
 });
 
 test("while a route is being drawn the map keeps control when the mouse leaves", async ({ planner }) => {
   await planner.open();
   await planner.map.waitUntilInteractive();
   await planner.map.clickAt(120, 120);
-  await planner.map.clickAt(220, 160);
   await expect(planner.editor.pointCount(1)).toBeVisible();
 
   await planner.map.moveMouseAway();
@@ -31,8 +27,9 @@ test("while a route is being drawn the map keeps control when the mouse leaves",
 test("with no points drawn the map gives control back when the mouse leaves", async ({ planner }) => {
   await planner.open();
   await planner.map.waitUntilInteractive();
-  await planner.map.clickAt(120, 120);
+  await planner.map.region.getByRole("button", { name: "Zoom in" }).click();
   await expect(planner.map.region).toHaveAttribute("data-map-active", "true");
+  await expect(planner.editor.pointCount(0)).toBeVisible();
 
   await planner.map.moveMouseAway();
 
@@ -49,6 +46,87 @@ test.describe("with the forecast unavailable", () => {
 
     await planner.editor.plot();
 
+    await expect(planner.editor.pointCount(2)).toBeVisible();
+  });
+
+  test("the bar asks for the start, then the finish, then bends", async ({ planner }) => {
+    await planner.open();
+    await expect(planner.editor.guidance).toHaveText("Tap the map to place your start.");
+    await planner.editor.useCoordinates();
+
+    await planner.editor.addPoint([-0.12, 51.5]);
+    await expect(planner.editor.guidance).toHaveText("Now tap the finish. Lines go straight between points.");
+    await planner.editor.addPoint([-0.12, 51.51]);
+
+    await expect(planner.editor.guidance).toHaveText("Tap to add bends, then save below.");
+  });
+
+  test("with nothing saved and nothing drawn there is nothing to cancel", async ({ planner }) => {
+    await planner.open();
+
+    await expect(planner.editor.guidance).toBeVisible();
+    await expect(planner.editor.cancelButton).toHaveCount(0);
+  });
+
+  test("a new segment saves under its default name", async ({ planner }) => {
+    await planner.open();
+    await planner.editor.plot();
+    await expect(planner.editor.segmentName).toHaveValue("Segment 1");
+
+    await planner.editor.confirmOwnership();
+    await planner.editor.save();
+
+    await expect(planner.library.heading).toContainText("Segment 1");
+  });
+
+  test("cancel on a new segment with nothing drawn goes back without a notice", async ({ planner, seed }) => {
+    await seed(saved);
+    await planner.library.selectSlot(2);
+
+    await planner.editor.cancel();
+
+    await expect(planner.library.heading).toContainText("Independent ride");
+    await expect(planner.library.slot(1)).toHaveAttribute("aria-pressed", "true");
+    await expect(planner.editor.restoreButton).toHaveCount(0);
+  });
+
+  test("cancel after drawing goes back, and Restore brings the drawing back", async ({ planner, seed }) => {
+    await seed(saved);
+    await planner.library.selectSlot(2);
+    await planner.editor.plot();
+
+    await planner.editor.cancel();
+    await expect(planner.library.heading).toContainText("Independent ride");
+    await planner.editor.restore();
+
+    await expect(planner.library.slot(2)).toHaveAttribute("aria-pressed", "true");
+    await expect(planner.editor.pointCount(2)).toBeVisible();
+  });
+
+  test("Escape cancels a drawing", async ({ page, planner, seed }) => {
+    await seed(saved);
+    await planner.library.selectSlot(2);
+    await planner.editor.plot();
+
+    await page.keyboard.press("Escape");
+
+    await expect(planner.library.heading).toContainText("Independent ride");
+    await expect(planner.editor.restoreButton).toBeVisible();
+  });
+
+  test("picking another segment while drawing opens it, and Restore brings the drawing back", async ({
+    planner,
+    seed,
+  }) => {
+    await seed(saved);
+    await planner.library.selectSlot(2);
+    await planner.editor.plot();
+
+    await planner.library.selectSlot(1);
+    await expect(planner.library.heading).toContainText("Independent ride");
+    await planner.editor.restore();
+
+    await expect(planner.library.slot(2)).toHaveAttribute("aria-pressed", "true");
     await expect(planner.editor.pointCount(2)).toBeVisible();
   });
 
@@ -80,7 +158,7 @@ test.describe("with the forecast unavailable", () => {
 
     await expect(planner.editor.saveButton).toBeDisabled();
     await expect(planner.editor.saveButton).toHaveAccessibleDescription(
-      "Tick the independent-source confirmation above to enable Save route.",
+      "Tick the independent-source confirmation above to enable Save segment.",
     );
   });
 
@@ -111,7 +189,8 @@ test.describe("with the forecast unavailable", () => {
 
     await planner.library.selectSlot(2);
 
-    await expect(planner.library.emptyMessage(2)).toBeVisible();
+    await expect(planner.library.slot(2)).toHaveAttribute("data-defined", "false");
+    await expect(planner.editor.guidance).toHaveText("Tap the map to place your start.");
   });
 
   test("redraw loads the saved points", async ({ planner, seed }) => {
@@ -131,34 +210,19 @@ test.describe("with the forecast unavailable", () => {
     await expect(planner.editor.pointCount(1)).toBeVisible();
   });
 
-  test("clear empties the draft", async ({ planner, seed }) => {
+  test("an edited redraw that is cancelled leaves the saved segment in place", async ({ planner, seed }) => {
     await seed(saved);
     await planner.library.redraw();
 
-    await planner.editor.clear();
-
-    await expect(planner.editor.pointCount(0)).toBeVisible();
-  });
-
-  test("a cleared draft that is never saved leaves the segment in place", async ({ planner, seed }) => {
-    await seed(saved);
-    await planner.library.redraw();
-
-    await planner.editor.clear();
+    await planner.editor.undoPoint();
+    await planner.editor.cancel();
     await planner.reload();
 
     await expect(planner.library.slot(1)).toHaveAttribute("data-defined", "true");
+    await expect(planner.library.heading).toContainText("Independent ride");
   });
 
-  test("the other slots are locked during a redraw", async ({ planner, seed }) => {
-    await seed(saved);
-
-    await planner.library.redraw();
-
-    await expect(planner.library.slot(2)).toBeDisabled();
-  });
-
-  test("cancelling a redraw keeps the saved name and re-enables the slots", async ({ planner, seed }) => {
+  test("cancelling a redraw keeps the saved name", async ({ planner, seed }) => {
     await seed(saved);
     await planner.library.redraw();
     await planner.editor.name("Cancelled name");
@@ -166,7 +230,6 @@ test.describe("with the forecast unavailable", () => {
     await planner.editor.cancel();
 
     await expect(planner.library.heading).toContainText("Independent ride");
-    await expect(planner.library.slot(2)).toBeEnabled();
   });
 
   test("a redraw with a new name renames the segment and persists", async ({ planner, seed }) => {

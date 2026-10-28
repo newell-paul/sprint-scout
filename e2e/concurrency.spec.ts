@@ -48,7 +48,7 @@ test("a save is refused when another tab changed the segment and the draft stays
   await planner.editor.save();
 
   await expect(planner.status).toContainText("Could not save changes");
-  await expect(planner.editor.routeName).toHaveValue("My draft");
+  await expect(planner.editor.segmentName).toHaveValue("My draft");
 });
 
 test("cancelling after another tab's change shows that tab's version", async ({ page, planner, seed }) => {

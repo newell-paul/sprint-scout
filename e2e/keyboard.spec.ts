@@ -30,12 +30,12 @@ test.describe("drawing", () => {
     await planner.editor.coordinatesToggle.press("Enter");
     for (const point of northbound) await planner.editor.addPointWithKeyboard(point);
 
-    await planner.editor.routeName.focus();
-    await planner.editor.routeName.fill("Keyboard ride");
+    await planner.editor.segmentName.focus();
+    await planner.editor.segmentName.fill("Keyboard ride");
     await planner.editor.ownership.press("Space");
     await planner.editor.saveButton.press("Enter");
 
-    await expect(planner.status).toHaveText("Route saved on this browser.");
+    await expect(planner.status).toHaveText("Segment saved on this browser.");
   });
 });
 

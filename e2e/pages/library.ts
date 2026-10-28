@@ -25,10 +25,6 @@ export class SegmentLibrary {
     return this.page.getByTestId(`segment-slot-${number}`);
   }
 
-  emptyMessage(number: number) {
-    return this.page.getByText(`Segment ${number} is empty`);
-  }
-
   slotButtons() {
     return this.strip.getByRole("button");
   }
