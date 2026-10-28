@@ -960,6 +960,24 @@ hr {
 .segment-footer summary {
   white-space: nowrap;
 }
+/* On a phone, Data & privacy wraps to its own line; no dot trails the first. */
+@media (max-width: 480px) {
+  .footer-wrap-dot {
+    display: none;
+  }
+}
+.build-stamp {
+  display: inline-flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+/* Beside the commit text, colour alone would not mark the link. */
+.build-stamp a {
+  text-decoration: underline;
+}
+.build-stamp code {
+  font-size: inherit;
+}
 .segment-footer details {
   flex: 1 1 120px;
   min-width: 0;

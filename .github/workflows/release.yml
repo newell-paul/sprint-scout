@@ -1,0 +1,63 @@
+name: Release
+# Tags main and publishes a GitHub release when Checks passes on a commit whose
+# root package.json version has no tag yet. The version only moves through an
+# owner-asked `pnpm release:bump` pull request, so most runs stop at the check.
+# The tag is created through the API by `gh release create`; nothing is pushed.
+on:
+  workflow_run:
+    workflows: [Checks]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    # Same guard as Pages: a fork's pull request from its own main also matches
+    # the branches filter.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          # The notes compare intent statuses with the previous tag.
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Read the version
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version ?? ''")
+          [ -n "$version" ] || { echo "::error::package.json has no version."; exit 1; }
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+      - name: Stop when the version is already tagged
+        id: tagged
+        run: |
+          if git rev-parse -q --verify "refs/tags/${{ steps.version.outputs.tag }}" >/dev/null; then
+            echo "::notice::${{ steps.version.outputs.tag }} already exists; nothing to release."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: pnpm/action-setup@v6
+        if: steps.tagged.outputs.exists != 'true'
+      - uses: actions/setup-node@v7
+        if: steps.tagged.outputs.exists != 'true'
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: steps.tagged.outputs.exists != 'true'
+      - name: Write the notes and publish the release
+        if: steps.tagged.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          pnpm release:notes --tag "$TAG" --out "$RUNNER_TEMP/notes.md"
+          gh release create "$TAG" --target "$SHA" --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"

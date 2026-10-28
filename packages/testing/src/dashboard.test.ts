@@ -559,6 +559,19 @@ describe("badges", () => {
 });
 
 describe("render", () => {
+  it("names the version the dashboard was built from, when the snapshot has one", () => {
+    const versioned = snapshot({ ...everything, version: "0.9.0" });
+    expect(versioned.version).toBe("0.9.0");
+    expect(render([versioned])).toContain(
+      "Built from main v0.9.0 at <code>0123456</code> on 2026-10-10",
+    );
+    const older = snapshot(everything);
+    expect(older).not.toHaveProperty("version");
+    expect(render([older])).toContain(
+      "Built from main at <code>0123456</code>",
+    );
+  });
+
   it("shows every section with the latest metrics and escapes test titles", () => {
     const first = snapshot({ date: "2026-10-09", playwright });
     const latest = snapshot({
