@@ -1,6 +1,6 @@
 # Versioning
 
-Status: accepted
+Status: done
 Opened: 28 October 2026 by Paul Newell
 
 ## Problem

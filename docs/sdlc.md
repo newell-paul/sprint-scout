@@ -74,6 +74,14 @@ The test health page kept a 90-run history of suite duration, pass counts, cover
 - **Actions artifacts and Pages** store and publish the dashboard history and badges.
 - **Dependabot** supplies dependency and security update pull requests through the same gate.
 
+## Versioning
+
+The root `package.json` holds the one version; the workspace packages carry none. Only an owner-cut release moves it: when the owner asks, an agent runs `pnpm release:bump <x.y.z>` on a `release-<x.y.z>` branch and opens a pull request. When that merge passes Checks on `main`, the Release workflow creates the `v<x.y.z>` tag and GitHub release through the API, with notes listing the intents marked done since the previous tag (`pnpm release:notes` prints them locally). The planner footer and the dashboard header name the version and commit they were built from.
+
+- **Patch**: fixes and internal work with no user-visible change in behaviour.
+- **Minor**: a new or changed user-visible behaviour, a stored-data migration, or a new external request.
+- **1.0**: the owner decides when, and writes the bar down here when it is set. Until then the app stays on 0.x.
+
 ## Intent plan
 
 One pull request per step. Steps marked paid need the secret in place before their workflow can run; their code can be written and tested locally first.

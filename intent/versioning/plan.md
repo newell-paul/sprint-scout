@@ -25,7 +25,7 @@
 
 - `pnpm test` covers the notes, the bump and the dashboard.
 - `pnpm test:component` covers the build stamp.
-- `pnpm release:notes --dry-run` prints the 0.9.0 notes locally.
+- `pnpm release:notes` prints the 0.9.0 notes locally.
 - `pnpm check:deploy` holds the size and Lighthouse budgets.
 - `pnpm verify` green.
 - After merge: the Release workflow creates `v0.9.0`, and the live footer and dashboard show it.

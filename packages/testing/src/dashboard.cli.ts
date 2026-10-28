@@ -37,7 +37,7 @@ import {
 //   [--intents intent] [--open-intents reports/github/open-intents.json]
 //   [--repo owner/name] [--reviews reports/review/reviews.json]
 //   [--bands packages/testing/bands.yaml]
-//   [--date YYYY-MM-DD] [--sha <commit>]
+//   [--date YYYY-MM-DD] [--sha <commit>] [--app-version x.y.z]
 // tsx dashboard.cli.ts --refresh-board <dashboard dir> [--intents intent]
 //   [--open-intents reports/github/open-intents.json] [--repo owner/name]
 //   [--date YYYY-MM-DD]
@@ -131,6 +131,10 @@ const history = readJson<Snapshot[]>(option("--history")) ?? [];
 const next = snapshot({
   date: option("--date") ?? new Date().toISOString().slice(0, 10),
   sha: option("--sha"),
+  // The build's version defaults to the root package.json it was built from.
+  version:
+    option("--app-version") ??
+    readJson<{ version?: string }>("package.json")?.version,
   playwright: readJson(option("--playwright")),
   unit: readJson(option("--unit")),
   component: readJson(option("--component")),
