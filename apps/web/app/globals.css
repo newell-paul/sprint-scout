@@ -586,7 +586,7 @@ hr {
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 .segment-toolbar h1 {
   font-size: 22px;
@@ -640,6 +640,7 @@ hr {
   gap: 4px;
   width: 100%;
   min-width: 0;
+  margin-top: 10px;
 }
 .segment-scroll {
   padding: 0;
@@ -1103,6 +1104,7 @@ hr {
   }
   .segment-carousel {
     grid-template-columns: 32px minmax(0, 1fr) 32px;
+    margin-top: 6px;
   }
   .segment-scroll {
     height: 36px;
@@ -1141,7 +1143,7 @@ hr {
     align-items: flex-start;
   }
   .segment-toolbar {
-    margin-bottom: 8px;
+    margin-bottom: 2px;
   }
   .segment-heading {
     margin: 4px 0 8px;
