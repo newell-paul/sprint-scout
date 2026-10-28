@@ -25,13 +25,15 @@ On a phone the text wraps above the two buttons when it does not fit on one line
 
 **No lock.** The segment tabs stay enabled in drawing mode. Picking another tab while there is a draft discards it, as Cancel does, then selects that tab. The "Save or cancel your drawing before switching segments." line goes.
 
-**Discard notice.** "Drawing discarded." with "Restore drawing" and "Dismiss", styled like the delete notice. Restore puts back the slot, points, name, tick and redraw target exactly as they were. The notice is hidden while another draft is in progress, and cleared by a save, by Dismiss or by a later discard. The status line reads "Drawing discarded. Saved segments are unchanged." on discard and "Drawing restored." on restore.
+**Discard notice.** "Drawing discarded." with "Restore" (accessible name "Restore drawing") and "Dismiss" on one line, directly under the segment heading or the bar, so it is in view after Cancel. Restore puts back the slot, points, name, tick and redraw target exactly as they were. The notice is hidden while another draft is in progress, and cleared by a save, by Dismiss or by a later discard. The status line reads "Drawing discarded. Saved segments are unchanged." on discard and "Drawing restored." on restore.
 
 **First tap.** In drawing mode the click or tap that activates the map also places a point. On a saved segment no tap places a point, as before. The resting-mouse hint "Click to use the map" stays.
 
 **Name.** A new segment's name field shows "Segment N" (N is the slot number the rider sees) until the rider types. Focusing the field while it still shows the default selects it, so typing replaces it. Clearing the field to nothing blocks Save with "Enter a segment name to save your segment." A redraw starts with the saved name. Only typed text counts as a draft.
 
 **Editor order** under the map: the point count line, "Segment name", the tick (wording unchanged), "Save segment" with its reason line, "Enter coordinates instead", then "Ordered route points" holding "Reverse direction" above the list. "Clear drawing" is removed.
+
+**Board.** The opportunity board shows only on a saved segment, so it no longer sits between the map and the name on an empty slot and then vanishes at the first point.
 
 **Wording.** "Save route" becomes "Save segment", "Route name" becomes "Segment name", "Route saved on this browser." becomes "Segment saved on this browser.", and the save reasons say "segment". "Editing X. Your saved version stays unchanged until Save." stays.
 

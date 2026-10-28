@@ -32,8 +32,6 @@ type GestureMap = Pick<
 >;
 
 export type MapActivation = {
-  /** True once, right after the press that activated the map. */
-  takeActivation: () => boolean;
   dispose: () => void;
 };
 
@@ -70,7 +68,6 @@ export function clickToActivate(
   });
   element.append(hint);
   let active = false;
-  let activating = false;
   let lastPointer = "";
   let hideTimer: ReturnType<typeof setTimeout> | undefined;
   const set = (on: boolean) => {
@@ -81,10 +78,6 @@ export function clickToActivate(
       else handler.disable();
     }
     if (on) hideHint();
-  };
-  const press = () => {
-    activating = !active;
-    set(true);
   };
   const hideHint = () => {
     clearTimeout(hideTimer);
@@ -99,11 +92,11 @@ export function clickToActivate(
   };
   const onPointerDown = (event: PointerEvent) => {
     lastPointer = event.pointerType;
-    if (event.pointerType === "mouse") press();
+    if (event.pointerType === "mouse") set(true);
   };
   // Capture phase, so a tap activates before MapLibre turns it into a map click.
   const onClick = () => {
-    if (lastPointer !== "mouse") press();
+    if (lastPointer !== "mouse") set(true);
   };
   const onPointerEnter = (event: PointerEvent) => {
     if (event.pointerType === "mouse" && options.hint) showHint(options.hint);
@@ -142,11 +135,6 @@ export function clickToActivate(
   doc.addEventListener("pointerdown", onOutside, capture);
   set(false);
   return {
-    takeActivation() {
-      const was = activating;
-      activating = false;
-      return was;
-    },
     dispose() {
       clearTimeout(hideTimer);
       element.removeEventListener("pointerdown", onPointerDown, capture);
