@@ -48,7 +48,7 @@ test("a save is refused when another tab changed the segment and the draft stays
   await planner.editor.save();
 
   await expect(planner.status).toContainText("Could not save changes");
-  await expect(planner.editor.routeName).toHaveValue("My draft");
+  await expect(planner.editor.segmentName).toHaveValue("My draft");
 });
 
 test("cancelling after another tab's change shows that tab's version", async ({ page, planner, seed }) => {
@@ -80,4 +80,22 @@ test("another tab's replacement survives a refused undo delete", async ({ page, 
   await planner.reload();
 
   await expect(planner.library.heading).toContainText("Replacement route");
+});
+
+test("Restore does not cover a segment another tab saved in that slot", async ({ page, planner, seed }) => {
+  await seed(original);
+  await planner.library.selectSlot(2);
+  await planner.editor.plot();
+  await planner.editor.cancel();
+  await page.evaluate((key) => {
+    const routes = JSON.parse(localStorage.getItem(key)!);
+    routes.push({ ...routes[0], id: "other-tab", name: "Other tab segment", slot: 1 });
+    localStorage.setItem(key, JSON.stringify(routes));
+    window.dispatchEvent(new StorageEvent("storage", { key }));
+  }, routesKey);
+
+  await planner.editor.restore();
+
+  await expect(planner.status).toHaveText("That slot now holds a saved segment.");
+  await expect(planner.editor.restoreButton).toHaveCount(0);
 });

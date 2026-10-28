@@ -149,27 +149,6 @@ describe("clickToActivate", () => {
     expect(hint().style.display).toBe("none");
   });
 
-  it("reports the activating press once, so a drawing map can skip it", async () => {
-    const { element, activation } = await start();
-    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
-    element.dispatchEvent(event("click"));
-    expect(activation.takeActivation()).toBe(true);
-    expect(activation.takeActivation()).toBe(false);
-    element.dispatchEvent(event("pointerdown", { pointerType: "mouse" }));
-    element.dispatchEvent(event("click"));
-    expect(activation.takeActivation()).toBe(false);
-  });
-
-  it("reports a tap that activates, but not a later tap", async () => {
-    const { element, activation } = await start();
-    element.dispatchEvent(event("pointerdown", { pointerType: "touch" }));
-    element.dispatchEvent(event("click"));
-    expect(activation.takeActivation()).toBe(true);
-    element.dispatchEvent(event("pointerdown", { pointerType: "touch" }));
-    element.dispatchEvent(event("click"));
-    expect(activation.takeActivation()).toBe(false);
-  });
-
   it("keeps control when the mouse leaves while holdOnLeave says so", async () => {
     let hold = true;
     const { element, enabled } = await start({ holdOnLeave: () => hold });

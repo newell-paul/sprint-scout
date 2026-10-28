@@ -727,29 +727,22 @@ hr {
   color: var(--bg);
   font-weight: 600;
 }
-.drawing-steps {
+.drawing-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.drawing-bar p {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+}
+.drawing-actions {
   display: flex;
   gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 8px 0;
-  font-size: 14px;
-}
-.drawing-steps li {
-  padding: 8px;
-  border-bottom: 2px solid var(--border);
-}
-.drawing-steps [aria-current="step"] {
-  border-color: var(--teal);
-  color: var(--teal);
-  font-weight: 700;
-}
-.drawing-steps [data-complete="true"] {
-  color: var(--muted);
-}
-.drawing-guidance {
-  font-size: 14px;
-  margin: 8px 0;
 }
 .route-end-label {
   background: #e2e8f0;
@@ -1052,6 +1045,15 @@ hr {
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+.discard-notice {
+  flex-wrap: nowrap;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+}
+.discard-notice span {
+  flex: 1 1 0;
+  min-width: 0;
+}
 .forecast-navigation {
   display: flex;
   gap: 8px;
@@ -1145,7 +1147,8 @@ hr {
   .segment-toolbar {
     margin-bottom: 2px;
   }
-  .segment-heading {
+  .segment-heading,
+  .drawing-bar {
     margin: 4px 0 8px;
   }
   .segment-heading strong {
@@ -1838,8 +1841,7 @@ hr {
     .segment-slot-name,
     .time-delta,
     .timing-facts dd,
-    .drawing-guidance,
-    .drawing-steps,
+    .drawing-bar p,
     .wind-time
   ) {
   font-size: var(--type-body);

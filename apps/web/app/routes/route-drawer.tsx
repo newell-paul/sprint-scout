@@ -62,12 +62,22 @@ function directionArrow() {
   }
   return c.getImageData(0, 0, size, size);
 }
+// A drawing put aside by Cancel, Escape or a tab switch, kept so Restore can
+// bring it back in this session.
+type Draft = {
+  slot: number;
+  points: Point[];
+  name: string | null;
+  confirmed: boolean;
+  editing: DrawnRoute | null;
+};
 export default function Routes() {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<RouteMap | null>(null);
   const [points, setPoints] = useState<Point[]>([]);
   const drawing = useRef(false);
-  const [name, setName] = useState("");
+  // null shows the default "Segment N" until the rider types.
+  const [name, setName] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [routes, setRoutes] = useState<DrawnRoute[]>([]);
   const [message, setMessage] = useState("");
@@ -79,6 +89,8 @@ export default function Routes() {
   const [unit, setUnit] = useState<SpeedUnit>("km/h");
   const [editing, setEditing] = useState<DrawnRoute | null>(null);
   const [deleted, setDeleted] = useState<DrawnRoute | null>(null);
+  const [discarded, setDiscarded] = useState<Draft | null>(null);
+  const [cameFrom, setCameFrom] = useState<number | null>(null);
   const [hour, setHour] = useState<RouteWindHour | null>(null);
   const onHour = useCallback((h: RouteWindHour | null) => setHour(h), []);
   const [riderInput, setRiderInput] = useState<RiderInput | null>(null);
@@ -113,15 +125,20 @@ export default function Routes() {
     setRequest((previous) => ({ at, seq: (previous?.seq ?? 0) + 1 }));
     setSlot(nextSlot);
   }, []);
-  // A board hour belongs to the segment opened from the board.
-  const pickSlot = useCallback((nextSlot: number) => {
-    setRequest(null);
-    setSlot(nextSlot);
-  }, []);
   const selectedRoute = editing
     ? undefined
     : routes.find((r) => r.slot === slot);
-  const hasDraft = !!editing || points.length > 0 || name.length > 0;
+  const hasDraft = !!editing || points.length > 0 || name !== null;
+  const segmentName = name ?? `Segment ${slot + 1}`;
+  // Cancel goes back to the saved segment being redrawn, else the segment the
+  // rider came from, else the first saved one.
+  const returnSlot = editing
+    ? editing.slot
+    : cameFrom !== null && routes.some((r) => r.slot === cameFrom)
+      ? cameFrom
+      : routes.map((r) => r.slot).sort((a, b) => a - b)[0];
+  const canCancel =
+    hasDraft || (returnSlot !== undefined && returnSlot !== slot);
   const viewing = useRef(false);
   viewing.current = !!selectedRoute;
   const visiblePoints = selectedRoute?.points ?? points;
@@ -250,8 +267,7 @@ export default function Routes() {
           setReady(true);
         });
         instance.on("click", (e) => {
-          // The press that hands the map control does not also drop a point.
-          if (activation.takeActivation() || viewing.current) return;
+          if (viewing.current) return;
           const p: Point = [e.lngLat.wrap().lng, e.lngLat.lat];
           if (validPoint(p))
             setPoints((old) => (old.length < 500 ? [...old, p] : old));
@@ -449,20 +465,20 @@ export default function Routes() {
   }
   const saveReason =
     points.length < 2
-      ? "Add at least two different points to save your route."
+      ? "Add at least two different points to save your segment."
       : !points.some((p) => p[0] !== points[0]?.[0] || p[1] !== points[0]?.[1])
-        ? "Add a point at a different location to save your route."
-        : !name.trim()
-          ? "Enter a route name to save your route."
+        ? "Add a point at a different location to save your segment."
+        : !segmentName.trim()
+          ? "Enter a segment name to save your segment."
           : !confirmed
-            ? "Tick the independent-source confirmation above to enable Save route."
+            ? "Tick the independent-source confirmation above to enable Save segment."
             : "Ready to save in this browser.";
   const canSave = saveReason === "Ready to save in this browser.";
   function save() {
     if (!canSave) return;
     const route: DrawnRoute = {
       id: editing?.id ?? newId(),
-      name: name.trim(),
+      name: segmentName.trim(),
       points: points.map((p) => [...p]),
       confirmed: true,
       createdAt: editing?.createdAt ?? new Date().toISOString(),
@@ -488,11 +504,12 @@ export default function Routes() {
         return [...current.filter((r) => r.slot !== slot), route];
       })
     ) {
-      setMessage("Route saved on this browser.");
+      setMessage("Segment saved on this browser.");
       setPoints([]);
-      setName("");
+      setName(null);
       setConfirmed(false);
       setEditing(null);
+      setDiscarded(null);
     }
   }
   function redraw(r: DrawnRoute) {
@@ -504,13 +521,53 @@ export default function Routes() {
       `Editing ${r.name}. Your saved version stays unchanged until Save.`,
     );
   }
-  function cancel() {
+  // Cancel, Escape and picking another tab all end a drawing the same way.
+  function discard(nextSlot = returnSlot ?? slot) {
+    if (hasDraft) {
+      setDiscarded({ slot, points, name, confirmed, editing });
+      setMessage("Drawing discarded. Saved segments are unchanged.");
+    }
     setEditing(null);
     setPoints([]);
-    setName("");
+    setName(null);
     setConfirmed(false);
-    setMessage("Drawing cancelled. Saved segments are unchanged.");
+    setRequest(null);
+    setSlot(nextSlot);
   }
+  function restore() {
+    if (!discarded || hasDraft) return;
+    if (!discarded.editing && routes.some((r) => r.slot === discarded.slot)) {
+      setDiscarded(null);
+      setMessage("That slot now holds a saved segment.");
+      return;
+    }
+    setSlot(discarded.slot);
+    setPoints(discarded.points);
+    setName(discarded.name);
+    setConfirmed(discarded.confirmed);
+    setEditing(discarded.editing);
+    setDiscarded(null);
+    setMessage("Drawing restored.");
+  }
+  // A board hour belongs to the segment opened from the board.
+  function pickSlot(nextSlot: number) {
+    if (nextSlot === slot) return;
+    setCameFrom(slot);
+    if (hasDraft) discard(nextSlot);
+    else {
+      setRequest(null);
+      setSlot(nextSlot);
+    }
+  }
+  useEffect(() => {
+    if (selectedRoute) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented && canCancel)
+        discard();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  });
   function remove(r: DrawnRoute) {
     if (persist((current) => current.filter((item) => item.id !== r.id))) {
       setDeleted(r);
@@ -556,12 +613,7 @@ export default function Routes() {
             ))}
           </span>
         </div>
-        <SegmentSlots
-          routes={routes}
-          active={slot}
-          disabled={hasDraft}
-          onSelect={pickSlot}
-        />
+        <SegmentSlots routes={routes} active={slot} onSelect={pickSlot} />
       </header>
       {selectedRoute ? (
         <div className="drawing-hint segment-heading">
@@ -582,44 +634,45 @@ export default function Routes() {
           </details>
         </div>
       ) : (
-        <p className="drawing-hint">
-          {editing
-            ? `Editing ${editing.name}.`
-            : `Segment ${slot + 1} is empty.`}{" "}
-          Click the start and finish on the map; add extra points for bends.
-        </p>
-      )}
-      {!selectedRoute && (
-        <ol className="drawing-steps" aria-label="Drawing progress">
-          {["Start", "Finish", "Name", "Save"].map((step, position) => {
-            const currentStep =
-              points.length === 0
-                ? 0
-                : points.length < 2
-                  ? 1
-                  : !name.trim()
-                    ? 2
-                    : 3;
-            return (
-              <li
-                key={step}
-                aria-current={position === currentStep ? "step" : undefined}
-                data-complete={position < currentStep}
+        <div className="drawing-bar">
+          <p aria-live="polite">
+            {points.length === 0
+              ? "Tap the map to place your start."
+              : points.length < 2
+                ? "Now tap the finish. Lines go straight between points."
+                : "Tap to add bends, then save below."}
+          </p>
+          <span className="drawing-actions">
+            <button
+              type="button"
+              aria-label="Undo point"
+              disabled={!points.length}
+              onClick={() => setPoints((p) => p.slice(0, -1))}
+            >
+              Undo
+            </button>
+            {canCancel && (
+              <button
+                type="button"
+                aria-label="Cancel drawing"
+                onClick={() => discard()}
               >
-                {position + 1}. {step}
-              </li>
-            );
-          })}
-        </ol>
+                Cancel
+              </button>
+            )}
+          </span>
+        </div>
       )}
-      {!selectedRoute && (
-        <p className="drawing-guidance" aria-live="polite">
-          {points.length === 0
-            ? "Tap the map to place your start."
-            : points.length < 2
-              ? "Now place the finish. Lines connect directly; they do not follow roads automatically."
-              : "Add points for bends, then name your segment and save below."}
-        </p>
+      {discarded && !hasDraft && (
+        <div className="delete-notice discard-notice">
+          <span>Drawing discarded.</span>
+          <button type="button" aria-label="Restore drawing" onClick={restore}>
+            Restore
+          </button>
+          <button type="button" onClick={() => setDiscarded(null)}>
+            Dismiss
+          </button>
+        </div>
       )}
       <div
         ref={container}
@@ -663,7 +716,7 @@ export default function Routes() {
           }
         />
       )}
-      {routes.length > 0 && !hasDraft && (
+      {selectedRoute && (
         <OpportunityBoard
           routes={routes}
           rider={rider}
@@ -673,28 +726,47 @@ export default function Routes() {
         />
       )}
       <div className="segment-editor" hidden={!!selectedRoute}>
-        {hasDraft && (
-          <p>Save or cancel your drawing before switching segments.</p>
-        )}
         <p>
           {points.length} / 500 points · Ride from Start to Finish along the
           arrows.
         </p>
+        <p>
+          <label>
+            Segment name{" "}
+            <input
+              maxLength={100}
+              value={segmentName}
+              onFocus={(e) => {
+                if (name === null) e.target.select();
+              }}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+        </p>
+        <p>
+          <label className="source-confirmation">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+            />{" "}
+            I created this route independently of Strava or other restricted
+            data, permit local storage and deterministic route analysis, and
+            agree that its start coordinate is sent to Open-Meteo for wind
+            forecasts.
+          </label>
+        </p>
         <button
-          disabled={!points.length}
-          onClick={() => setPoints((p) => p.slice(0, -1))}
+          className="primary"
+          disabled={!canSave}
+          aria-describedby="save-reason"
+          onClick={save}
         >
-          Undo point
-        </button>{" "}
-        <button disabled={!points.length} onClick={() => setPoints([])}>
-          Clear drawing
-        </button>{" "}
-        <button
-          disabled={points.length < 2}
-          onClick={() => setPoints((p) => [...p].reverse())}
-        >
-          Reverse direction
+          Save segment
         </button>
+        <p id="save-reason" aria-live="polite">
+          {saveReason}
+        </p>
         <details className="coordinate-tools">
           <summary>Enter coordinates instead</summary>
           <fieldset>
@@ -732,6 +804,12 @@ export default function Routes() {
         </details>
         <details>
           <summary>Ordered route points</summary>
+          <button
+            disabled={points.length < 2}
+            onClick={() => setPoints((p) => [...p].reverse())}
+          >
+            Reverse direction
+          </button>
           <ol>
             {points.map((p, i) => (
               <li key={i}>
@@ -745,45 +823,6 @@ export default function Routes() {
             ))}
           </ol>
         </details>
-        <p>
-          <label>
-            Route name{" "}
-            <input
-              maxLength={100}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
-        </p>
-        <p>
-          <label className="source-confirmation">
-            <input
-              type="checkbox"
-              checked={confirmed}
-              onChange={(e) => setConfirmed(e.target.checked)}
-            />{" "}
-            I created this route independently of Strava or other restricted
-            data, permit local storage and deterministic route analysis, and
-            agree that its start coordinate is sent to Open-Meteo for wind
-            forecasts.
-          </label>
-        </p>
-        <button
-          className="primary"
-          disabled={!canSave}
-          aria-describedby="save-reason"
-          onClick={save}
-        >
-          Save route
-        </button>
-        {hasDraft && (
-          <button type="button" onClick={cancel}>
-            Cancel drawing
-          </button>
-        )}
-        <p id="save-reason" aria-live="polite">
-          {saveReason}
-        </p>
       </div>
       <p role="status">{message}</p>
       {deleted && (
