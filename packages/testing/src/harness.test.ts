@@ -479,6 +479,26 @@ describe("workflows", () => {
     expect(script).toContain("GITHUB_REPOSITORY");
   });
 
+  // The dashboard counts resolved threads; replying alone leaves the card at 0 %.
+  it("resolves a review comment's thread only after the fix loop pushed", () => {
+    const doc = parse(read(".github/workflows/review.yml")) as {
+      jobs: Record<
+        string,
+        {
+          steps?: { if?: string; run?: string; env?: Record<string, string> }[];
+        }
+      >;
+    };
+    const step = doc.jobs.fix?.steps?.find((s) =>
+      s.run?.includes("scripts/resolve-thread.mjs"),
+    );
+    expect(step?.if).toContain(
+      "github.event_name == 'pull_request_review_comment'",
+    );
+    expect(step?.if).toContain("steps.before.outputs.head");
+    expect(step?.env?.COMMENT).toBe("${{ github.event.comment.id }}");
+  });
+
   // `pnpm <script>` prints a "> package@ script" banner first, so its output
   // is not JSON unless the banner is silenced or the binary is run with exec.
   it("writes JSON reports in workflows without the pnpm script banner", () => {

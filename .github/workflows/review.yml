@@ -182,7 +182,13 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: anthropics/claude-code-action@v1
+      - id: before
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.issue.number || github.event.pull_request.number }}
+        run: echo "head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)" >> "$GITHUB_OUTPUT"
+      - id: fix
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
@@ -190,3 +196,21 @@ jobs:
             --max-turns 40
             --allowedTools "Bash(pnpm install:*),Bash(pnpm test),Bash(pnpm test:*),Bash(pnpm lint),Bash(pnpm lint:*),Bash(pnpm typecheck),Bash(pnpm typecheck:*),Bash(pnpm exec vitest:*),Bash(pnpm exec eslint:*),Bash(pnpm exec prettier:*)"
             --append-system-prompt "You are the fix loop of this repository, answering a comment on a pull request. Follow AGENTS.md. Change only what the comment asks for, add or adjust the test that proves it, and run the relevant check before you push. Push to this pull request's branch only: never to main, never a force push, never a new branch, never a workflow dispatch. Never edit files under __aria__ or __screenshots__, never read or write env files. Reply in the thread with what changed and which check you ran."
+      - id: after
+        if: github.event_name == 'pull_request_review_comment' && steps.fix.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: echo "head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq .head.sha)" >> "$GITHUB_OUTPUT"
+      - name: Resolve the fixed thread
+        # The dashboard counts resolved threads; the action only replies. A run
+        # that pushed nothing leaves the thread open.
+        if: >-
+          github.event_name == 'pull_request_review_comment' &&
+          steps.after.outputs.head != '' &&
+          steps.after.outputs.head != steps.before.outputs.head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          COMMENT: ${{ github.event.comment.id }}
+        run: node scripts/resolve-thread.mjs --pr "$PR" --comment "$COMMENT"
