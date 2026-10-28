@@ -1,6 +1,6 @@
 # Add segment flow
 
-Status: accepted
+Status: in build
 Opened: 28 October 2026 by Paul Newell
 
 ## Problem
