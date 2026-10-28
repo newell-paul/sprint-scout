@@ -773,3 +773,7 @@ Drawing a segment is one mode with one bar directly above the map. The bar's tex
 ## Resolving review threads — 28 October 2026
 
 The dashboard's "Fixed after review" card read 0 % although findings were fixed, because it counts GitHub's resolved flag and nothing set it: the `@claude` fix loop only replied, and hand fixes left threads open (PR #87). `scripts/resolve-thread.mjs` (`pnpm review:resolve`) now finds the thread that holds a comment, optionally replies, and resolves it; a thread already resolved is left alone. The fix job records the pull request's head before the action and, on a line comment, resolves that comment's thread only if the head moved, with the job token and no new model tools. A top-level `@claude` comment names no thread and resolves nothing. `AGENTS.md` tells agents to resolve a thread they fix by hand. See `intent/resolve-review-threads/`.
+
+## Wordmark gap — 28 October 2026
+
+With no gap, the "t" and "S" sat hard together at the slant. "Scout" now follows "Sprint" after 0.09 em on the planner, the engineering dashboard and the banner template: a slight gap that still reads as one word. The owner chose it from samples at 0.05, 0.09 and 0.13 em. Everything else in the wordmark is unchanged. This supersedes the no-gap rule in "Wordmark as one word"; the name is still spelled "SprintScout". See `intent/wordmark-gap/`.
