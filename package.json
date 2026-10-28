@@ -36,6 +36,7 @@
     "check:deploy": "pnpm build:static && pnpm test:smoke:static && pnpm test:size && pnpm test:lighthouse",
     "build": "pnpm typecheck && pnpm --filter @scout/web build",
     "evals": "node scripts/run-evals.mjs",
+    "review:resolve": "node scripts/resolve-thread.mjs",
     "review:tally": "tsx packages/testing/src/review.cli.ts",
     "triage": "tsx packages/testing/src/triage.cli.ts",
     "spec:draft": "tsx packages/testing/src/spec-draft.cli.ts",

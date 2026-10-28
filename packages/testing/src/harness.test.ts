@@ -482,7 +482,12 @@ describe("workflows", () => {
   // The dashboard counts resolved threads; replying alone leaves the card at 0 %.
   it("resolves a review comment's thread only after the fix loop pushed", () => {
     const doc = parse(read(".github/workflows/review.yml")) as {
-      jobs: Record<string, { steps?: { if?: string; run?: string }[] }>;
+      jobs: Record<
+        string,
+        {
+          steps?: { if?: string; run?: string; env?: Record<string, string> }[];
+        }
+      >;
     };
     const step = doc.jobs.fix?.steps?.find((s) =>
       s.run?.includes("scripts/resolve-thread.mjs"),
@@ -491,7 +496,7 @@ describe("workflows", () => {
       "github.event_name == 'pull_request_review_comment'",
     );
     expect(step?.if).toContain("steps.before.outputs.head");
-    expect(step?.run).toContain("github.event.comment.id");
+    expect(step?.env?.COMMENT).toBe("${{ github.event.comment.id }}");
   });
 
   // `pnpm <script>` prints a "> package@ script" banner first, so its output
