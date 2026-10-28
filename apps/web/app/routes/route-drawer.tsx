@@ -551,6 +551,7 @@ export default function Routes() {
   }
   // A board hour belongs to the segment opened from the board.
   function pickSlot(nextSlot: number) {
+    if (nextSlot === slot) return;
     setCameFrom(slot);
     if (hasDraft) discard(nextSlot);
     else {
