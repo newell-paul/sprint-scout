@@ -620,6 +620,7 @@ hr {
   white-space: nowrap;
 }
 .logo-word-accent {
+  margin-left: 0.09em;
   font-weight: 700;
   color: var(--data);
 }
