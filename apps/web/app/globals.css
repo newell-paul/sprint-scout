@@ -991,6 +991,36 @@ hr {
 .coordinate-tools {
   margin: 12px 0;
 }
+.ride-source {
+  margin: 12px 0;
+}
+.ride-source > p {
+  color: var(--muted);
+  font-size: var(--type-caption, 0.8125rem);
+}
+.ride-picks {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.ride-picks label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.ride-picks input[type="range"] {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.ride-picks button {
+  justify-self: start;
+}
+.ride-status {
+  display: block;
+  margin-top: 8px;
+}
 .segment-screen [role="status"]:empty {
   display: none;
 }

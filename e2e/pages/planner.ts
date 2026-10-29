@@ -7,6 +7,7 @@ import { SegmentEditor } from "./editor";
 import { EffortsPanel } from "./efforts";
 import { SegmentLibrary } from "./library";
 import { PlannerMap } from "./map";
+import { RideSource } from "./ride";
 import { DataPrivacy } from "./privacy";
 import { RiderPanel } from "./rider";
 import { Shelter } from "./shelter";
@@ -19,6 +20,7 @@ export const routesKey = "sprint-scout.drawn-routes.v1";
 export class Planner {
   readonly library: SegmentLibrary;
   readonly editor: SegmentEditor;
+  readonly ride: RideSource;
   readonly timeline: Timeline;
   readonly cockpit: Cockpit;
   readonly map: PlannerMap;
@@ -36,6 +38,7 @@ export class Planner {
   constructor(readonly page: Page) {
     this.library = new SegmentLibrary(page);
     this.editor = new SegmentEditor(page);
+    this.ride = new RideSource(page);
     this.timeline = new Timeline(page);
     this.cockpit = new Cockpit(page);
     this.map = new PlannerMap(page);

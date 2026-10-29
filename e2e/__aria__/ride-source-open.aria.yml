@@ -1,0 +1,12 @@
+- group:
+  - text: From a ride
+  - paragraph: "Use a GPX of your own ride: from your bike computer or its app, or Strava's Export GPX or Export Original on your own activity. Then tap the start and the finish on the ride."
+  - checkbox "The file I import is my own device recording and I have the right to use it here." [checked]
+  - text: The file I import is my own device recording and I have the right to use it here. Open GPX ride
+  - button "Open GPX ride"
+  - text: Segment start
+  - slider "Segment start": "0"
+  - text: Segment finish
+  - slider "Segment finish": /\d+/
+  - button "Close ride"
+  - status: northbound-two-laps.gpx is open. It is read in this browser only and is not kept.

@@ -22,6 +22,12 @@ import type { RouteWindHour } from "@scout/application/route-wind";
 import type { RiderInput } from "@scout/analysis";
 import type { SpeedUnit } from "../components/speed";
 import OpportunityBoard from "./opportunity-board";
+import RideSource, { type Ride } from "./ride-source";
+import {
+  nearestOnTrack,
+  segmentFromTrack,
+  thinTrack,
+} from "@scout/analysis/track";
 import {
   readRiderInput,
   resolveRider,
@@ -99,6 +105,15 @@ export default function Routes() {
     null,
   );
   const rider = useMemo(() => resolveRider(riderInput), [riderInput]);
+  // A ride opened to cut a segment from. Never stored; closed on save, cancel
+  // and tab switch.
+  const [ride, setRide] = useState<Ride | null>(null);
+  const [pick, setPick] = useState<{
+    start: number | null;
+    finish: number | null;
+  }>({ start: null, finish: null });
+  const [rideHint, setRideHint] = useState("");
+  const rideTap = useRef<((p: Point) => void) | null>(null);
   useEffect(() => {
     try {
       setRiderInput(readRiderInput(localStorage.getItem(riderStorageKey)));
@@ -128,7 +143,8 @@ export default function Routes() {
   const selectedRoute = editing
     ? undefined
     : routes.find((r) => r.slot === slot);
-  const hasDraft = !!editing || points.length > 0 || name !== null;
+  const hasDraft =
+    !!editing || points.length > 0 || name !== null || ride !== null;
   const segmentName = name ?? `Segment ${slot + 1}`;
   // Cancel goes back to the saved segment being redrawn, else the segment the
   // rider came from, else the first saved one.
@@ -212,6 +228,21 @@ export default function Routes() {
             type: "geojson",
             data: { type: "FeatureCollection", features: [] },
           });
+          instance.addSource("ride", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] },
+          });
+          instance.addLayer({
+            id: "ride-line",
+            type: "line",
+            source: "ride",
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": "#a5b4c8",
+              "line-width": 4,
+              "line-opacity": 0.7,
+            },
+          });
           instance.addLayer({
             id: "route-outline",
             type: "line",
@@ -269,6 +300,10 @@ export default function Routes() {
         instance.on("click", (e) => {
           if (viewing.current) return;
           const p: Point = [e.lngLat.wrap().lng, e.lngLat.lat];
+          if (rideTap.current) {
+            rideTap.current(p);
+            return;
+          }
           if (validPoint(p))
             setPoints((old) => (old.length < 500 ? [...old, p] : old));
         });
@@ -287,8 +322,75 @@ export default function Routes() {
     };
   }, []);
   useEffect(() => {
-    drawing.current = points.length > 0;
-  }, [points]);
+    drawing.current = points.length > 0 || ride !== null;
+  }, [points, ride]);
+  function pickOnRide(start: number | null, finish: number | null) {
+    setPick({ start, finish });
+    setRideHint("");
+    if (!ride || start === null) return;
+    // A lone start shows on the map as the drawing's first point.
+    setPoints(
+      finish === null
+        ? [[ride.track[start]![0], ride.track[start]![1]]]
+        : segmentFromTrack(ride.track, start, finish).map((p): Point => [
+            p[0],
+            p[1],
+          ]),
+    );
+  }
+  function closeRide() {
+    setRide(null);
+    setPick({ start: null, finish: null });
+    setRideHint("");
+  }
+  // The first tap picks the start, the second the finish after it in riding
+  // order, so a lap ridden twice is cut as ridden; a third tap starts over.
+  rideTap.current = ride
+    ? (p) => {
+        const finishing = pick.start !== null && pick.finish === null;
+        const hit = nearestOnTrack(
+          ride.track,
+          p,
+          finishing ? pick.start! + 1 : 0,
+        );
+        if (hit.index === -1 || hit.distanceM > 200) {
+          setRideHint("Tap on the ride's line.");
+          return;
+        }
+        if (finishing) pickOnRide(pick.start, hit.index);
+        else pickOnRide(hit.index, null);
+      }
+    : null;
+  useEffect(() => {
+    const instance = map.current;
+    if (!ready || !instance) return;
+    const source = instance.getSource("ride") as GeoJSONSource | undefined;
+    source?.setData({
+      type: "FeatureCollection",
+      features: ride
+        ? [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "LineString",
+                coordinates: thinTrack(ride.track, 2000),
+              },
+            },
+          ]
+        : [],
+    });
+    if (!ride) return;
+    const lon = ride.track.map((p) => p[0]),
+      lat = ride.track.map((p) => p[1]);
+    instance.fitBounds(
+      [
+        [Math.min(...lon), Math.min(...lat)],
+        [Math.max(...lon), Math.max(...lat)],
+      ],
+      { padding: 40, maxZoom: 16, duration: 0 },
+    );
+  }, [ride, ready]);
   useEffect(() => {
     if (!ready) return;
     const source = map.current?.getSource("route") as GeoJSONSource | undefined;
@@ -505,6 +607,7 @@ export default function Routes() {
       })
     ) {
       setMessage("Segment saved on this browser.");
+      closeRide();
       setPoints([]);
       setName(null);
       setConfirmed(false);
@@ -528,6 +631,7 @@ export default function Routes() {
       setMessage("Drawing discarded. Saved segments are unchanged.");
     }
     setEditing(null);
+    closeRide();
     setPoints([]);
     setName(null);
     setConfirmed(false);
@@ -636,11 +740,18 @@ export default function Routes() {
       ) : (
         <div className="drawing-bar">
           <p aria-live="polite">
-            {points.length === 0
-              ? "Tap the map to place your start."
-              : points.length < 2
-                ? "Now tap the finish. Lines go straight between points."
-                : "Tap to add bends, then save below."}
+            {ride
+              ? rideHint ||
+                (pick.start === null
+                  ? "Tap the start of your segment on the ride."
+                  : pick.finish === null
+                    ? "Now tap the finish on the ride."
+                    : "Segment cut from your ride. Tap to pick a new start, or save below.")
+              : points.length === 0
+                ? "Tap the map to place your start."
+                : points.length < 2
+                  ? "Now tap the finish. Lines go straight between points."
+                  : "Tap to add bends, then save below."}
           </p>
           <span className="drawing-actions">
             <button
@@ -726,6 +837,18 @@ export default function Routes() {
         />
       )}
       <div className="segment-editor" hidden={!!selectedRoute}>
+        <RideSource
+          ride={ride}
+          start={pick.start}
+          finish={pick.finish}
+          onOpen={(opened) => {
+            setRide(opened);
+            setPick({ start: null, finish: null });
+            setRideHint("");
+          }}
+          onPick={pickOnRide}
+          onClose={closeRide}
+        />
         <p>
           {points.length} / 500 points · Ride from Start to Finish along the
           arrows.
@@ -850,8 +973,10 @@ export default function Routes() {
             shares sampled coordinates along the segment and saves attributed
             elevation in this browser. Removing elevation or deleting the
             segment removes that local profile; provider request logs may remain
-            for 90 days. Strava access is disabled. Clearing saved data, here or
-            in the browser, deletes everything the planner stored.
+            for 90 days. A ride opened to make a segment is read in this
+            browser, and only the segment you save is kept. Strava access is
+            disabled. Clearing saved data, here or in the browser, deletes
+            everything the planner stored.
           </p>
           <ClearData />
         </details>

@@ -51,5 +51,5 @@
     "/https?:\\/\\/\\S+/"
   ],
   "allowCompoundWords": true,
-  "words": ["ghsa", "katex", "sarif"]
+  "words": ["ghsa", "katex", "peucker", "sarif"]
 }

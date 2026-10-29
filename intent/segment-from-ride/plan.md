@@ -4,7 +4,7 @@
 
 - `packages/analysis/src/track.ts` and `track.test.ts`, `track.property.test.ts`; `packages/analysis/package.json` export `./track`.
 - `apps/web/app/routes/ride-source.tsx` and `ride-source.browser.test.tsx`: section, tick, file input, sliders, Close.
-- `apps/web/app/routes/route-drawer.tsx`: ride state, ride layer, the click handler picks while a ride is open, bar texts, points from the cut, closing on save, cancel and tab switch, footer privacy sentence.
+- `apps/web/app/routes/route-drawer.tsx`: the section at the top of the editor, ride state, ride layer, the click handler picks while a ride is open, bar texts, points from the cut, closing on save, cancel and tab switch, footer privacy sentence.
 - `apps/web/app/globals.css`: section and slider layout.
 - `e2e/pages/ride.ts`, `e2e/pages/index.ts`, `e2e/fixtures.ts` if needed, and `e2e/ride.spec.ts`; ARIA baseline from the runner.
 - `docs/design.md`, `README.md`.
