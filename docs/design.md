@@ -793,3 +793,7 @@ A `@visual` failure caused by an intended layout change no longer needs Docker o
 ## Target below shelter — 29 October 2026
 
 The segment target panel moves from between the timeline and the ride cockpit to directly below the assumed shelter panel, ahead of terrain and efforts. Its placeholder changes from 1:30 to 1:00. Behaviour, storage and parsing are unchanged. See `intent/target-below-shelter/`.
+
+## Version back in the footer — 29 October 2026
+
+The owner moved the version back to the footer, and chose option 2 from three rendered footer options. The teal pill from "Version badge in the header" now ends the footer row and reads "SprintScout v0.9.0", so the app is named in the pill and it can't be taken for OpenStreetMap's version. Its tooltip and accessible name still carry the build commit, and it still links to the release. On a phone it wraps to the start of the next line. The header is back to the wordmark and the unit switch. This supersedes "Version badge in the header". See `intent/version-in-footer/`.

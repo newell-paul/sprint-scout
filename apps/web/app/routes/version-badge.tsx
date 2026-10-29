@@ -16,7 +16,7 @@ export default function VersionBadge({
       aria-label={build ? `${name}, build ${build}` : name}
       title={build ? `Build ${build}` : name}
     >
-      <span>v{version}</span>
+      <span>{name}</span>
     </a>
   );
 }

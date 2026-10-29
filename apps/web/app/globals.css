@@ -595,17 +595,6 @@ hr {
   display: flex;
   align-items: center;
 }
-/* The wordmark and its version badge travel together; the badge drops under
-   the wordmark on a phone so the unit switch keeps the first row. */
-.brand-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-right: auto;
-}
-.brand-row h1 {
-  margin: 0;
-}
 .version-badge {
   display: inline-flex;
   align-items: center;
@@ -1127,15 +1116,6 @@ hr {
   }
   .segment-toolbar {
     gap: 8px;
-  }
-  .brand-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-  }
-  .brand-row .version-badge {
-    /* Under the word, clear of the 40 px mark and its 10 px gap. */
-    margin: -8px 0 -10px 50px;
   }
   .segment-toolbar h1 {
     flex-basis: auto;
