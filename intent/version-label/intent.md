@@ -1,6 +1,6 @@
 # Version label
 
-Status: draft
+Status: accepted
 Opened: 29 October 2026 by Paul Newell
 
 ## Problem
@@ -30,5 +30,7 @@ No request. The OpenStreetMap credit stays visible and unchanged in wording. Tex
 
 ## Open questions
 
-1. Which option: A, B, C or D?
-2. Keep the short commit visible, or only in a tooltip and accessible name?
+Resolved by the owner on 29 October 2026:
+
+1. Which option? D: a version badge in the header beside the wordmark. The footer keeps only the credit and Data & privacy.
+2. Keep the short commit visible? No. It goes in the badge's tooltip and accessible name, as option D describes.
