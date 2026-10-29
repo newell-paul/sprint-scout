@@ -38,6 +38,7 @@
     "build": "pnpm typecheck && pnpm --filter @scout/web build",
     "evals": "node scripts/run-evals.mjs",
     "review:resolve": "node scripts/resolve-thread.mjs",
+    "baselines:commit": "tsx packages/testing/src/baselines.cli.ts",
     "release:bump": "tsx packages/testing/src/release-bump.cli.ts",
     "release:notes": "tsx packages/testing/src/release-notes.cli.ts",
     "review:tally": "tsx packages/testing/src/review.cli.ts",

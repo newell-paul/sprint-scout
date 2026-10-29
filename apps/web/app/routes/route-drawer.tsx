@@ -21,7 +21,7 @@ import WeatherIcon from "../components/weather-icon";
 import type { RouteWindHour } from "@scout/application/route-wind";
 import type { RiderInput } from "@scout/analysis";
 import type { SpeedUnit } from "../components/speed";
-import BuildStamp from "./build-stamp";
+import VersionBadge from "./version-badge";
 import OpportunityBoard from "./opportunity-board";
 import {
   readRiderInput,
@@ -596,9 +596,12 @@ export default function Routes() {
   return (
     <main className="segment-screen">
       <header className="segment-toolbar">
-        <h1>
-          <Logo className="segment-logo" />
-        </h1>
+        <div className="brand-row">
+          <h1>
+            <Logo className="segment-logo" />
+          </h1>
+          <VersionBadge />
+        </div>
         <div className="unit-control" role="group" aria-label="Speed units">
           <span>Speed units</span>
           <span className="unit-switch">
@@ -842,10 +845,6 @@ export default function Routes() {
           © OpenStreetMap contributors
         </a>
         <span aria-hidden="true">·</span>
-        <BuildStamp />
-        <span aria-hidden="true" className="footer-wrap-dot">
-          ·
-        </span>
         <details>
           <summary>Data & privacy</summary>
           <p>

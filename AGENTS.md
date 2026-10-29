@@ -12,6 +12,7 @@ pnpm test                         # unit only (seconds)
 pnpm test:e2e                     # Playwright, three projects (about a minute)
 pnpm check:deploy                 # static export, smoke, size, Lighthouse
 pnpm evals --dry-run              # free check that every eval can fail; pnpm evals runs them on Sonnet
+gh workflow run visual-baselines.yml -f branch=<branch>   # regenerate @visual baselines on a PR branch in CI
 ```
 
 Healthy output ends with lines like `Test Files  44 passed`, `127 passed`, `ESLint: No issues found`, `CSpell: ... Issues found: 0`. Anything else is a failure to report, not to explain away. Delegate suite runs to the `test-runner` agent, the final check to the `verifier` agent, and test comment audits to the `comment-checker` agent.

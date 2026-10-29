@@ -782,6 +782,14 @@ SprintScout starts at 0.9.0, held only in the root `package.json`. The version m
 
 With no gap, the "t" and "S" sat hard together at the slant. "Scout" now follows "Sprint" after 0.09 em on the planner, the engineering dashboard and the banner template: a slight gap that still reads as one word. The owner chose it from samples at 0.05, 0.09 and 0.13 em. Everything else in the wordmark is unchanged. This supersedes the no-gap rule in "Wordmark as one word"; the name is still spelled "SprintScout". See `intent/wordmark-gap/`.
 
+## Version badge in the header — 29 October 2026
+
+The footer's build stamp (from "Versioning") followed the OpenStreetMap credit in the same link colour, so it read as OpenStreetMap's version. It moves to the header as a small teal pill reading `v0.9.0` beside the wordmark, linked to the release, with "Build <commit>" as its tooltip and "SprintScout v0.9.0, build <commit>" as its accessible name. Up to 600 px wide it sits under the word "Sprint" so the unit switch keeps the first row. The footer is back to "© OpenStreetMap contributors · Data & privacy". The owner chose this (option D) from four rendered options. No request is added. See `intent/version-label/`.
+
+## Visual baselines job — 29 October 2026
+
+A `@visual` failure caused by an intended layout change no longer needs Docker on the owner's Mac. The Visual baselines workflow (`visual-baselines.yml`) runs only on `workflow_dispatch` with a `branch` input, and refuses `main` and any branch without an open pull request from this repository. It renders `@visual` with `--update-snapshots=all` in the Playwright image Checks uses, then commits only the changes under `e2e/__screenshots__`. The commit goes through the Git data API with the job token, so GitHub signs it, and the branch moves without force. Checks gains a `workflow_dispatch` trigger, because a job-token commit starts no `pull_request` run. The workflow dispatches Checks on the branch, and that run reports the required checks on the new commit. Baselines are still made only by the test runner. See `intent/visual-baselines-job/`.
+
 ## Target below shelter — 29 October 2026
 
 The segment target panel moves from between the timeline and the ride cockpit to directly below the assumed shelter panel, ahead of terrain and efforts. Its placeholder changes from 1:30 to 1:00. Behaviour, storage and parsing are unchanged. See `intent/target-below-shelter/`.
