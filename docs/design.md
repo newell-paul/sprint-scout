@@ -781,3 +781,7 @@ SprintScout starts at 0.9.0, held only in the root `package.json`. The version m
 ## Wordmark gap — 28 October 2026
 
 With no gap, the "t" and "S" sat hard together at the slant. "Scout" now follows "Sprint" after 0.09 em on the planner, the engineering dashboard and the banner template: a slight gap that still reads as one word. The owner chose it from samples at 0.05, 0.09 and 0.13 em. Everything else in the wordmark is unchanged. This supersedes the no-gap rule in "Wordmark as one word"; the name is still spelled "SprintScout". See `intent/wordmark-gap/`.
+
+## Visual baselines job — 29 October 2026
+
+A `@visual` failure caused by an intended layout change no longer needs Docker on the owner's Mac. The Visual baselines workflow (`visual-baselines.yml`) runs only on `workflow_dispatch` with a `branch` input, and refuses `main` and any branch without an open pull request from this repository. It renders `@visual` with `--update-snapshots=all` in the Playwright image Checks uses, then commits only the changes under `e2e/__screenshots__`. The commit goes through the Git data API with the job token, so GitHub signs it, and the branch moves without force. Checks gains a `workflow_dispatch` trigger, because a job-token commit starts no `pull_request` run. The workflow dispatches Checks on the branch, and that run reports the required checks on the new commit. Baselines are still made only by the test runner. See `intent/visual-baselines-job/`.

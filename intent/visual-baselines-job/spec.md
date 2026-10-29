@@ -21,7 +21,7 @@ No change to the app. The workflow uses only the job token.
 
 ## Calculations
 
-`baselineTree(statusLines)` is a pure function. It maps `git status --porcelain` lines under `e2e/__screenshots__` to Git tree entries (added or modified files get a blob, deleted ones get `sha: null`). It ignores any path outside that folder.
+`baselineTree(statusLines)` is a pure function. It maps `git status --porcelain` lines to the changes to commit: a write for an added or modified file, a delete for a removed one, and both for a rename. It ignores any path outside `e2e/__screenshots__`, including one that climbs out with `..`. The CLI turns writes into blobs and deletes into `sha: null` tree entries.
 
 ## Tests
 
