@@ -789,3 +789,7 @@ The footer's build stamp (from "Versioning") followed the OpenStreetMap credit i
 ## Visual baselines job — 29 October 2026
 
 A `@visual` failure caused by an intended layout change no longer needs Docker on the owner's Mac. The Visual baselines workflow (`visual-baselines.yml`) runs only on `workflow_dispatch` with a `branch` input, and refuses `main` and any branch without an open pull request from this repository. It renders `@visual` with `--update-snapshots=all` in the Playwright image Checks uses, then commits only the changes under `e2e/__screenshots__`. The commit goes through the Git data API with the job token, so GitHub signs it, and the branch moves without force. Checks gains a `workflow_dispatch` trigger, because a job-token commit starts no `pull_request` run. The workflow dispatches Checks on the branch, and that run reports the required checks on the new commit. Baselines are still made only by the test runner. See `intent/visual-baselines-job/`.
+
+## Target below shelter — 29 October 2026
+
+The segment target panel moves from between the timeline and the ride cockpit to directly below the assumed shelter panel, ahead of terrain and efforts. Its placeholder changes from 1:30 to 1:00. Behaviour, storage and parsing are unchanged. See `intent/target-below-shelter/`.

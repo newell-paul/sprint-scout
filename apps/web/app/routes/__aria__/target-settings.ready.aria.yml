@@ -2,7 +2,7 @@
   - heading "Segment target · 1m 30s" [level=3]
   - text: Target time (minutes:seconds)
   - textbox "Target time (minutes:seconds)":
-    - /placeholder: 1:30
+    - /placeholder: 1:00
     - text: 1:30
   - button "Save target"
   - button "Remove target"
