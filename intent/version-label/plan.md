@@ -2,10 +2,10 @@
 
 ## Files
 
-- `apps/web/app/routes/build-stamp.tsx`: render the badge link with its accessible name and title. Rename the component to `VersionBadge` in `version-badge.tsx`, with its test beside it.
-- `apps/web/app/routes/route-drawer.tsx`: badge after the `h1` in the header; footer build stamp and its separator removed.
-- `apps/web/app/globals.css`: `.version-badge`; remove the `.build-stamp` and `.footer-wrap-dot` rules; the heading's auto margin moves to the badge.
-- `e2e/version.spec.ts` with a small page-object addition.
+- `apps/web/app/routes/version-badge.tsx` replaces `build-stamp.tsx`: the badge link with its accessible name and title, with its component test beside it.
+- `apps/web/app/routes/route-drawer.tsx`: the `h1` and badge in a `brand-row` in the header; footer build stamp and its separator removed.
+- `apps/web/app/globals.css`: `.brand-row` and `.version-badge`, with the phone layout; remove the `.build-stamp` and `.footer-wrap-dot` rules.
+- `e2e/version.spec.ts`.
 - `docs/design.md`.
 
 ## Order

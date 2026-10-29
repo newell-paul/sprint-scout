@@ -1,6 +1,6 @@
 # Version label
 
-Status: accepted
+Status: done
 Opened: 29 October 2026 by Paul Newell
 
 ## Problem

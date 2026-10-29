@@ -595,6 +595,48 @@ hr {
   display: flex;
   align-items: center;
 }
+/* The wordmark and its version badge travel together; the badge drops under
+   the wordmark on a phone so the unit switch keeps the first row. */
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: auto;
+}
+.brand-row h1 {
+  margin: 0;
+}
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--data);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+}
+.version-badge span {
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--data) 45%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--data) 8%, transparent);
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.version-badge:hover span,
+.version-badge:focus-visible span {
+  border-color: var(--data);
+  background: color-mix(in srgb, var(--data) 16%, transparent);
+}
+.version-badge:focus-visible {
+  outline: none;
+}
+.version-badge:focus-visible span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 .segment-logo {
   display: inline-flex;
   align-items: center;
@@ -961,24 +1003,6 @@ hr {
 .segment-footer summary {
   white-space: nowrap;
 }
-/* On a phone, Data & privacy wraps to its own line; no dot trails the first. */
-@media (max-width: 480px) {
-  .footer-wrap-dot {
-    display: none;
-  }
-}
-.build-stamp {
-  display: inline-flex;
-  gap: 6px;
-  white-space: nowrap;
-}
-/* Beside the commit text, colour alone would not mark the link. */
-.build-stamp a {
-  text-decoration: underline;
-}
-.build-stamp code {
-  font-size: inherit;
-}
 .segment-footer details {
   flex: 1 1 120px;
   min-width: 0;
@@ -1103,6 +1127,15 @@ hr {
   }
   .segment-toolbar {
     gap: 8px;
+  }
+  .brand-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .brand-row .version-badge {
+    /* Under the word, clear of the 40 px mark and its 10 px gap. */
+    margin: -8px 0 -10px 50px;
   }
   .segment-toolbar h1 {
     flex-basis: auto;

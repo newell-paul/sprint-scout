@@ -8,7 +8,7 @@ From [intent.md](intent.md). Option D.
 - Its accessible name is "SprintScout v0.9.0, build 659ec4d", which includes the visible text. Its tooltip (`title`) is "Build 659ec4d". Without a commit, they read "SprintScout v0.9.0" and "SprintScout v0.9.0". Without a version, nothing renders.
 - The heading's accessible name stays "SprintScout". The unit switch keeps its place at the right of the header.
 - The footer loses the build stamp and its separator. It reads "© OpenStreetMap contributors · Data & privacy" on every width.
-- On a 390 px phone, the logo, badge and unit switch share the first row without overflow. The badge has a 44 px tall touch target, made by padding around a smaller visible pill.
+- Up to 600 px wide, the badge drops under the word "Sprint" so the unit switch keeps the first row beside the logo, with no horizontal overflow. Logo, badge and unit switch don't fit one row on a phone. The badge has a 44 px tall touch target, made by padding around a smaller visible pill.
 
 ## Data and privacy
 
