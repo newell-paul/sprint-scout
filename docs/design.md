@@ -781,3 +781,7 @@ SprintScout starts at 0.9.0, held only in the root `package.json`. The version m
 ## Wordmark gap — 28 October 2026
 
 With no gap, the "t" and "S" sat hard together at the slant. "Scout" now follows "Sprint" after 0.09 em on the planner, the engineering dashboard and the banner template: a slight gap that still reads as one word. The owner chose it from samples at 0.05, 0.09 and 0.13 em. Everything else in the wordmark is unchanged. This supersedes the no-gap rule in "Wordmark as one word"; the name is still spelled "SprintScout". See `intent/wordmark-gap/`.
+
+## Target below shelter — 29 October 2026
+
+The segment target panel moves from between the timeline and the ride cockpit to directly below the assumed shelter panel, ahead of terrain and efforts. Its placeholder changes from 1:30 to 1:00. Behaviour, storage and parsing are unchanged. See `intent/target-below-shelter/`.

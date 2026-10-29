@@ -240,12 +240,6 @@ export default function WindPreview({
     return stopParticles;
   }, [map, ready, current, particlesEnabled]);
   const calmSpeedMps = rider.calmSpeedKmh / 3.6;
-  const targetSettings = (
-    <TargetSettings
-      target={route.targetTimeS ?? null}
-      onChange={onTargetChange}
-    />
-  );
   return (
     <section
       className="wind-strip forecast-console"
@@ -358,7 +352,6 @@ export default function WindPreview({
           </div>
         </>
       )}
-      {targetSettings}
       {forecast && (
         <>
           <RideCockpit
@@ -421,6 +414,10 @@ export default function WindPreview({
       <ShelterSettings
         value={route.shelter ?? "exposed"}
         onChange={onShelterChange}
+      />
+      <TargetSettings
+        target={route.targetTimeS ?? null}
+        onChange={onTargetChange}
       />
       <TerrainPanel
         route={route}

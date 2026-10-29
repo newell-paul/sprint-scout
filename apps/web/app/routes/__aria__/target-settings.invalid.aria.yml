@@ -2,7 +2,7 @@
   - heading "Segment target · Not set" [level=3]
   - text: Target time (minutes:seconds)
   - textbox "Target time (minutes:seconds)":
-    - /placeholder: 1:30
+    - /placeholder: 1:00
     - text: fast
   - button "Save target"
   - button "Remove target" [disabled]
