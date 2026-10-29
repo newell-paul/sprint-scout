@@ -73,7 +73,7 @@ The test health page kept a 90-run history of suite duration, pass counts, cover
 - **`claude-code-action`** for review and the fix loop; **`claude -p`** in ordinary jobs for evals, spec drafts, triage and intent drafts. All read `CLAUDE_CODE_OAUTH_TOKEN` from repository secrets. The action uses the Claude GitHub App's installation token, scoped to this repository, so a fix-loop push re-runs Checks; a push with the job token would not. Everything else runs with the job token only.
 - **Actions artifacts and Pages** store and publish the dashboard history and badges.
 - **Dependabot** supplies dependency and security update pull requests through the same gate.
-- **Visual baselines** (`visual-baselines.yml`), started by hand or by an agent on a pull request's branch, regenerates the `@visual` screenshots in the Playwright container, commits them as a signed commit with the job token and dispatches Checks on it.
+- **Visual baselines** (`visual-baselines.yml`), started by hand or by an agent on a pull request's branch, regenerates the `@visual` screenshots in the Playwright container, commits them as a signed commit with the job token and approves the Checks run GitHub holds for that bot commit.
 
 ## Versioning
 

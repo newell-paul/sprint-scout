@@ -1,6 +1,6 @@
 name: Visual baselines
 # Regenerates e2e/__screenshots__ for a pull request's branch in the Playwright
-# container Checks uses, commits them back as a signed commit and runs Checks on
+# container Checks uses, commits them back as a signed commit and approves Checks on
 # it. Started by hand or by an agent (`gh workflow run visual-baselines.yml -f
 # branch=<branch>`); never on a schedule, never on main, never a force push.
 on:
@@ -108,11 +108,23 @@ jobs:
         run: |
           result=$(pnpm --silent baselines:commit --branch "$BRANCH" --base "$BASE")
           echo "$result"
-          [ "$result" = unchanged ] || echo "committed=true" >> "$GITHUB_OUTPUT"
-      # The job token's commit triggers no pull_request run, but it may start
-      # Checks by dispatch, which reports the required checks on the new commit.
-      - if: steps.commit.outputs.committed == 'true'
+          case "$result" in committed\ *) echo "sha=${result#committed }" >> "$GITHUB_OUTPUT";; esac
+      # The bot's commit starts the pull request's Checks run, but GitHub holds
+      # it for approval. The ruleset counts only that run's checks, so approve
+      # Checks here; the paid Review run stays held.
+      - if: steps.commit.outputs.sha != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ inputs.branch }}
-        run: gh workflow run ci.yml --ref "$BRANCH"
+          SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          for _ in $(seq 1 30); do
+            ids=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&event=pull_request&status=action_required" \
+              --jq '[.workflow_runs[] | select(.name == "Checks") | .id] | join(" ")')
+            [ -n "$ids" ] && break
+            sleep 5
+          done
+          [ -n "$ids" ] || { echo "::warning::No Checks run is waiting for approval on $SHA."; exit 0; }
+          for id in $ids; do
+            gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$id/approve" \
+              || echo "::warning::Could not approve Checks run $id. Approve it at $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id"
+          done

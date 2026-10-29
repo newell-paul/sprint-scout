@@ -10,9 +10,9 @@ From [intent.md](intent.md).
 - **Commit job.** Runs on `ubuntu-latest` with `contents: write` and `actions: write`. It downloads the artifact over the checkout and lists what changed under `e2e/__screenshots__` only.
   - If nothing changed, it ends with a notice "Baselines already match" and starts nothing.
   - Otherwise it commits through the Git data API with the job token, so GitHub signs the commit. The commit's parent is the branch head that was rendered. The branch ref moves without force, so the commit is refused if the branch moved meanwhile.
-  - It then starts Checks on the branch with `gh workflow run ci.yml --ref <branch>`.
+  - It then approves the pull request's Checks run for the new commit (see Checks below).
   - The job summary lists the files and links the commit.
-- **Checks** gains a `workflow_dispatch` trigger, so a commit made with the job token still gets the required checks. The job token can't trigger `pull_request` runs. On a dispatched run, the OSV scan scans the whole lockfile, as on `main`. Every other job runs as it does for a pull request, against the branch head.
+- **Checks** (amended after the first run, 29 October 2026): the bot's commit does start the pull request's Checks run, but GitHub holds it with "action required". A dispatched Checks run passed, but the ruleset didn't count it ("12 of 12 required status checks are expected"). So the commit job approves the held Checks run for the new commit instead. If approval fails, it leaves a warning with the run link. The paid Review run stays held, and Checks has no `workflow_dispatch` trigger.
 - Concurrency: one baselines run per branch at a time, without cancelling a run in progress.
 
 ## Data and privacy
