@@ -1,9 +1,12 @@
 name: Checks
 # Pull requests run on their merge ref; a branch push would only repeat that.
+# The Visual baselines workflow dispatches a run on a pull request's branch after
+# committing with the job token, which starts no pull_request run of its own.
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:

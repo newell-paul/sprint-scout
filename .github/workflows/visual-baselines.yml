@@ -1,0 +1,118 @@
+name: Visual baselines
+# Regenerates e2e/__screenshots__ for a pull request's branch in the Playwright
+# container Checks uses, commits them back as a signed commit and runs Checks on
+# it. Started by hand or by an agent (`gh workflow run visual-baselines.yml -f
+# branch=<branch>`); never on a schedule, never on main, never a force push.
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Pull request branch whose screenshots to regenerate
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: visual-baselines-${{ inputs.branch }}
+  cancel-in-progress: false
+jobs:
+  guard:
+    name: Check the branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      sha: ${{ steps.branch.outputs.sha }}
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - id: branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ inputs.branch }}
+        run: |
+          [ "$BRANCH" != main ] || { echo "::error::Visual baselines never commit to main."; exit 1; }
+          open=$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&head=${GITHUB_REPOSITORY_OWNER}:${BRANCH}" --jq 'length')
+          [ "$open" -ge 1 ] || { echo "::error::$BRANCH has no open pull request from this repository."; exit 1; }
+          sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$BRANCH" --jq .object.sha)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.branch.outputs.sha }}
+          sparse-checkout: |
+            pnpm-lock.yaml
+            scripts/playwright-image.sh
+          sparse-checkout-cone-mode: false
+      - id: image
+        run: echo "image=$(scripts/playwright-image.sh)" >> "$GITHUB_OUTPUT"
+  render:
+    name: Render in the Playwright container
+    needs: guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: ${{ needs.guard.outputs.image }}
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.guard.outputs.sha }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @scout/web build
+      # CI=1 compares and writes @visual screenshots, as in Checks.
+      - run: pnpm exec playwright test --grep @visual --update-snapshots=all
+        env:
+          CI: "1"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: visual-baselines
+          path: e2e/__screenshots__
+          retention-days: 1
+  commit:
+    name: Commit and run Checks
+    needs: [guard, render]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.guard.outputs.sha }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v7
+        with:
+          name: visual-baselines
+          path: ${{ runner.temp }}/baselines
+      - name: Replace the screenshots with the new render
+        run: |
+          rm -rf e2e/__screenshots__
+          cp -R "$RUNNER_TEMP/baselines" e2e/__screenshots__
+      - id: commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ inputs.branch }}
+          BASE: ${{ needs.guard.outputs.sha }}
+        run: |
+          result=$(pnpm --silent baselines:commit --branch "$BRANCH" --base "$BASE")
+          echo "$result"
+          [ "$result" = unchanged ] || echo "committed=true" >> "$GITHUB_OUTPUT"
+      # The job token's commit triggers no pull_request run, but it may start
+      # Checks by dispatch, which reports the required checks on the new commit.
+      - if: steps.commit.outputs.committed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ inputs.branch }}
+        run: gh workflow run ci.yml --ref "$BRANCH"

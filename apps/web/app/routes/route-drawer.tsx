@@ -21,6 +21,7 @@ import WeatherIcon from "../components/weather-icon";
 import type { RouteWindHour } from "@scout/application/route-wind";
 import type { RiderInput } from "@scout/analysis";
 import type { SpeedUnit } from "../components/speed";
+import VersionBadge from "./version-badge";
 import OpportunityBoard from "./opportunity-board";
 import {
   readRiderInput,
@@ -855,6 +856,7 @@ export default function Routes() {
           </p>
           <ClearData />
         </details>
+        <VersionBadge />
       </footer>
     </main>
   );

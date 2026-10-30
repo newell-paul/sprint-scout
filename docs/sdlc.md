@@ -73,6 +73,15 @@ The test health page kept a 90-run history of suite duration, pass counts, cover
 - **`claude-code-action`** for review and the fix loop; **`claude -p`** in ordinary jobs for evals, spec drafts, triage and intent drafts. All read `CLAUDE_CODE_OAUTH_TOKEN` from repository secrets. The action uses the Claude GitHub App's installation token, scoped to this repository, so a fix-loop push re-runs Checks; a push with the job token would not. Everything else runs with the job token only.
 - **Actions artifacts and Pages** store and publish the dashboard history and badges.
 - **Dependabot** supplies dependency and security update pull requests through the same gate.
+- **Visual baselines** (`visual-baselines.yml`), started by hand or by an agent on a pull request's branch, regenerates the `@visual` screenshots in the Playwright container, commits them as a signed commit with the job token and dispatches Checks on it.
+
+## Versioning
+
+The root `package.json` holds the one version; the workspace packages carry none. Only an owner-cut release moves it: when the owner asks, an agent runs `pnpm release:bump <x.y.z>` on a `release-<x.y.z>` branch and opens a pull request. When that merge passes Checks on `main`, the Release workflow creates the `v<x.y.z>` tag and GitHub release through the API, with notes listing the intents marked done since the previous tag (`pnpm release:notes` prints them locally). The planner footer and the dashboard header name the version and commit they were built from.
+
+- **Patch**: fixes and internal work with no user-visible change in behaviour.
+- **Minor**: a new or changed user-visible behaviour, a stored-data migration, or a new external request.
+- **1.0**: the owner decides when, and writes the bar down here when it is set. Until then the app stays on 0.x.
 
 ## Intent plan
 

@@ -1,3 +1,5 @@
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import type { NextConfig } from "next";
 // STATIC_EXPORT=1 builds the browser-only segment planner for static hosting
 // (GitHub Pages). Server-backed entries use the `.server.ts(x)` suffix so the
@@ -12,7 +14,28 @@ const extraOrigins = process.env.DEV_ORIGINS?.split(",").filter(Boolean);
 const devOrigins = extraOrigins?.length
   ? ["localhost", "127.0.0.1", ...extraOrigins]
   : undefined;
+// The footer's build stamp: the root version and the commit, baked in so the
+// page names its build without a request. Outside git the commit is empty.
+const version = (
+  JSON.parse(
+    readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+  ) as { version?: string }
+).version;
+const commit = (() => {
+  if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], {
+      encoding: "utf8",
+    }).trim();
+  } catch {
+    return "";
+  }
+})();
 const config: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: version ?? "",
+    NEXT_PUBLIC_COMMIT: commit,
+  },
   ...(devOrigins?.length ? { allowedDevOrigins: devOrigins } : {}),
   transpilePackages: [
     "@scout/analysis",

@@ -773,3 +773,27 @@ Drawing a segment is one mode with one bar directly above the map. The bar's tex
 ## Resolving review threads — 28 October 2026
 
 The dashboard's "Fixed after review" card read 0 % although findings were fixed, because it counts GitHub's resolved flag and nothing set it: the `@claude` fix loop only replied, and hand fixes left threads open (PR #87). `scripts/resolve-thread.mjs` (`pnpm review:resolve`) now finds the thread that holds a comment, optionally replies, and resolves it; a thread already resolved is left alone. The fix job records the pull request's head before the action and, on a line comment, resolves that comment's thread only if the head moved, with the job token and no new model tools. A top-level `@claude` comment names no thread and resolves nothing. `AGENTS.md` tells agents to resolve a thread they fix by hand. See `intent/resolve-review-threads/`.
+
+## Versioning — 28 October 2026
+
+SprintScout starts at 0.9.0, held only in the root `package.json`. The version moves only when the owner asks for a release: `pnpm release:bump <x.y.z>` on a pull request, which refuses anything that isn't plain `x.y.z` greater than the current version. A new Release workflow runs after Checks passes on a push to `main`, under the same head-repository guard as Pages, and stops unless `v<version>` is untagged; it then creates the tag and release through `gh release create` with the job token, without a push. Release notes list the intents whose status became `done` since the previous `v*` tag. The planner footer shows `v<version>`, linked to its release, and the short commit, both baked in at build time so no request is made; the dashboard header and each history snapshot record the version. Patch, minor and the 1.0 bar are in `docs/sdlc.md`. See `intent/versioning/`.
+
+## Wordmark gap — 28 October 2026
+
+With no gap, the "t" and "S" sat hard together at the slant. "Scout" now follows "Sprint" after 0.09 em on the planner, the engineering dashboard and the banner template: a slight gap that still reads as one word. The owner chose it from samples at 0.05, 0.09 and 0.13 em. Everything else in the wordmark is unchanged. This supersedes the no-gap rule in "Wordmark as one word"; the name is still spelled "SprintScout". See `intent/wordmark-gap/`.
+
+## Version badge in the header — 29 October 2026
+
+The footer's build stamp (from "Versioning") followed the OpenStreetMap credit in the same link colour, so it read as OpenStreetMap's version. It moves to the header as a small teal pill reading `v0.9.0` beside the wordmark, linked to the release, with "Build <commit>" as its tooltip and "SprintScout v0.9.0, build <commit>" as its accessible name. Up to 600 px wide it sits under the word "Sprint" so the unit switch keeps the first row. The footer is back to "© OpenStreetMap contributors · Data & privacy". The owner chose this (option D) from four rendered options. No request is added. See `intent/version-label/`.
+
+## Visual baselines job — 29 October 2026
+
+A `@visual` failure caused by an intended layout change no longer needs Docker on the owner's Mac. The Visual baselines workflow (`visual-baselines.yml`) runs only on `workflow_dispatch` with a `branch` input, and refuses `main` and any branch without an open pull request from this repository. It renders `@visual` with `--update-snapshots=all` in the Playwright image Checks uses, then commits only the changes under `e2e/__screenshots__`. The commit goes through the Git data API with the job token, so GitHub signs it, and the branch moves without force. Checks gains a `workflow_dispatch` trigger, because a job-token commit starts no `pull_request` run. The workflow dispatches Checks on the branch, and that run reports the required checks on the new commit. Baselines are still made only by the test runner. See `intent/visual-baselines-job/`.
+
+## Target below shelter — 29 October 2026
+
+The segment target panel moves from between the timeline and the ride cockpit to directly below the assumed shelter panel, ahead of terrain and efforts. Its placeholder changes from 1:30 to 1:00. Behaviour, storage and parsing are unchanged. See `intent/target-below-shelter/`.
+
+## Version back in the footer — 29 October 2026
+
+The owner moved the version back to the footer, and chose option 2 from three rendered footer options. The teal pill from "Version badge in the header" now ends the footer row and reads "SprintScout v0.9.0", so the app is named in the pill and it can't be taken for OpenStreetMap's version. Its tooltip and accessible name still carry the build commit, and it still links to the release. On a phone it wraps to the start of the next line. The header is back to the wordmark and the unit switch. This supersedes "Version badge in the header". See `intent/version-in-footer/`.

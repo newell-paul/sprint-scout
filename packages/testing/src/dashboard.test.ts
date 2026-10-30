@@ -559,6 +559,19 @@ describe("badges", () => {
 });
 
 describe("render", () => {
+  it("names the version the dashboard was built from, when the snapshot has one", () => {
+    const versioned = snapshot({ ...everything, version: "0.9.0" });
+    expect(versioned.version).toBe("0.9.0");
+    expect(render([versioned])).toContain(
+      "Built from main v0.9.0 at <code>0123456</code> on 2026-10-10",
+    );
+    const older = snapshot(everything);
+    expect(older).not.toHaveProperty("version");
+    expect(render([older])).toContain(
+      "Built from main at <code>0123456</code>",
+    );
+  });
+
   it("shows every section with the latest metrics and escapes test titles", () => {
     const first = snapshot({ date: "2026-10-09", playwright });
     const latest = snapshot({
@@ -732,11 +745,11 @@ describe("render", () => {
     expect(html.match(/<style>[\s\S]*<\/style>/)![0]).not.toMatch(/https?:/);
   });
 
-  it("slants the wordmark like the planner's, with Scout bold and no word gap", () => {
+  it("slants the wordmark like the planner's, with Scout bold after a slight gap", () => {
     const html = render([snapshot({ date: "2026-10-24" })]);
     expect(html).toMatch(/\.brand\{[^}]*transform:skewX\(-12deg\)/);
     expect(html).toMatch(/\.brand b\{font-weight:700;/);
-    expect(html).not.toMatch(/\.brand b\{[^}]*margin-left/);
+    expect(html).toMatch(/\.brand b\{[^}]*margin-left:\.09em/);
   });
 
   it("shares the planner's page and panel colours", () => {

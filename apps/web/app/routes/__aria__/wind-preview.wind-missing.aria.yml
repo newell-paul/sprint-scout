@@ -15,14 +15,6 @@
   - slider "Forecast hour": "0"
   - text: – – Still air 1m 40s ○ Best hour × Unavailable Night Rain or snow Drag or use arrow keys
   - group: Hourly times
-  - region "Segment target time":
-    - heading "Segment target · Not set" [level=3]
-    - text: Target time (minutes:seconds)
-    - textbox "Target time (minutes:seconds)":
-      - /placeholder: 1:30
-    - button "Save target"
-    - button "Remove target" [disabled]
-    - text: A goal, not a verified personal best or prediction of success.
   - region "Ride instruments":
     - text: Modelled average speed
     - strong: Unavailable
@@ -56,6 +48,14 @@
         - strong: Dense
         - text: 65% wind reduction
     - group: How shelter is applied
+  - region "Segment target time":
+    - heading "Segment target · Not set" [level=3]
+    - text: Target time (minutes:seconds)
+    - textbox "Target time (minutes:seconds)":
+      - /placeholder: 1:00
+    - button "Save target"
+    - button "Remove target" [disabled]
+    - text: A goal, not a verified personal best or prediction of success.
   - region "Segment terrain":
     - heading "Terrain · Flat-road mode" [level=3]
     - button "Load terrain" [disabled]
