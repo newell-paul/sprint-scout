@@ -801,3 +801,11 @@ The owner moved the version back to the footer, and chose option 2 from three re
 ## Visual baselines job approves Checks — 29 October 2026
 
 The first run, on PR #94, committed signed baselines, and the Checks run it dispatched passed. But the `main` ruleset counted none of it ("12 of 12 required status checks are expected"), because the ruleset only counts checks from the pull request's own run. The bot's commit had in fact started that run, held with "action required". The commit job now approves the held Checks run for its commit (`POST /actions/runs/{id}/approve`) instead of dispatching one, and Checks loses the `workflow_dispatch` trigger added in "Visual baselines job". If approval is refused, the job warns with the run link so the owner or an agent can approve it. The paid Review run stays held.
+
+## No hour arrows — 31 October 2026
+
+The previous and next hour arrows that framed the forecast navigation since the first import are removed. They duplicated the chart, which takes a drag, a tap or the arrow keys ("Drag or use arrow keys"), and on a phone they crowded the day buttons. The navigation is now Today, Tomorrow, Best hour and the dry daylight filter; on a phone the three buttons share one row. The slider's arrow keys are the keyboard path, and the component tests step the hour with them.
+
+## Every outside contributor's workflow run needs approval — 31 October 2026
+
+The repository's Actions setting for fork pull requests changed from approval for first-time contributors to approval for all outside contributors (`all_external_contributors`). Before, someone with one merged pull request could run Checks on later fork pull requests without the owner seeing it first. Paid steps were never at risk: no workflow uses `pull_request_target`, fork pull requests get no secrets, and every paid job skips forks (see "Fix loop refuses fork pull requests"). The change stops outsider code running on the free runners unreviewed, and costs nothing while the owner is the only contributor. It is a repository setting, not a file: check it with `gh api repos/newell-paul/sprint-scout/actions/permissions/fork-pr-contributor-approval`.
