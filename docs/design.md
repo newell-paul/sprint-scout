@@ -790,6 +790,14 @@ The footer's build stamp (from "Versioning") followed the OpenStreetMap credit i
 
 A `@visual` failure caused by an intended layout change no longer needs Docker on the owner's Mac. The Visual baselines workflow (`visual-baselines.yml`) runs only on `workflow_dispatch` with a `branch` input, and refuses `main` and any branch without an open pull request from this repository. It renders `@visual` with `--update-snapshots=all` in the Playwright image Checks uses, then commits only the changes under `e2e/__screenshots__`. The commit goes through the Git data API with the job token, so GitHub signs it, and the branch moves without force. Checks gains a `workflow_dispatch` trigger, because a job-token commit starts no `pull_request` run. The workflow dispatches Checks on the branch, and that run reports the required checks on the new commit. Baselines are still made only by the test runner. See `intent/visual-baselines-job/`.
 
+## Target below shelter — 29 October 2026
+
+The segment target panel moves from between the timeline and the ride cockpit to directly below the assumed shelter panel, ahead of terrain and efforts. Its placeholder changes from 1:30 to 1:00. Behaviour, storage and parsing are unchanged. See `intent/target-below-shelter/`.
+
+## Version back in the footer — 29 October 2026
+
+The owner moved the version back to the footer, and chose option 2 from three rendered footer options. The teal pill from "Version badge in the header" now ends the footer row and reads "SprintScout v0.9.0", so the app is named in the pill and it can't be taken for OpenStreetMap's version. Its tooltip and accessible name still carry the build commit, and it still links to the release. On a phone it wraps to the start of the next line. The header is back to the wordmark and the unit switch. This supersedes "Version badge in the header". See `intent/version-in-footer/`.
+
 ## Visual baselines job approves Checks — 29 October 2026
 
 The first run, on PR #94, committed signed baselines, and the Checks run it dispatched passed. But the `main` ruleset counted none of it ("12 of 12 required status checks are expected"), because the ruleset only counts checks from the pull request's own run. The bot's commit had in fact started that run, held with "action required". The commit job now approves the held Checks run for its commit (`POST /actions/runs/{id}/approve`) instead of dispatching one, and Checks loses the `workflow_dispatch` trigger added in "Visual baselines job". If approval is refused, the job warns with the run link so the owner or an agent can approve it. The paid Review run stays held.

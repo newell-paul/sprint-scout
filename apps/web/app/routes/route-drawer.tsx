@@ -596,12 +596,9 @@ export default function Routes() {
   return (
     <main className="segment-screen">
       <header className="segment-toolbar">
-        <div className="brand-row">
-          <h1>
-            <Logo className="segment-logo" />
-          </h1>
-          <VersionBadge />
-        </div>
+        <h1>
+          <Logo className="segment-logo" />
+        </h1>
         <div className="unit-control" role="group" aria-label="Speed units">
           <span>Speed units</span>
           <span className="unit-switch">
@@ -859,6 +856,7 @@ export default function Routes() {
           </p>
           <ClearData />
         </details>
+        <VersionBadge />
       </footer>
     </main>
   );

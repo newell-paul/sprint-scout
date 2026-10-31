@@ -595,17 +595,6 @@ hr {
   display: flex;
   align-items: center;
 }
-/* The wordmark and its version badge travel together; the badge drops under
-   the wordmark on a phone so the unit switch keeps the first row. */
-.brand-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-right: auto;
-}
-.brand-row h1 {
-  margin: 0;
-}
 .version-badge {
   display: inline-flex;
   align-items: center;
@@ -1128,15 +1117,6 @@ hr {
   .segment-toolbar {
     gap: 8px;
   }
-  .brand-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0;
-  }
-  .brand-row .version-badge {
-    /* Under the word, clear of the 40 px mark and its 10 px gap. */
-    margin: -8px 0 -10px 50px;
-  }
   .segment-toolbar h1 {
     flex-basis: auto;
   }
@@ -1391,7 +1371,7 @@ hr {
   --time-tone: var(--ink);
 }
 .ride-cockpit > div {
-  padding: 22px 24px;
+  padding: 16px 20px;
   background: var(--panel-bg);
   border: var(--panel-border);
   border-radius: var(--radius-lg);
@@ -1417,8 +1397,8 @@ hr {
 .speed-dial {
   display: block;
   width: 100%;
-  max-width: 340px;
-  margin: 8px auto 0;
+  max-width: 250px;
+  margin: 4px auto 0;
   overflow: visible;
 }
 .speed-dial text,
@@ -1468,7 +1448,7 @@ hr {
   font-size: 25px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  margin-top: -8px;
+  margin-top: -4px;
 }
 .dial-caption {
   display: block;
@@ -1536,8 +1516,8 @@ hr {
   position: relative;
   container-type: inline-size;
   width: 100%;
-  max-width: 250px;
-  margin: 8px auto 0;
+  max-width: 180px;
+  margin: 4px auto 0;
 }
 .wind-compass {
   display: block;
@@ -1773,9 +1753,6 @@ hr {
   .ride-cockpit > div {
     padding: 16px;
   }
-  .compass-dial {
-    max-width: 200px;
-  }
 }
 @media (max-width: 600px) {
   .forecast-console {
@@ -1803,13 +1780,13 @@ hr {
     gap: 8px;
   }
   .ride-cockpit > div {
-    padding: 12px;
+    padding: 10px;
   }
   .ride-cockpit > .cockpit-facts {
     gap: 6px 16px;
   }
   .compass-dial {
-    max-width: 150px;
+    max-width: 125px;
   }
   .forecast-console > .weather-details,
   .forecast-console > .wind-actions,
@@ -1817,7 +1794,7 @@ hr {
     order: 3;
   }
   .cockpit-speed .speed-dial {
-    max-width: 230px;
+    max-width: 190px;
   }
   .forecast-console .forecast-navigation {
     gap: 4px;
@@ -1828,6 +1805,12 @@ hr {
     order: 1;
     flex-basis: 100%;
     padding: 0;
+  }
+  .forecast-console .forecast-navigation .hour-step {
+    display: none;
+  }
+  .forecast-console .forecast-navigation button:not(.hour-step) {
+    flex: 1 1 0;
   }
   .forecast-console .forecast-navigation button {
     padding: 4px 8px;

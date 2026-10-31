@@ -1,6 +1,6 @@
-import { afterEach, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react/pure";
-import type { Locator } from "vitest/browser";
+import { page, type Locator } from "vitest/browser";
 import type { Map as RouteMap } from "maplibre-gl";
 import WindPreview from "./wind-preview";
 import {
@@ -12,10 +12,13 @@ import {
   uniquePoints,
 } from "../../test/fixtures";
 
+// Desktop width: the hour arrows are hidden on a phone.
+beforeEach(() => page.viewport(1280, 900));
 afterEach(() => {
   resetOpenMeteo();
   vi.restoreAllMocks();
 });
+afterAll(() => page.viewport(414, 896));
 
 const console = { name: "Route wind forecast" };
 const props = () => ({
@@ -113,6 +116,38 @@ it("navigation: previous hour steps back", async () => {
   await expect
     .element(region.getByRole("slider", { name: "Forecast hour" }))
     .toHaveValue("0");
+});
+
+it("phone: the day buttons fill the row and the hour arrows are hidden", async () => {
+  await page.viewport(390, 844);
+  const screen = await render(<WindPreview route={fresh()} {...props()} />);
+  const region = screen.getByRole("region", console);
+  const navigation = region.getByRole("group", { name: "Forecast navigation" });
+  await expect.element(navigation).toBeVisible();
+  await expect
+    .element(
+      navigation.getByRole("button", {
+        name: "Next hour",
+        includeHidden: true,
+      }),
+    )
+    .not.toBeVisible();
+  await expect
+    .element(
+      navigation.getByRole("button", {
+        name: "Previous hour",
+        includeHidden: true,
+      }),
+    )
+    .not.toBeVisible();
+  const tops = ["Today", "Tomorrow", "Best hour"].map(
+    (name) =>
+      navigation.getByRole("button", { name }).element().getBoundingClientRect()
+        .top,
+  );
+  expect(new Set(tops).size).toBe(1);
+  const box = navigation.element();
+  expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth);
 });
 
 const tailwindTime = async (region: Locator) => {
