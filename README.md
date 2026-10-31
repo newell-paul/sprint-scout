@@ -50,6 +50,12 @@ Gate configuration lives in the respective config files at the repo root. The fu
 
 Design, decisions and status: [docs/design.md](docs/design.md), [docs/integration-decisions.md](docs/integration-decisions.md), [docs/implementation-plan.md](docs/implementation-plan.md), [docs/validation.md](docs/validation.md), [docs/sdlc.md](docs/sdlc.md).
 
+## Blogs
+
+[SprintScout blog](https://medium.com/@paul.newell_20752/sprintscout-0ac6b2985608?postPublishedType=repub) - medium
+
+[Engineering blog](https://dev.to/newellpaul/ai-assisted-qa-with-github-actions-2bm) - dev.to
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
