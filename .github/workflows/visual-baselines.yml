@@ -119,7 +119,7 @@ jobs:
         run: |
           for _ in $(seq 1 30); do
             ids=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$SHA&event=pull_request&status=action_required" \
-              --jq '[.workflow_runs[] | select(.name == "Checks") | .id] | join(" ")')
+              --jq '[.workflow_runs[] | select(.name == "Checks") | .id] | join(" ")') || true
             [ -n "$ids" ] && break
             sleep 5
           done
