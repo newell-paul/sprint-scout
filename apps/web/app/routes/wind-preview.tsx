@@ -286,15 +286,6 @@ export default function WindPreview({
               aria-label="Forecast navigation"
               role="group"
             >
-              <button
-                type="button"
-                className="hour-step"
-                aria-label="Previous hour"
-                disabled={index === 0}
-                onClick={() => setIndex(index - 1)}
-              >
-                ←
-              </button>
               {days.map((day) => (
                 <button
                   type="button"
@@ -326,15 +317,6 @@ export default function WindPreview({
                 />{" "}
                 Dry daylight only
               </label>
-              <button
-                type="button"
-                className="hour-step"
-                aria-label="Next hour"
-                disabled={index === 47}
-                onClick={() => setIndex(index + 1)}
-              >
-                →
-              </button>
             </div>
             <TimeChart
               forecast={forecast}

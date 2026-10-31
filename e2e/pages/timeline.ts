@@ -3,7 +3,6 @@ import type { Locator, Page } from "@playwright/test";
 /** The forecast hour: slider, day and best-hour buttons, bands and hourly table. */
 export class Timeline {
   readonly slider: Locator;
-  readonly nextButton: Locator;
   readonly tomorrowButton: Locator;
   readonly bestHourButton: Locator;
   readonly dryDaylight: Locator;
@@ -18,7 +17,6 @@ export class Timeline {
 
   constructor(private readonly page: Page) {
     this.slider = page.getByRole("slider", { name: "Forecast hour" });
-    this.nextButton = page.getByRole("button", { name: "Next hour" });
     this.tomorrowButton = page.getByRole("button", {
       name: "Tomorrow",
       exact: true,

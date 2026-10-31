@@ -52,7 +52,7 @@ test("tomorrow moves the slider to the first hour after local midnight", async (
   expect(await planner.timeline.hour()).toBe(16);
 });
 
-test("the last hour shows rain and a crosswind and disables next", async ({ planner, seed, openMeteo }) => {
+test("the last hour shows rain and a crosswind at the end of the slider", async ({ planner, seed, openMeteo }) => {
   await seed(seeded);
   const tailwindTime = await planner.cockpit.time();
 
@@ -62,7 +62,7 @@ test("the last hour shows rain and a crosswind and disables next", async ({ plan
   await expect(timeline.bestHourButton).toHaveAttribute("aria-pressed", "false");
   await expect(timeline.selectedWindow).toHaveAttribute("data-best", "false");
   await expect(cockpit.segmentTime).not.toHaveText(tailwindTime);
-  await expect(timeline.nextButton).toBeDisabled();
+  await expect(timeline.slider).toHaveValue("47");
   await expect(cockpit.windSummary).toContainText("Hour 48 of 48");
   await expect(timeline.dayTicks).toHaveCount(2);
   await expect(cockpit.weatherIcon).toHaveAttribute("data-kind", "rain");
