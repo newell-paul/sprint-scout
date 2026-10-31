@@ -798,6 +798,10 @@ The segment target panel moves from between the timeline and the ride cockpit to
 
 The owner moved the version back to the footer, and chose option 2 from three rendered footer options. The teal pill from "Version badge in the header" now ends the footer row and reads "SprintScout v0.9.0", so the app is named in the pill and it can't be taken for OpenStreetMap's version. Its tooltip and accessible name still carry the build commit, and it still links to the release. On a phone it wraps to the start of the next line. The header is back to the wordmark and the unit switch. This supersedes "Version badge in the header". See `intent/version-in-footer/`.
 
+## Visual baselines job approves Checks — 29 October 2026
+
+The first run, on PR #94, committed signed baselines, and the Checks run it dispatched passed. But the `main` ruleset counted none of it ("12 of 12 required status checks are expected"), because the ruleset only counts checks from the pull request's own run. The bot's commit had in fact started that run, held with "action required". The commit job now approves the held Checks run for its commit (`POST /actions/runs/{id}/approve`) instead of dispatching one, and Checks loses the `workflow_dispatch` trigger added in "Visual baselines job". If approval is refused, the job warns with the run link so the owner or an agent can approve it. The paid Review run stays held.
+
 ## No hour arrows — 31 October 2026
 
 The previous and next hour arrows that framed the forecast navigation since the first import are removed. They duplicated the chart, which takes a drag, a tap or the arrow keys ("Drag or use arrow keys"), and on a phone they crowded the day buttons. The navigation is now Today, Tomorrow, Best hour and the dry daylight filter; on a phone the three buttons share one row. The slider's arrow keys are the keyboard path, and the component tests step the hour with them.
