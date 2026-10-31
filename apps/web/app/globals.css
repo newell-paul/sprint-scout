@@ -1094,9 +1094,6 @@ hr {
 .forecast-navigation button {
   font-size: 14px;
 }
-.forecast-navigation button:last-child {
-  margin-left: auto;
-}
 .forecast-comparison {
   color: var(--muted);
   font-size: 12px;
@@ -1600,14 +1597,6 @@ hr {
     border-color 150ms ease,
     box-shadow 150ms ease;
 }
-.forecast-console .forecast-navigation button:first-child,
-.forecast-console .forecast-navigation button:last-child {
-  border-radius: var(--radius-sm);
-}
-.forecast-console .forecast-navigation button:nth-last-child(2) {
-  border-color: var(--accent);
-  color: var(--teal);
-}
 .time-chart-heading {
   display: flex;
   justify-content: space-between;
@@ -1806,10 +1795,7 @@ hr {
     flex-basis: 100%;
     padding: 0;
   }
-  .forecast-console .forecast-navigation .hour-step {
-    display: none;
-  }
-  .forecast-console .forecast-navigation button:not(.hour-step) {
+  .forecast-console .forecast-navigation button {
     flex: 1 1 0;
   }
   .forecast-console .forecast-navigation button {
@@ -2016,10 +2002,6 @@ hr {
   color: var(--muted);
   padding: 0 8px;
   min-height: 38px;
-}
-.forecast-console .forecast-navigation button:nth-last-child(2) {
-  border-color: var(--border);
-  color: inherit;
 }
 .forecast-console .forecast-navigation .best-hour-button {
   border-color: var(--best);
