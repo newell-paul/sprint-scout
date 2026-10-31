@@ -798,6 +798,10 @@ The segment target panel moves from between the timeline and the ride cockpit to
 
 The owner moved the version back to the footer, and chose option 2 from three rendered footer options. The teal pill from "Version badge in the header" now ends the footer row and reads "SprintScout v0.9.0", so the app is named in the pill and it can't be taken for OpenStreetMap's version. Its tooltip and accessible name still carry the build commit, and it still links to the release. On a phone it wraps to the start of the next line. The header is back to the wordmark and the unit switch. This supersedes "Version badge in the header". See `intent/version-in-footer/`.
 
-## No hour arrows — 1 November 2026
+## No hour arrows — 31 October 2026
 
 The previous and next hour arrows that framed the forecast navigation since the first import are removed. They duplicated the chart, which takes a drag, a tap or the arrow keys ("Drag or use arrow keys"), and on a phone they crowded the day buttons. The navigation is now Today, Tomorrow, Best hour and the dry daylight filter; on a phone the three buttons share one row. The slider's arrow keys are the keyboard path, and the component tests step the hour with them.
+
+## Every outside contributor's workflow run needs approval — 31 October 2026
+
+The repository's Actions setting for fork pull requests changed from approval for first-time contributors to approval for all outside contributors (`all_external_contributors`). Before, someone with one merged pull request could run Checks on later fork pull requests without the owner seeing it first. Paid steps were never at risk: no workflow uses `pull_request_target`, fork pull requests get no secrets, and every paid job skips forks (see "Fix loop refuses fork pull requests"). The change stops outsider code running on the free runners unreviewed, and costs nothing while the owner is the only contributor. It is a repository setting, not a file: check it with `gh api repos/newell-paul/sprint-scout/actions/permissions/fork-pr-contributor-approval`.
