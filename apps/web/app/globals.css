@@ -1806,6 +1806,12 @@ hr {
     flex-basis: 100%;
     padding: 0;
   }
+  .forecast-console .forecast-navigation .hour-step {
+    display: none;
+  }
+  .forecast-console .forecast-navigation button:not(.hour-step) {
+    flex: 1 1 0;
+  }
   .forecast-console .forecast-navigation button {
     padding: 4px 8px;
     font-size: 12px;
