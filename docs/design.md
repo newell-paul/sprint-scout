@@ -781,3 +781,23 @@ SprintScout starts at 0.9.0, held only in the root `package.json`. The version m
 ## Wordmark gap — 28 October 2026
 
 With no gap, the "t" and "S" sat hard together at the slant. "Scout" now follows "Sprint" after 0.09 em on the planner, the engineering dashboard and the banner template: a slight gap that still reads as one word. The owner chose it from samples at 0.05, 0.09 and 0.13 em. Everything else in the wordmark is unchanged. This supersedes the no-gap rule in "Wordmark as one word"; the name is still spelled "SprintScout". See `intent/wordmark-gap/`.
+
+## Version badge in the header — 29 October 2026
+
+The footer's build stamp (from "Versioning") followed the OpenStreetMap credit in the same link colour, so it read as OpenStreetMap's version. It moves to the header as a small teal pill reading `v0.9.0` beside the wordmark, linked to the release, with "Build <commit>" as its tooltip and "SprintScout v0.9.0, build <commit>" as its accessible name. Up to 600 px wide it sits under the word "Sprint" so the unit switch keeps the first row. The footer is back to "© OpenStreetMap contributors · Data & privacy". The owner chose this (option D) from four rendered options. No request is added. See `intent/version-label/`.
+
+## Visual baselines job — 29 October 2026
+
+A `@visual` failure caused by an intended layout change no longer needs Docker on the owner's Mac. The Visual baselines workflow (`visual-baselines.yml`) runs only on `workflow_dispatch` with a `branch` input, and refuses `main` and any branch without an open pull request from this repository. It renders `@visual` with `--update-snapshots=all` in the Playwright image Checks uses, then commits only the changes under `e2e/__screenshots__`. The commit goes through the Git data API with the job token, so GitHub signs it, and the branch moves without force. Checks gains a `workflow_dispatch` trigger, because a job-token commit starts no `pull_request` run. The workflow dispatches Checks on the branch, and that run reports the required checks on the new commit. Baselines are still made only by the test runner. See `intent/visual-baselines-job/`.
+
+## Target below shelter — 29 October 2026
+
+The segment target panel moves from between the timeline and the ride cockpit to directly below the assumed shelter panel, ahead of terrain and efforts. Its placeholder changes from 1:30 to 1:00. Behaviour, storage and parsing are unchanged. See `intent/target-below-shelter/`.
+
+## Version back in the footer — 29 October 2026
+
+The owner moved the version back to the footer, and chose option 2 from three rendered footer options. The teal pill from "Version badge in the header" now ends the footer row and reads "SprintScout v0.9.0", so the app is named in the pill and it can't be taken for OpenStreetMap's version. Its tooltip and accessible name still carry the build commit, and it still links to the release. On a phone it wraps to the start of the next line. The header is back to the wordmark and the unit switch. This supersedes "Version badge in the header". See `intent/version-in-footer/`.
+
+## No hour arrows — 1 November 2026
+
+The previous and next hour arrows that framed the forecast navigation since the first import are removed. They duplicated the chart, which takes a drag, a tap or the arrow keys ("Drag or use arrow keys"), and on a phone they crowded the day buttons. The navigation is now Today, Tomorrow, Best hour and the dry daylight filter; on a phone the three buttons share one row. The slider's arrow keys are the keyboard path, and the component tests step the hour with them.

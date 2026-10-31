@@ -51,7 +51,7 @@ export default function TargetSettings({
           Target time (minutes:seconds)
           <input
             value={value}
-            placeholder="1:30"
+            placeholder="1:00"
             maxLength={7}
             onChange={(event) => setValue(event.target.value)}
           />

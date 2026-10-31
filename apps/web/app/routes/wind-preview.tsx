@@ -240,12 +240,6 @@ export default function WindPreview({
     return stopParticles;
   }, [map, ready, current, particlesEnabled]);
   const calmSpeedMps = rider.calmSpeedKmh / 3.6;
-  const targetSettings = (
-    <TargetSettings
-      target={route.targetTimeS ?? null}
-      onChange={onTargetChange}
-    />
-  );
   return (
     <section
       className="wind-strip forecast-console"
@@ -292,14 +286,6 @@ export default function WindPreview({
               aria-label="Forecast navigation"
               role="group"
             >
-              <button
-                type="button"
-                aria-label="Previous hour"
-                disabled={index === 0}
-                onClick={() => setIndex(index - 1)}
-              >
-                ←
-              </button>
               {days.map((day) => (
                 <button
                   type="button"
@@ -331,14 +317,6 @@ export default function WindPreview({
                 />{" "}
                 Dry daylight only
               </label>
-              <button
-                type="button"
-                aria-label="Next hour"
-                disabled={index === 47}
-                onClick={() => setIndex(index + 1)}
-              >
-                →
-              </button>
             </div>
             <TimeChart
               forecast={forecast}
@@ -358,7 +336,6 @@ export default function WindPreview({
           </div>
         </>
       )}
-      {targetSettings}
       {forecast && (
         <>
           <RideCockpit
@@ -421,6 +398,10 @@ export default function WindPreview({
       <ShelterSettings
         value={route.shelter ?? "exposed"}
         onChange={onShelterChange}
+      />
+      <TargetSettings
+        target={route.targetTimeS ?? null}
+        onChange={onTargetChange}
       />
       <TerrainPanel
         route={route}

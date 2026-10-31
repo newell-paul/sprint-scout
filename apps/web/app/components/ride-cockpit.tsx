@@ -210,7 +210,7 @@ export default function RideCockpit({
                 : formatSpeed(hour.speedMps, unit)}
           </strong>
         </div>
-        <span>
+        <span className="sr-only">
           {hour.speedMps && hour.flowDegrees !== null
             ? `Towards ${compassDirection(hour.flowDegrees)}`
             : "No wind direction"}

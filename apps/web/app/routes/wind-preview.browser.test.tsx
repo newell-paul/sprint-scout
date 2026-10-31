@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react/pure";
-import type { Locator } from "vitest/browser";
+import { page, userEvent, type Locator } from "vitest/browser";
 import type { Map as RouteMap } from "maplibre-gl";
 import WindPreview from "./wind-preview";
 import {
@@ -12,9 +12,10 @@ import {
   uniquePoints,
 } from "../../test/fixtures";
 
-afterEach(() => {
+afterEach(async () => {
   resetOpenMeteo();
   vi.restoreAllMocks();
+  await page.viewport(414, 896);
 });
 
 const console = { name: "Route wind forecast" };
@@ -34,6 +35,10 @@ const props = () => ({
   onEffortsChange: vi.fn(() => true),
 });
 const fresh = () => aRoute({ points: uniquePoints() });
+const step = async (region: Locator, key: "ArrowLeft" | "ArrowRight") => {
+  region.getByRole("slider", { name: "Forecast hour" }).element().focus();
+  await userEvent.keyboard(`{${key}}`);
+};
 
 // Ends while still loading, so the teardown axe run checks the busy state.
 it("loading: a busy placeholder while the forecast is outstanding", async () => {
@@ -68,13 +73,13 @@ it("ready: the console once the forecast lands", async () => {
   await aria("wind-preview.ready", region);
 });
 
-it("navigation: next and previous hour move the selection", async () => {
+it("navigation: arrow keys on the chart and the day buttons move the selection", async () => {
   const screen = await render(<WindPreview route={fresh()} {...props()} />);
   const region = screen.getByRole("region", console);
-  await expect
-    .element(region.getByRole("button", { name: "Previous hour" }))
-    .toBeDisabled();
-  await region.getByRole("button", { name: "Next hour" }).click();
+  await expect.element(region.getByText("Hour 1 of 48")).toBeInTheDocument();
+  await step(region, "ArrowLeft");
+  await expect.element(region.getByText("Hour 1 of 48")).toBeInTheDocument();
+  await step(region, "ArrowRight");
   await expect.element(region.getByText("Hour 2 of 48")).toBeInTheDocument();
   await region.getByRole("button", { name: "Tomorrow" }).click();
   await expect
@@ -93,7 +98,7 @@ it("opportunity: a repeated request for the same hour moves back to it", async (
   );
   const region = screen.getByRole("region", console);
   await expect.element(region.getByText("Hour 3 of 48")).toBeInTheDocument();
-  await region.getByRole("button", { name: "Next hour" }).click();
+  await step(region, "ArrowRight");
   await expect.element(region.getByText("Hour 4 of 48")).toBeInTheDocument();
 
   await screen.rerender(
@@ -103,16 +108,33 @@ it("opportunity: a repeated request for the same hour moves back to it", async (
   await expect.element(region.getByText("Hour 3 of 48")).toBeInTheDocument();
 });
 
-it("navigation: previous hour steps back", async () => {
+it("navigation: the left arrow key steps back", async () => {
   const screen = await render(<WindPreview route={fresh()} {...props()} />);
   const region = screen.getByRole("region", console);
-  await region.getByRole("button", { name: "Next hour" }).click();
+  await expect.element(region.getByText("Hour 1 of 48")).toBeInTheDocument();
+  await step(region, "ArrowRight");
 
-  await region.getByRole("button", { name: "Previous hour" }).click();
+  await step(region, "ArrowLeft");
 
   await expect
     .element(region.getByRole("slider", { name: "Forecast hour" }))
     .toHaveValue("0");
+});
+
+it("phone: the day buttons share one row", async () => {
+  await page.viewport(390, 844);
+  const screen = await render(<WindPreview route={fresh()} {...props()} />);
+  const region = screen.getByRole("region", console);
+  const navigation = region.getByRole("group", { name: "Forecast navigation" });
+  await expect.element(navigation).toBeVisible();
+  const tops = ["Today", "Tomorrow", "Best hour"].map(
+    (name) =>
+      navigation.getByRole("button", { name }).element().getBoundingClientRect()
+        .top,
+  );
+  expect(new Set(tops).size).toBe(1);
+  const box = navigation.element();
+  expect(box.scrollWidth).toBeLessThanOrEqual(box.clientWidth);
 });
 
 const tailwindTime = async (region: Locator) => {
@@ -507,7 +529,7 @@ it("wind missing on the next hour: cockpit and particles go blank", async () => 
     .element(screen.getByTestId("wind-particle-field"))
     .toBeInTheDocument();
 
-  await region.getByRole("button", { name: "Next hour" }).click();
+  await step(region, "ArrowRight");
 
   await expect
     .element(region.getByRole("slider", { name: "Forecast hour" }))
