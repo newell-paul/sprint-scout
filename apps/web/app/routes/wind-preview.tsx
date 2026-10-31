@@ -288,6 +288,7 @@ export default function WindPreview({
             >
               <button
                 type="button"
+                className="hour-step"
                 aria-label="Previous hour"
                 disabled={index === 0}
                 onClick={() => setIndex(index - 1)}
@@ -327,6 +328,7 @@ export default function WindPreview({
               </label>
               <button
                 type="button"
+                className="hour-step"
                 aria-label="Next hour"
                 disabled={index === 47}
                 onClick={() => setIndex(index + 1)}
