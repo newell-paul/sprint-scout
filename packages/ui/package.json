@@ -6,6 +6,6 @@
     "./maplibre": "./src/maplibre.ts"
   },
   "dependencies": {
-    "maplibre-gl": "^6.15.0"
+    "maplibre-gl": "^6.16.0"
   }
 }
