@@ -1,8 +1,4 @@
 # Advisories with no fix in the same major, all in dev-only tooling that never
-# ships in the static export.
-# They lapse on the date below so the scan fails again and gets a fresh look.
-
-[[IgnoredVulns]]
-id = "GHSA-vfj7-8cjw-p6xm"
-ignoreUntil = 2027-01-15
-reason = "braces 3.0.3 via micromatch in lint tooling; no fixed release yet, globs are repository-authored"
+# ships in the static export. None are ignored today.
+# Each ignore lapses on its ignoreUntil date so the scan fails again and gets a
+# fresh look.

@@ -34,3 +34,6 @@ overrides:
   katex: ^0.18.2
   tmp: ^0.2.6
   uuid: ^11.1.1
+  # markdownlint 0.42 pins re2js 2.8.6, which has a high advisory fixed in
+  # 2.8.7; stay on 2.8.x until markdownlint moves its pin.
+  re2js: ~2.8.8
