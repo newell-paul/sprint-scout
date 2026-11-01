@@ -79,6 +79,8 @@ User supplies approach duration and warm-up buffer. Calculate departure time as 
 
 ### Review personal performance
 
+Removed 1 November 2026 with the Your efforts panel ("Efforts and past wind removed"). The original journey, kept for the record:
+
 If permitted history exists, show effort dates, elapsed times, the best observed effort in the available dataset, sample size, and coverage. Otherwise display “Performance history unavailable”; weather analysis remains usable. Do not label a partial-history best time as a verified lifetime PR.
 
 ## 5. Visual design

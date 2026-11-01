@@ -100,7 +100,7 @@ New scenario families:
 - **Fault injection**: one test each for forecast timeout, 429 with retry, tile failure, storage quota exceeded, storage changed in another tab.
 - **Clock edge cases**: DST gap, DST overlap, forecast expiry triggering the refresh.
 - **Static export smoke**: build `apps/web/out`, serve it under a project base path, and run three `@smoke` tests. The Checks deploy gate runs this, and Pages publishes the export it tested.
-- **Privacy gates**: no request leaves the page until the consent box is ticked, for weather and past wind, and never one to the elevation API; assert on the network log.
+- **Privacy gates**: no request leaves the page until the consent box is ticked for weather, never one to the elevation API, and none for GPX files, which are read in the browser; assert on the network log.
 
 ### L6 · Non-functional
 
