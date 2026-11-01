@@ -43,7 +43,6 @@ export function exampleRoute(input: {
     slot: input.slot,
     targetTimeS: null,
     shelter: "exposed",
-    efforts: [],
   };
 }
 

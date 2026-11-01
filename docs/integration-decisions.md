@@ -112,3 +112,7 @@ The owner removed terrain, so the planner no longer sends sampled segment coordi
 ## Segment geometry from a GPX ride — 1 November 2026
 
 Owner requested segments cut from the rider's own GPX rides. Allowed: reading one or more GPX files in the browser, cutting the stretch the rider picks (or the whole track), and saving only those points as an owner-drawn segment in local storage after the existing per-segment source confirmation. The files are not stored, uploaded or sent anywhere, and no request is made. As for efforts (13 September 2026), a file exported from Strava is not treated as automatically independent: the confirmation leaves that judgement with the rider. The Strava rows above are unchanged.
+
+## Efforts and past wind removed — 1 November 2026
+
+The owner removed the efforts feature, so the planner no longer matches GPX rides to segments for times and never sends a segment start coordinate or effort dates to the Open-Meteo historical archive. The 13 September 2026 "Recorded efforts, GPX import and past wind" decision has no code behind it. GPX files are still read in the browser only, to cut segment geometry (entry above). Open-Meteo forecast and OpenStreetMap tiles are unchanged.

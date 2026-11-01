@@ -15,7 +15,7 @@ const server = openMeteoServer(config);
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
-  config.faults = { weather: "ok", archive: "ok" };
+  config.faults = { weather: "ok" };
 });
 afterAll(() => server.close());
 const input = {

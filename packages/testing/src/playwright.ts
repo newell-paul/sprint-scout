@@ -1,7 +1,5 @@
 import type { Page } from "@playwright/test";
 import {
-  archiveBody,
-  archiveDatesFrom,
   defaultOpenMeteoConfig,
   forecastBody,
   openMeteoHosts,
@@ -11,7 +9,7 @@ import {
 
 export type OpenMeteo = OpenMeteoConfig & {
   /** Requests seen so far, by endpoint. */
-  calls: { weather: number; archive: number };
+  calls: { weather: number };
   /** Longitude of every forecast request, in order, to assert one fetch per point. */
   weatherLongitudes: string[];
   /** External requests no stub answered; the e2e fixture fails the test on any. */
@@ -23,7 +21,7 @@ const local = new Set(["127.0.0.1", "localhost"]);
 export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
   const meteo: OpenMeteo = {
     ...defaultOpenMeteoConfig(),
-    calls: { weather: 0, archive: 0 },
+    calls: { weather: 0 },
     weatherLongitudes: [],
     unhandled: [],
   };
@@ -57,19 +55,6 @@ export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
         return route.fulfill({
           json: forecastBody(meteo, startHourFrom(route.request().url())),
         });
-    }
-  });
-  await page.route(`${openMeteoHosts.archive}?**`, async (route) => {
-    meteo.calls.archive++;
-    switch (meteo.faults.archive) {
-      case "outage":
-        return route.fulfill({ status: 503, body: "unavailable" });
-      case "rateLimit":
-        return route.fulfill({ status: 429, body: "slow down" });
-      default: {
-        const { start, end } = archiveDatesFrom(route.request().url());
-        return route.fulfill({ json: archiveBody(meteo, start, end) });
-      }
     }
   });
   return meteo;

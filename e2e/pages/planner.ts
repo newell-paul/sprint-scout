@@ -4,7 +4,6 @@ import { Attempt } from "./attempt";
 import { Board } from "./board";
 import { Cockpit } from "./cockpit";
 import { SegmentEditor } from "./editor";
-import { EffortsPanel } from "./efforts";
 import { SegmentLibrary } from "./library";
 import { PlannerMap } from "./map";
 import { DataPrivacy } from "./privacy";
@@ -24,7 +23,6 @@ export class Planner {
   readonly attempt: Attempt;
   readonly rider: RiderPanel;
   readonly shelter: Shelter;
-  readonly efforts: EffortsPanel;
   readonly board: Board;
   readonly privacy: DataPrivacy;
   readonly status: Locator;
@@ -40,7 +38,6 @@ export class Planner {
     this.attempt = new Attempt(page);
     this.rider = new RiderPanel(page);
     this.shelter = new Shelter(page);
-    this.efforts = new EffortsPanel(page);
     this.board = new Board(page);
     this.privacy = new DataPrivacy(page);
     this.status = page.locator("p[role=status]");

@@ -60,34 +60,6 @@ export const openMeteoForecastResponse = z
       ),
   })
   .strict();
-export const openMeteoArchiveResponse = z
-  .object({
-    ...openMeteoBase,
-    hourly: z
-      .object({
-        time: z
-          .union([z.array(z.number().int()), z.array(z.string())])
-          .refine(
-            (times) => times.length >= 24 && times.length % 24 === 0,
-            "Archive rows come in whole days",
-          ),
-        wind_speed_10m: openMeteoColumn.optional(),
-        wind_direction_10m: openMeteoColumn.optional(),
-        wind_gusts_10m: openMeteoColumn.optional(),
-        precipitation: openMeteoColumn.optional(),
-      })
-      .strict()
-      .refine(
-        (hourly) =>
-          Object.values(hourly).every(
-            (column) =>
-              column === undefined || column.length === hourly.time.length,
-          ),
-        "Every hourly column must have one value per time",
-      ),
-  })
-  .strict();
 export type OpenMeteoForecastResponse = z.infer<
   typeof openMeteoForecastResponse
 >;
-export type OpenMeteoArchiveResponse = z.infer<typeof openMeteoArchiveResponse>;

@@ -9,12 +9,7 @@ const directives: Record<string, string[]> = {
   "style-src": ["'self'", "'unsafe-inline'"],
   "font-src": ["'self'"],
   "img-src": ["'self'", "data:", "blob:", tiles],
-  "connect-src": [
-    "'self'",
-    "https://api.open-meteo.com",
-    "https://archive-api.open-meteo.com",
-    tiles,
-  ],
+  "connect-src": ["'self'", "https://api.open-meteo.com", tiles],
   "worker-src": ["'self'", "blob:"],
   "object-src": ["'none'"],
   "base-uri": ["'self'"],

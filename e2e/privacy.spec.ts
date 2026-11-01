@@ -18,38 +18,9 @@ test.describe("first visit", () => {
     await planner.open();
     await expect(planner.cockpit.windSummary).toBeVisible();
 
-    expect(openMeteo.calls).toEqual({ weather: 1, archive: 0 });
+    expect(openMeteo.calls).toEqual({ weather: 1 });
     expect(externalRequests.filter((url) => url.includes("api.open-meteo.com/v1/elevation"))).toEqual([]);
   });
-});
-
-test("no archive request leaves the page before past-wind consent", async ({
-  planner,
-  seed,
-  openMeteo,
-  externalRequests,
-}) => {
-  const effort = {
-    id: "e1",
-    startedAt: "2026-09-01T07:00:00Z",
-    elapsedSeconds: 95,
-    source: "gpx",
-    fileName: "ride.gpx",
-    geometryKey: JSON.stringify([
-      [-0.12, 51.5],
-      [-0.12, 51.51],
-    ]),
-    maxDeviationM: 3,
-    sampleGapSeconds: 1,
-    importedAt: "2026-09-02T07:00:00Z",
-    wind: null,
-  };
-
-  await seed({ routes: [aRoute({ id: "north", efforts: [effort] })] });
-
-  await expect(planner.efforts.loadPastWindButton).toBeDisabled();
-  expect(openMeteo.calls.archive).toBe(0);
-  expect(externalRequests.filter((url) => url.includes("archive-api"))).toEqual([]);
 });
 
 test("only Open-Meteo and the map tiles are contacted during a full ranking", async ({
@@ -135,7 +106,7 @@ test("a drafted route sends nothing before it is saved", async ({ planner, openM
 
   await planner.editor.draft("Private draft", draftPoints);
 
-  expect(openMeteo.calls).toEqual({ weather: 0, archive: 0 });
+  expect(openMeteo.calls).toEqual({ weather: 0 });
   expect(externalRequests.filter((url) => url.includes("open-meteo"))).toEqual([]);
 });
 

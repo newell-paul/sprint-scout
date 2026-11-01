@@ -11,7 +11,7 @@ export const storageFixtures = {
   beforeSlots: JSON.stringify(beforeSlots),
   /** Terrain, mode and auto flags from before terrain was removed; all are dropped on read. */
   terrainMismatch: JSON.stringify(terrainMismatch),
-  /** Efforts, one of them matched to a previous geometry. */
+  /** Efforts from before efforts were removed; all are dropped on read. */
   efforts: JSON.stringify(efforts),
 } as const;
 

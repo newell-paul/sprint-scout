@@ -30,7 +30,6 @@ const props = () => ({
   onDaylightDryChange: vi.fn(),
   onTargetChange: vi.fn(() => true),
   onShelterChange: vi.fn(() => true),
-  onEffortsChange: vi.fn(() => true),
 });
 const fresh = () => aRoute({ points: uniquePoints() });
 const step = async (region: Locator, key: "ArrowLeft" | "ArrowRight") => {

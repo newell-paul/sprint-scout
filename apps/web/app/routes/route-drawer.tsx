@@ -502,20 +502,11 @@ export default function Routes() {
       return false;
     }
   }
-  // Shelter and target compare the whole stored segment; efforts compare only
-  // its geometry, because they arrive after async work during which another
-  // setting may be saved.
-  function updateRoute(
-    route: DrawnRoute,
-    patch: Partial<DrawnRoute>,
-    compare: "whole" | "points" = "points",
-    changed = "Segment changed in another tab.",
-  ) {
-    const key = (r: DrawnRoute) =>
-      JSON.stringify(compare === "whole" ? r : r.points);
+  function updateRoute(route: DrawnRoute, patch: Partial<DrawnRoute>) {
     return persist((current) => {
       const stored = current.find((item) => item.id === route.id);
-      if (!stored || key(stored) !== key(route)) throw new Error(changed);
+      if (!stored || JSON.stringify(stored) !== JSON.stringify(route))
+        throw new Error("Segment changed in another tab.");
       return current.map((item) =>
         item.id === route.id ? { ...item, ...patch } : item,
       );
@@ -642,10 +633,6 @@ export default function Routes() {
       slot,
       targetTimeS: editing?.targetTimeS ?? null,
       shelter: editing?.shelter ?? "exposed",
-      efforts:
-        JSON.stringify(editing?.points) === JSON.stringify(points)
-          ? (editing?.efforts ?? [])
-          : [],
     };
     if (
       persist((current) => {
@@ -891,12 +878,9 @@ export default function Routes() {
           onDaylightDryChange={setDaylightDryOnly}
           requestedAt={request?.at ?? null}
           requestSeq={request?.seq ?? 0}
-          onShelterChange={(shelter) =>
-            updateRoute(selectedRoute, { shelter }, "whole")
-          }
-          onEffortsChange={(efforts) => updateRoute(selectedRoute, { efforts })}
+          onShelterChange={(shelter) => updateRoute(selectedRoute, { shelter })}
           onTargetChange={(targetTimeS) =>
-            updateRoute(selectedRoute, { targetTimeS }, "whole")
+            updateRoute(selectedRoute, { targetTimeS })
           }
         />
       )}

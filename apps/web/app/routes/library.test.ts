@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   clearSavedData,
-  needsWind,
   newId,
   nextFreeSlot,
   readLibrary,
@@ -108,94 +107,17 @@ describe("independent route storage", () => {
       ),
     ).toThrow();
   });
-  it("keeps valid efforts, drops efforts from other geometry and rejects malformed ones", () => {
-    const effort = {
-      id: "e1",
-      startedAt: "2026-09-12T09:00:30.000Z",
-      elapsedSeconds: 112.4,
-      source: "gpx",
-      fileName: "ride.gpx",
-      geometryKey: JSON.stringify(route.points),
-      maxDeviationM: 3.2,
-      sampleGapSeconds: 1,
-      importedAt: "2026-09-13T10:00:00.000Z",
-    };
-    const stale = { ...effort, id: "e2", geometryKey: "[]" };
-    expect(
-      readLibrary(JSON.stringify([{ ...route, efforts: [effort, stale] }]))[0]
-        ?.efforts,
-    ).toEqual([effort]);
-    for (const bad of [
-      { ...effort, elapsedSeconds: 0 },
-      { ...effort, elapsedSeconds: 86401 },
-      { ...effort, source: "strava" },
-      { ...effort, startedAt: "yesterday" },
-      { ...effort, maxDeviationM: -1 },
-    ])
-      expect(() =>
-        readLibrary(JSON.stringify([{ ...route, efforts: [bad] }])),
-      ).toThrow();
-    expect(() =>
-      readLibrary(JSON.stringify([{ ...route, efforts: [effort, effort] }])),
-    ).toThrow();
-  });
-});
-
-describe("saved effort times and wind", () => {
-  const effort = {
-    id: "e1",
-    startedAt: "2026-09-12T09:00:30.000Z",
-    elapsedSeconds: 112.4,
-    source: "gpx",
-    fileName: "ride.gpx",
-    geometryKey: JSON.stringify(route.points),
-    maxDeviationM: 3.2,
-    sampleGapSeconds: 1,
-    importedAt: "2026-09-13T10:00:00.000Z",
-  };
-  const wind = {
-    speedMps: 4,
-    fromDegrees: 180,
-    gustMps: null,
-    precipitationMm: 0,
-    retrievedAt: "2026-09-14T08:00:00.000Z",
-    source: "open-meteo-archive",
-  };
-  const read = (efforts: unknown[]) =>
-    readLibrary(JSON.stringify([{ ...route, efforts }]))[0]?.efforts;
-  it("reads zoned times back as UTC instants so sorting and duplicate checks compare like with like", () => {
-    const [saved] = read([
-      {
-        ...effort,
-        startedAt: "2026-09-12T10:00:30+01:00",
-        importedAt: "2026-09-13T10:00:00Z",
-        wind: { ...wind, retrievedAt: "2026-09-14T09:00:00+01:00" },
-      },
-    ])!;
-    expect(saved!.startedAt).toBe("2026-09-12T09:00:30.000Z");
-    expect(saved!.importedAt).toBe("2026-09-13T10:00:00.000Z");
-    expect(saved!.wind!.retrievedAt).toBe("2026-09-14T08:00:00.000Z");
-  });
-  it("rejects a time without a zone, which each device would read differently", () => {
-    for (const bad of [
-      { ...effort, startedAt: "2026-09-12T09:00:30" },
-      { ...effort, importedAt: "2026-09-13" },
-      { ...effort, wind: { ...wind, retrievedAt: "2026-09-14T08:00:00" } },
-    ])
-      expect(() => read([bad])).toThrow();
-  });
-  it("needs a direction for any wind above calm", () => {
-    expect(() =>
-      read([{ ...effort, wind: { ...wind, fromDegrees: null } }]),
-    ).toThrow();
-    expect(
-      read([{ ...effort, wind: { ...wind, speedMps: 0, fromDegrees: null } }]),
-    ).toHaveLength(1);
-    expect(
-      read([
-        { ...effort, wind: { ...wind, speedMps: null, fromDegrees: null } },
-      ]),
-    ).toHaveLength(1);
+  it("drops efforts left from before efforts were removed, whatever they hold", () => {
+    for (const efforts of [
+      [],
+      [{ id: "e1", elapsedSeconds: 112.4, source: "gpx" }],
+      [{ elapsedSeconds: 0, source: "strava", startedAt: "yesterday" }],
+      "not a list",
+      null,
+    ]) {
+      const [read] = readLibrary(JSON.stringify([{ ...route, efforts }]));
+      expect(read).toEqual(route);
+    }
   });
 });
 describe("newId", () => {
@@ -216,23 +138,6 @@ describe("newId", () => {
     } as unknown as Crypto;
     expect(newId(c)).toMatch(uuid);
     expect(newId(c)).not.toBe(newId(c));
-  });
-});
-
-describe("needsWind", () => {
-  const wind = {
-    fromDegrees: 200,
-    gustMps: 8,
-    precipitationMm: 0,
-    retrievedAt: "2026-09-13T12:00:00Z",
-    source: "open-meteo-archive" as const,
-  };
-  it("retries efforts whose archive hour had no usable wind", () => {
-    expect(needsWind({})).toBe(true);
-    expect(needsWind({ wind: null })).toBe(true);
-    expect(needsWind({ wind: { ...wind, speedMps: null } })).toBe(true);
-    expect(needsWind({ wind: { ...wind, speedMps: 4 } })).toBe(false);
-    expect(needsWind({ wind: { ...wind, speedMps: 0 } })).toBe(false);
   });
 });
 

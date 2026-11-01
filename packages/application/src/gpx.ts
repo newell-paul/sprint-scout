@@ -1,6 +1,5 @@
 // Minimal GPX track reader for files exported from a ride recorder. It reads
 // <trkpt> elements only, never network or extensions, and stays bounded.
-import type { TrackPoint } from "@scout/analysis/effort-match";
 
 export const gpxLimits = { bytes: 25_000_000, points: 250_000 } as const;
 const trackOpen = /<trkpt\b/g;
@@ -11,6 +10,8 @@ const child = (body: string, name: string) =>
 // A time without a zone would be read in the importer's local zone, so the
 // same file could yield different instants on different devices.
 const zoned = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/;
+
+export type TrackPoint = { at: number; lon: number; lat: number };
 
 export type GpxTrack = {
   name: string | null;
