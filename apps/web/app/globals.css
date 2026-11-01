@@ -29,7 +29,6 @@
 .target-settings input {
   width: 8rem;
 }
-.terrain-panel,
 .efforts-panel {
   order: 2;
   background: var(--panel-bg);
@@ -133,55 +132,45 @@
 .shelter-settings button[aria-pressed="true"] span {
   color: var(--ink);
 }
-.terrain-heading,
-.terrain-modes,
-.terrain-stats {
+.efforts-heading,
+.efforts-modes {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
 }
-.terrain-heading h3 {
+.efforts-heading h3 {
   margin: 0;
   font-size: var(--type-body, 0.875rem);
 }
-.terrain-modes {
+.efforts-modes {
   justify-content: flex-start;
   margin-top: 12px;
 }
-.terrain-panel :is(p, small, .terrain-consent, .terrain-stats),
 .efforts-panel :is(p, small) {
   color: var(--muted);
   font-size: var(--type-caption, 0.8125rem);
 }
-:is(.terrain-notes, .shelter-notes) summary {
+.shelter-notes summary {
   color: var(--muted);
   font-size: var(--type-caption, 0.8125rem);
   margin-top: 8px;
 }
-:is(.terrain-notes, .shelter-notes) small {
+.shelter-notes small {
   display: block;
   margin-top: 6px;
 }
-.terrain-consent {
+.efforts-consent {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
   min-height: 44px;
 }
-.terrain-consent input {
+.efforts-consent input {
   flex: 0 0 auto;
 }
-.elevation-profile {
-  display: block;
-  width: 100%;
-  height: 90px;
-  color: var(--teal);
-  margin-top: 12px;
-}
-.terrain-panel .table-scroll,
 .efforts-panel .table-scroll {
   max-height: 220px;
 }
@@ -2161,13 +2150,7 @@ hr {
   accent-color: var(--data);
 }
 .segment-screen
-  :is(
-    .target-settings,
-    .shelter-settings,
-    .terrain-panel,
-    .efforts-panel,
-    .opportunity-board
-  )
+  :is(.target-settings, .shelter-settings, .efforts-panel, .opportunity-board)
   h3 {
   font-size: var(--type-heading);
   font-weight: 600;
@@ -2176,7 +2159,6 @@ hr {
   :is(
     .target-settings,
     .shelter-settings,
-    .terrain-panel,
     .efforts-panel,
     .rider-settings,
     .opportunity-board

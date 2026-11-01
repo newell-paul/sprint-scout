@@ -5,9 +5,9 @@ import {
 } from "@scout/application/route-wind";
 import type { DrawnRoute } from "./library";
 
-/** The ride effect for a saved segment with its own terrain and shelter. */
+/** The ride effect for a saved segment with its own shelter. */
 export const routeEffect = (
-  route: Pick<DrawnRoute, "points" | "terrain" | "terrainMode" | "shelter">,
+  route: Pick<DrawnRoute, "points" | "shelter">,
   hour: Pick<RouteWindHour, "speedMps" | "fromDegrees" | "at">,
   rider: Rider,
   retrievedAt?: string,
@@ -17,6 +17,5 @@ export const routeEffect = (
     hour,
     retrievedAt,
     rider,
-    route.terrainMode === "terrain" ? (route.terrain ?? null) : undefined,
     route.shelter ?? "exposed",
   );

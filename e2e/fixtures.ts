@@ -16,8 +16,6 @@ export type SeedRoute = {
   confirmed: true;
   createdAt: string;
   targetTimeS?: number | null;
-  terrainMode?: "flat" | "terrain";
-  terrainAuto?: boolean;
   shelter?: "exposed" | "sheltered" | "dense";
   efforts?: Record<string, unknown>[];
 };

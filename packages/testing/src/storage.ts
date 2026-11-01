@@ -9,7 +9,7 @@ import riderV1 from "../fixtures/storage/rider-v1.json" with { type: "json" };
 export const storageFixtures = {
   /** Routes saved before slots existed; one already has a slot. */
   beforeSlots: JSON.stringify(beforeSlots),
-  /** Terrain recorded for an older geometry; mode and auto flags must survive. */
+  /** Terrain, mode and auto flags from before terrain was removed; all are dropped on read. */
   terrainMismatch: JSON.stringify(terrainMismatch),
   /** Efforts, one of them matched to a previous geometry. */
   efforts: JSON.stringify(efforts),

@@ -52,7 +52,7 @@ Status: delivered; T1 to T8 done by 14 September 2026, figures refreshed 9 Octob
 
 ### L2 · Contract
 
-- **Recorded provider fixtures.** Recorded Open-Meteo forecast, elevation and archive responses live in `packages/testing/fixtures/open-meteo/*.json` with the request that produced them.
+- **Recorded provider fixtures.** Recorded Open-Meteo forecast and archive responses live in `packages/testing/fixtures/open-meteo/*.json` with the request that produced them.
 - **Consumer-driven schemas.** Zod schemas in `packages/contracts` describe what we rely on. A test parses every fixture; an advisory CI job re-fetches the same requests and parses the live responses, so provider drift shows on the run rather than in a user session.
 - **Single mock source.** MSW handlers in `packages/testing` serve those fixtures, with helpers for faults: timeout, 429 with `Retry-After`, 503, partial nulls, oversized body. Vitest uses `msw/node`; Playwright uses `page.route` handlers generated from the same fixtures.
 - **Storage contract.** `sprint-scout.drawn-routes.v1` and rider storage get versioned migration fixtures; a test proves every historical shape still loads and that unknown fields survive a round-trip.
@@ -60,8 +60,8 @@ Status: delivered; T1 to T8 done by 14 September 2026, figures refreshed 9 Octob
 ### L3 · Component (new level)
 
 - Vitest browser mode with the Playwright provider, so components render in real Chromium with MSW, no jsdom.
-- Targets: `RideCockpit`, `TerrainPanel`, `OpportunityBoard`, `WindPreview`, `ShelterSettings`, `TargetSettings`, `SegmentSlots`.
-- Every component gets one test per state: loading, empty, ready, error, and domain states such as terrain missing, wind missing, calm, night, wet.
+- Targets: `RideCockpit`, `OpportunityBoard`, `WindPreview`, `ShelterSettings`, `TargetSettings`, `SegmentSlots`.
+- Every component gets one test per state: loading, empty, ready, error, and domain states such as wind missing, calm, night, wet.
 - Assertions are accessible: `getByRole`, `toHaveAccessibleName`, and an **ARIA snapshot** per state (`toMatchAriaSnapshot`), committed as YAML beside the test. A layout refactor that changes the accessibility tree is a visible diff.
 - axe runs after every component test through a shared fixture; failures at `serious` or `critical` fail the test.
 
@@ -80,7 +80,7 @@ Fixtures in `e2e/fixtures.ts`:
 - `clock`: `page.clock.setFixedTime` with a per-test default.
 - `a11y`: runs axe after the test body against the final page state, fails on serious or critical, and writes the report to the trace. A rule allowlist file lists known exceptions with an owner and expiry.
 - `aria(name)`: asserts an ARIA snapshot of a region against `e2e/__aria__/<name>.yml`.
-- `planner`: the page object in `e2e/pages/`. It has one property per panel (`library`, `editor`, `timeline`, `cockpit`, `map`, `attempt`, `rider`, `shelter`, `terrain`, `efforts`, `board`); each owns its locators and names its actions for what the rider does. Specs never build a locator.
+- `planner`: the page object in `e2e/pages/`. It has one property per panel (`library`, `editor`, `timeline`, `cockpit`, `map`, `attempt`, `rider`, `shelter`, `efforts`, `board`); each owns its locators and names its actions for what the rider does. Specs never build a locator.
 
 Shape of a test: arrange, act and assert as three blocks separated by blank lines, no comments marking them. One behaviour per test; a journey keeps a second act block only when its later step depends on the earlier one. A reload to prove persistence is an act.
 
@@ -94,13 +94,13 @@ Configuration:
 
 New scenario families:
 
-- **ARIA snapshots** of the cockpit, terrain panel, board and forecast strip in each state.
+- **ARIA snapshots** of the cockpit, board and forecast strip in each state.
 - **Visual regression** with `toHaveScreenshot` for the dial, compass and timeline bands (one dark theme since the Aero Stealth redesign, 24 Oct 2026), map tiles masked, fixed clock, deterministic fonts. Baselines are generated in CI containers only.
-- **Keyboard-only journeys**: draw, save, change hour, switch shelter, load terrain, without a pointer.
-- **Fault injection**: one test each for forecast timeout, 429 with retry, elevation partial nulls, tile failure, storage quota exceeded, storage changed in another tab.
+- **Keyboard-only journeys**: draw, save, change hour, switch shelter, without a pointer.
+- **Fault injection**: one test each for forecast timeout, 429 with retry, tile failure, storage quota exceeded, storage changed in another tab.
 - **Clock edge cases**: DST gap, DST overlap, forecast expiry triggering the refresh.
 - **Static export smoke**: build `apps/web/out`, serve it under a project base path, and run three `@smoke` tests. The Checks deploy gate runs this, and Pages publishes the export it tested.
-- **Privacy gates**: no request leaves the page until the consent box is ticked, for both weather and elevation; assert on the network log.
+- **Privacy gates**: no request leaves the page until the consent box is ticked, for weather and past wind, and never one to the elevation API; assert on the network log.
 
 ### L6 · Non-functional
 
@@ -160,7 +160,7 @@ PR gate (< 5 min)         per PR, slower               deploy (after Checks on m
 
 - Test name pattern: `<subject> <behaviour> when <condition>`. No "should", no "and".
 - One behaviour per test. If a test needs the word "then", split it.
-- Builders over literals: `aRoute({ terrainMode: "terrain" })`, `aForecast({ speeds: [2, 6] })` in `packages/testing`.
+- Builders over literals: `aRoute({ shelter: "dense" })`, `aForecast({ speeds: [2, 6] })` in `packages/testing`.
 - Selectors: role and accessible name first; `data-testid` only for numeric readouts such as `segment-time-value`.
 - No shared mutable state between tests; no `test.describe.serial`; no `waitForTimeout` outside a fixture that documents why.
 - Every new page state ships with an ARIA snapshot and an axe run.

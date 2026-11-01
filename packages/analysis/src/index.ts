@@ -2,7 +2,6 @@ import { distance } from "@turf/distance";
 import { bearing } from "@turf/bearing";
 import { destination } from "@turf/destination";
 export * from "./ride-effect";
-export * from "./terrain-effect";
 import { coordinate, lineString } from "@scout/contracts";
 
 export const algorithmVersion = "wind-v1" as const;

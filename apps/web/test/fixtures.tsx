@@ -6,11 +6,6 @@ import {
   type RouteRideEffect,
   type RouteWindHour,
 } from "@scout/application/route-wind";
-import {
-  sampleTerrain,
-  terrainProfileVersion,
-  type TerrainProfile,
-} from "@scout/application/terrain";
 import { defaultOpenMeteoConfig } from "@scout/testing/open-meteo";
 import type { DrawnRoute, Point } from "../app/routes/library";
 
@@ -68,20 +63,8 @@ export const anEffect = (
     hour,
     fixedTime,
     rider,
-    route.terrainMode === "terrain" ? (route.terrain ?? null) : undefined,
     route.shelter ?? "exposed",
   );
-
-/** A valid profile for `points`, rising 4 m per 100 m like the recorded fixture. */
-export const aTerrain = (points: Point[] = northbound): TerrainProfile => ({
-  version: terrainProfileVersion,
-  geometryKey: JSON.stringify(points),
-  retrievedAt: "2026-09-10T06:00:00Z",
-  source: "Open-Meteo / Copernicus DEM GLO-90 2021",
-  elevationsM: sampleTerrain(points).distancesM.map(
-    (distanceM) => 50 + distanceM * 0.04,
-  ),
-});
 
 /** Commit the accessibility tree of `locator` as `__aria__/<name>.aria.yml`. */
 export async function aria(name: string, locator: Locator) {

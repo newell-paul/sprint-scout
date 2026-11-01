@@ -7,18 +7,20 @@ const draftPoints: [number, number][] = [
   [-0.31, 51.45],
 ];
 
-test("no elevation request leaves the page before the consent box is ticked", async ({
-  planner,
-  seed,
-  openMeteo,
-  externalRequests,
-}) => {
-  await seed(seeded);
+test.describe("first visit", () => {
+  test.use({ firstVisit: true });
 
-  await expect(planner.terrain.loadButton).toBeDisabled();
-  await expect(planner.terrain.automatic).toBeDisabled();
-  expect(openMeteo.calls.elevation).toBe(0);
-  expect(externalRequests.filter((url) => url.includes("api.open-meteo.com/v1/elevation"))).toEqual([]);
+  test("the example segment asks only for its forecast, never elevation", async ({
+    planner,
+    openMeteo,
+    externalRequests,
+  }) => {
+    await planner.open();
+    await expect(planner.cockpit.windSummary).toBeVisible();
+
+    expect(openMeteo.calls).toEqual({ weather: 1, archive: 0 });
+    expect(externalRequests.filter((url) => url.includes("api.open-meteo.com/v1/elevation"))).toEqual([]);
+  });
 });
 
 test("no archive request leaves the page before past-wind consent", async ({
@@ -72,7 +74,6 @@ test("only Open-Meteo and the map tiles are contacted during a full ranking", as
 
   await planner.board.rank();
   await expect(planner.board.rows).toHaveCount(2);
-  await planner.terrain.load();
 
   const allowed = ["api.open-meteo.com", "tile.openstreetmap.org"];
   expect(hosts(externalRequests)).toContain("api.open-meteo.com");
@@ -134,7 +135,7 @@ test("a drafted route sends nothing before it is saved", async ({ planner, openM
 
   await planner.editor.draft("Private draft", draftPoints);
 
-  expect(openMeteo.calls).toEqual({ weather: 0, elevation: 0, archive: 0 });
+  expect(openMeteo.calls).toEqual({ weather: 0, archive: 0 });
   expect(externalRequests.filter((url) => url.includes("open-meteo"))).toEqual([]);
 });
 
@@ -183,7 +184,6 @@ test("a full journey breaks no content security rule @smoke", async ({ page, pla
 
   await seed(seeded);
   await expect(planner.cockpit.windSummary).toBeVisible();
-  await planner.terrain.load();
 
   await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveCount(
     policyTags(test.info().project.name),

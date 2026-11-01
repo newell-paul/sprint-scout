@@ -104,3 +104,7 @@ This is mode 2 independent data: routes were drawn by the owner with the indepen
 ## MCP removed — 22 September 2026
 
 Later the same day the owner decided to keep SprintScout as a focused web app and removed the local stdio MCP server, the embedded MCP App and the repository skill. The entry above therefore has no consumer: no MCP or AI surface exists to disclose owner-drawn routes or efforts to, and none is planned. The permission is recorded as history and does not need to be revoked, because nothing implements it. All other rows are unchanged; the planner's browser-local processing and the Open-Meteo decisions stand as written.
+
+## Elevation removed — 1 November 2026
+
+The owner removed terrain, so the planner no longer sends sampled segment coordinates to the Open-Meteo elevation endpoint. The "Independent terrain decision" above has no code behind it. Open-Meteo forecast and archive, and OpenStreetMap tiles, are unchanged.

@@ -231,7 +231,7 @@ export default function EffortsPanel({
       aria-labelledby={`${inputId}-heading`}
       data-testid="efforts-panel"
     >
-      <div className="terrain-heading">
+      <div className="efforts-heading">
         <h3 id={`${inputId}-heading`}>
           Your efforts
           {best ? ` · Best ${formatDuration(best.elapsedSeconds)}` : ""}
@@ -257,7 +257,7 @@ export default function EffortsPanel({
         Times come from your own recorded rides, matched against this segment in
         this browser. Nothing is uploaded.
       </p>
-      <label className="terrain-consent">
+      <label className="efforts-consent">
         <input
           type="checkbox"
           checked={ownRecording}
@@ -268,7 +268,7 @@ export default function EffortsPanel({
       </label>
       {efforts.length > 0 && (
         <>
-          <label className="terrain-consent">
+          <label className="efforts-consent">
             <input
               type="checkbox"
               checked={windConsent}
@@ -277,7 +277,7 @@ export default function EffortsPanel({
             Share this segment&apos;s start coordinate and the dates of these
             efforts with Open-Meteo for past wind.
           </label>
-          <div className="terrain-modes">
+          <div className="efforts-modes">
             <button
               type="button"
               disabled={!windConsent || busy || missingWind.length === 0}

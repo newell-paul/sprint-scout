@@ -2,15 +2,12 @@
 import { coordinate } from "@scout/contracts";
 import {
   estimateRideEffect,
-  estimateTerrainEffect,
   prepareGeometry,
   projectWind,
   referenceRider,
   type RideEffect,
   type Rider,
-  type TerrainEffect,
 } from "@scout/analysis";
-import { prepareTerrain, type TerrainProfile } from "./terrain";
 import { isShelter, shelterPresets, type Shelter } from "./shelter";
 import { fetchOpenMeteo } from "./open-meteo-fetch";
 export type RouteWindHour = {
@@ -267,26 +264,22 @@ export async function loadRouteWind(
     point,
   };
 }
-// Ride effect for a drawn route under one point forecast, for the given rider,
-// terrain and shelter (the reference rider on open, flat ground by default).
+// Ride effect for a drawn route under one point forecast, for the given rider
+// and shelter (the reference rider on open, flat ground by default).
 export function estimateRouteRideEffect(
   points: unknown,
   hour: Pick<RouteWindHour, "speedMps" | "fromDegrees" | "at">,
   retrievedAt?: string,
   rider: Rider = referenceRider,
-  terrain?: TerrainProfile | null,
   shelter: Shelter = "exposed",
 ): RouteRideEffect | null {
   if (hour.speedMps === null) return null;
-  if (terrain === null) return null;
   if (!isShelter(shelter)) return null;
   try {
-    const geometryLegs = terrain
-      ? prepareTerrain(points, terrain).legs
-      : prepareGeometry({
-          type: "LineString",
-          coordinates: points,
-        }).legs;
+    const geometryLegs = prepareGeometry({
+      type: "LineString",
+      coordinates: points,
+    }).legs;
     const legs = geometryLegs.map((leg) => {
       const wind = projectWind(
         hour.speedMps,
@@ -297,7 +290,6 @@ export function estimateRouteRideEffect(
         distanceM: leg.distanceM,
         tailwindMps: wind.tailwindMps,
         crosswindMps: wind.crosswindMps,
-        grade: "grade" in leg ? leg.grade : 0,
       };
     });
     const lead =
@@ -307,9 +299,7 @@ export function estimateRouteRideEffect(
             0,
             (Date.parse(hour.at) - Date.parse(retrievedAt)) / 3_600_000,
           );
-    const exposed = terrain
-      ? estimateTerrainEffect(legs, rider, lead)
-      : estimateRideEffect(legs, rider, { leadHours: lead });
+    const exposed = estimateRideEffect(legs, rider, { leadHours: lead });
     const factor = shelterPresets[shelter].windFactor;
     const shelteredLegs = legs.map((leg) => ({
       ...leg,
@@ -319,9 +309,7 @@ export function estimateRouteRideEffect(
     const effect =
       shelter === "exposed"
         ? exposed
-        : terrain
-          ? estimateTerrainEffect(shelteredLegs, rider, lead)
-          : estimateRideEffect(shelteredLegs, rider, { leadHours: lead });
+        : estimateRideEffect(shelteredLegs, rider, { leadHours: lead });
     if (effect.band && exposed.band && shelter !== "exposed") {
       effect.band = {
         ...effect.band,
@@ -356,7 +344,7 @@ export function estimateRouteRideEffect(
     return null;
   }
 }
-export type RouteRideEffect = (RideEffect | TerrainEffect) & {
+export type RouteRideEffect = RideEffect & {
   shelter?: Shelter;
   shelterVersion?: "manual-shelter-v1";
   exposedTimeS?: number;

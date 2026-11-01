@@ -16,7 +16,7 @@ test(
     await expect(efforts.status).toContainText("2 efforts added from northbound-two-laps.gpx");
     await expect(efforts.heading).toContainText("Best 1m 4");
     await expect(efforts.time(0)).toHaveText(/^1m 4\ds$/);
-    expect(openMeteo.calls).toEqual({ weather: 1, elevation: 0, archive: 0 });
+    expect(openMeteo.calls).toEqual({ weather: 1, archive: 0 });
   },
 );
 

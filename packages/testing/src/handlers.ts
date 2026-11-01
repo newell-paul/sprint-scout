@@ -3,9 +3,7 @@ import {
   archiveBody,
   archiveDatesFrom,
   defaultOpenMeteoConfig,
-  elevationBody,
   forecastBody,
-  latitudesFrom,
   openMeteoHosts,
   startHourFrom,
   type OpenMeteoConfig,
@@ -32,12 +30,6 @@ export function openMeteoHandlers(
             forecastBody(config, startHourFrom(request.url)),
           );
       }
-    }),
-    http.get(openMeteoHosts.elevation, async ({ request }) => {
-      if (config.faults.elevation === "timeout") await delay("infinite");
-      return config.faults.elevation === "outage"
-        ? new HttpResponse("unavailable", { status: 503 })
-        : HttpResponse.json(elevationBody(config, latitudesFrom(request.url)));
     }),
     http.get(openMeteoHosts.archive, async ({ request }) => {
       switch (config.faults.archive) {

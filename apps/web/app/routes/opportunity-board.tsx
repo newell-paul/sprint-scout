@@ -240,11 +240,6 @@ export default function OpportunityBoard({
                         shelter
                       </small>
                     )}
-                    <small className="board-target">
-                      {row.route.terrainMode === "terrain"
-                        ? "Terrain-aware"
-                        : "Flat-road model"}
-                    </small>
                     {row.route.targetTimeS != null && (
                       <small className="board-target">
                         {targetDifference(row.bestTimeS, row.route.targetTimeS)}

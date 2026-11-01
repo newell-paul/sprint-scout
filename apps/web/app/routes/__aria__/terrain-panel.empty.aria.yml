@@ -1,9 +1,0 @@
-- region "Segment terrain":
-  - heading "Terrain · Flat-road mode" [level=3]
-  - button "Load terrain" [disabled]
-  - checkbox "Share sampled coordinates along this segment with Open-Meteo for elevation."
-  - text: Share sampled coordinates along this segment with Open-Meteo for elevation.
-  - checkbox "Reload terrain automatically after this segment is edited." [disabled]
-  - text: Reload terrain automatically after this segment is edited.
-  - paragraph: No usable elevation loaded. Current estimates assume flat road; unknown elevation is not evidence of a flat segment.
-  - group: Elevation source and limits

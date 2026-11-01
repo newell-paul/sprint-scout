@@ -42,9 +42,6 @@ export function exampleRoute(input: {
     createdAt: input.createdAt,
     slot: input.slot,
     targetTimeS: null,
-    terrain: null,
-    terrainMode: "flat",
-    terrainAuto: false,
     shelter: "exposed",
     efforts: [],
   };

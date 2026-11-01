@@ -19,8 +19,8 @@ export default function ClearData() {
       {confirming ? (
         <>
           <p>
-            Delete every saved segment, effort, terrain profile and rider
-            setting from this browser? This cannot be undone.
+            Delete every saved segment, effort and rider setting from this
+            browser? This cannot be undone.
           </p>
           <button type="button" onClick={clear}>
             Delete everything

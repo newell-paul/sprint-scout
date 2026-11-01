@@ -6,7 +6,6 @@ import { formatSpeed } from "./speed";
 import { formatDuration, formatTimeDifference } from "./time";
 import {
   aRoute,
-  aTerrain,
   anEffect,
   anHour,
   aria,
@@ -116,54 +115,6 @@ it("wind missing: every instrument reads unavailable with the reason", async () 
     .poll(() => region.getByText("Unavailable").elements().length)
     .toBe(3);
   await aria("ride-cockpit.wind-missing", region);
-});
-
-it("terrain missing: points at the terrain panel", async () => {
-  const hour = anHour();
-  const screen = await render(
-    <RideCockpit
-      effect={null}
-      hour={hour}
-      unit="km/h"
-      description={describe(hour)}
-      terrainMode
-      terrainMissing
-    />,
-  );
-  const region = screen.getByRole("region", instruments);
-  await expect
-    .element(region.getByText(/Terrain is not loaded for this segment/))
-    .toBeVisible();
-  await expect
-    .element(
-      region.getByText(
-        "Modelled at constant effort · Terrain-aware · Unvalidated",
-      ),
-    )
-    .toBeVisible();
-  await aria("ride-cockpit.terrain-missing", region);
-});
-
-it("terrain: still-air baseline is on the same terrain", async () => {
-  const hour = anHour();
-  const route = aRoute({ terrain: aTerrain(), terrainMode: "terrain" });
-  const effect = anEffect(hour, route)!;
-  const screen = await render(
-    <RideCockpit
-      effect={effect}
-      hour={hour}
-      unit="km/h"
-      description={describe(hour)}
-      terrainMode
-    />,
-  );
-  const region = screen.getByRole("region", instruments);
-  await expect
-    .element(region.getByText("Still air · same terrain"))
-    .toBeVisible();
-  await expect
-    .element(region.getByText(formatDuration(effect.calmTimeS)))
-    .toBeVisible();
 });
 
 it("sheltered: names the assumption and the exposed comparison", async () => {

@@ -7,7 +7,6 @@ import {
 } from "@scout/testing";
 import { http, HttpResponse, openMeteoServer } from "@scout/testing/msw";
 import { loadRouteWind, parseRouteWind } from "./route-wind";
-import { loadTerrain, sampleTerrain } from "./terrain";
 
 // Contract tests: the browser loaders consume recorded live responses and the
 // shared handlers through the real global fetch, not a hand-written stub.
@@ -16,7 +15,7 @@ const server = openMeteoServer(config);
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
-  config.faults = { weather: "ok", elevation: "ok", archive: "ok" };
+  config.faults = { weather: "ok", archive: "ok" };
 });
 afterAll(() => server.close());
 const input = {
@@ -24,10 +23,6 @@ const input = {
   independentConfirmed: true,
   weatherConsent: true,
 };
-const route = [
-  [-0.12, 51.5],
-  [-0.12, 51.51],
-];
 const signal = () => new AbortController().signal;
 const now = new Date("2026-09-11T07:00:00Z");
 
@@ -59,37 +54,12 @@ describe("recorded Open-Meteo responses", () => {
     expect(forecast.hours.filter((h) => h.speedMps !== null)).toHaveLength(48);
     expect(forecast.point).toEqual([-0.12, 51.5]);
   });
-  it("load a live elevation recording into a terrain profile", async () => {
-    const heights = recorded().elevation.elevation;
-    const samples = sampleTerrain(route).points.length;
-    server.use(
-      http.get(
-        openMeteoHosts.elevation,
-        ({ request }: { request: Request }) => {
-          const count = new URL(request.url).searchParams
-            .get("latitude")!
-            .split(",").length;
-          return HttpResponse.json({
-            elevation: Array.from(
-              { length: count },
-              (_, i) => heights[i % heights.length],
-            ),
-          });
-        },
-      ),
-    );
-    const profile = await loadTerrain(route, true, signal(), fetch, now);
-    expect(profile.elevationsM).toHaveLength(samples);
-    expect(profile.elevationsM[0]).toBe(1);
-  });
 });
 
 describe("shared handlers through fetch", () => {
-  it("serve the default forecast and elevation", async () => {
+  it("serve the default forecast", async () => {
     const forecast = await loadRouteWind(input, signal(), fetch, now);
     expect(forecast.hours[0]!.speedMps).toBe(4);
-    const profile = await loadTerrain(route, true, signal(), fetch, now);
-    expect(profile.elevationsM.length).toBeGreaterThan(0);
   });
   it.each([
     ["outage", "Weather service unavailable"],
@@ -104,10 +74,4 @@ describe("shared handlers through fetch", () => {
       );
     },
   );
-  it("surface incomplete elevation as the documented error", async () => {
-    config.faults.elevation = "incomplete";
-    await expect(
-      loadTerrain(route, true, signal(), fetch, now),
-    ).rejects.toThrow("Elevation is incomplete or invalid");
-  });
 });

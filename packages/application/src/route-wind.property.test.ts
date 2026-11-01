@@ -5,7 +5,6 @@ import {
   estimateRouteRideEffect,
   routeCrosswind,
 } from "./route-wind";
-import { sampleTerrain, type TerrainProfile } from "./terrain";
 import { shelterPresets, type Shelter } from "./shelter";
 
 const runs = { numRuns: 60, seed: Number(process.env.FC_SEED ?? 20260913) };
@@ -48,7 +47,6 @@ describe("route ride effect invariants", () => {
               h,
               retrievedAt,
               undefined,
-              undefined,
               shelter,
             )!,
         );
@@ -78,7 +76,6 @@ describe("route ride effect invariants", () => {
             h,
             retrievedAt,
             undefined,
-            undefined,
             shelter,
           );
           return (
@@ -89,32 +86,6 @@ describe("route ride effect invariants", () => {
           );
         },
       ),
-      runs,
-    );
-  });
-  it("matches the flat estimate when terrain is level", () => {
-    fc.assert(
-      fc.property(straight, hour, (points, h) => {
-        const terrain: TerrainProfile = {
-          version: "glo90-profile-v1",
-          geometryKey: JSON.stringify(points),
-          source: "Open-Meteo / Copernicus DEM GLO-90 2021",
-          retrievedAt,
-          elevationsM: sampleTerrain(points).points.map(() => 120),
-        };
-        const flat = estimateRouteRideEffect(points, h, retrievedAt)!;
-        const level = estimateRouteRideEffect(
-          points,
-          h,
-          retrievedAt,
-          undefined,
-          terrain,
-        )!;
-        return (
-          Math.abs(flat.windTimeS - level.windTimeS) < 1e-3 &&
-          Math.abs(flat.calmTimeS - level.calmTimeS) < 1e-3
-        );
-      }),
       runs,
     );
   });
@@ -154,7 +125,6 @@ describe("route ride effect invariants", () => {
           [0.01, 51],
         ],
         { at: retrievedAt, speedMps: 3, fromDegrees: 90 },
-        undefined,
         undefined,
         undefined,
         "windy" as never,

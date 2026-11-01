@@ -12,7 +12,7 @@ export async function fetchOpenMeteo(
   }: {
     /** Names the service in errors: "Weather service", "Weather archive". */
     service: string;
-    /** Names the response in errors: "Weather", "Elevation", "Archive". */
+    /** Names the response in errors: "Weather", "Archive". */
     body: string;
     maxBytes: number;
     signal: AbortSignal;

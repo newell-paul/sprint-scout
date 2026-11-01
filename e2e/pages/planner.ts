@@ -10,7 +10,6 @@ import { PlannerMap } from "./map";
 import { DataPrivacy } from "./privacy";
 import { RiderPanel } from "./rider";
 import { Shelter } from "./shelter";
-import { TerrainPanel } from "./terrain";
 import { Timeline } from "./timeline";
 
 export const routesKey = "sprint-scout.drawn-routes.v1";
@@ -25,7 +24,6 @@ export class Planner {
   readonly attempt: Attempt;
   readonly rider: RiderPanel;
   readonly shelter: Shelter;
-  readonly terrain: TerrainPanel;
   readonly efforts: EffortsPanel;
   readonly board: Board;
   readonly privacy: DataPrivacy;
@@ -42,7 +40,6 @@ export class Planner {
     this.attempt = new Attempt(page);
     this.rider = new RiderPanel(page);
     this.shelter = new Shelter(page);
-    this.terrain = new TerrainPanel(page);
     this.efforts = new EffortsPanel(page);
     this.board = new Board(page);
     this.privacy = new DataPrivacy(page);

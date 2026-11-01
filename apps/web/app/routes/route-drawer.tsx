@@ -445,9 +445,9 @@ export default function Routes() {
       return false;
     }
   }
-  // Shelter and target compare the whole stored segment; the rest compare only
-  // its geometry, because terrain and efforts arrive after async work during
-  // which another setting may be saved.
+  // Shelter and target compare the whole stored segment; efforts compare only
+  // its geometry, because they arrive after async work during which another
+  // setting may be saved.
   function updateRoute(
     route: DrawnRoute,
     patch: Partial<DrawnRoute>,
@@ -485,12 +485,6 @@ export default function Routes() {
       createdAt: editing?.createdAt ?? new Date().toISOString(),
       slot,
       targetTimeS: editing?.targetTimeS ?? null,
-      terrain:
-        JSON.stringify(editing?.points) === JSON.stringify(points)
-          ? (editing?.terrain ?? null)
-          : null,
-      terrainMode: editing?.terrainMode ?? "flat",
-      terrainAuto: editing?.terrainAuto ?? false,
       shelter: editing?.shelter ?? "exposed",
       efforts:
         JSON.stringify(editing?.points) === JSON.stringify(points)
@@ -700,18 +694,7 @@ export default function Routes() {
           onShelterChange={(shelter) =>
             updateRoute(selectedRoute, { shelter }, "whole")
           }
-          onTerrainChange={(terrain, terrainMode) =>
-            updateRoute(
-              selectedRoute,
-              { terrain, terrainMode },
-              "points",
-              "Segment changed while loading terrain.",
-            )
-          }
           onEffortsChange={(efforts) => updateRoute(selectedRoute, { efforts })}
-          onTerrainAutoChange={(terrainAuto) =>
-            updateRoute(selectedRoute, { terrainAuto })
-          }
           onTargetChange={(targetTimeS) =>
             updateRoute(selectedRoute, { targetTimeS }, "whole")
           }
@@ -847,10 +830,7 @@ export default function Routes() {
           <p>
             Saved segments stay in this browser. Street maps share the viewed
             area with OpenStreetMap. Weather shares the segment start with
-            Open-Meteo only when you enable it. Loading terrain separately
-            shares sampled coordinates along the segment and saves attributed
-            elevation in this browser. Removing elevation or deleting the
-            segment removes that local profile; provider request logs may remain
+            Open-Meteo only when you enable it; provider request logs may remain
             for 90 days. Strava access is disabled. Clearing saved data, here or
             in the browser, deletes everything the planner stored.
           </p>

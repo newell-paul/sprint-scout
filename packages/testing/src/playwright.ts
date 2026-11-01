@@ -3,9 +3,7 @@ import {
   archiveBody,
   archiveDatesFrom,
   defaultOpenMeteoConfig,
-  elevationBody,
   forecastBody,
-  latitudesFrom,
   openMeteoHosts,
   startHourFrom,
   type OpenMeteoConfig,
@@ -13,11 +11,9 @@ import {
 
 export type OpenMeteo = OpenMeteoConfig & {
   /** Requests seen so far, by endpoint. */
-  calls: { weather: number; elevation: number; archive: number };
+  calls: { weather: number; archive: number };
   /** Longitude of every forecast request, in order, to assert one fetch per point. */
   weatherLongitudes: string[];
-  /** Hold the next elevation response until `release` is called. */
-  holdElevation(): { started: Promise<void>; release: () => void };
   /** External requests no stub answered; the e2e fixture fails the test on any. */
   unhandled: string[];
 };
@@ -25,24 +21,11 @@ export type OpenMeteo = OpenMeteoConfig & {
 const local = new Set(["127.0.0.1", "localhost"]);
 
 export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
-  let hold: { started: () => void; released: Promise<void> } | null = null;
   const meteo: OpenMeteo = {
     ...defaultOpenMeteoConfig(),
-    calls: { weather: 0, elevation: 0, archive: 0 },
+    calls: { weather: 0, archive: 0 },
     weatherLongitudes: [],
     unhandled: [],
-    holdElevation() {
-      let started = () => {};
-      let release = () => {};
-      const startedPromise = new Promise<void>((resolve) => {
-        started = resolve;
-      });
-      const released = new Promise<void>((resolve) => {
-        release = resolve;
-      });
-      hold = { started, released };
-      return { started: startedPromise, release };
-    },
   };
   // Registered first so it runs last: only requests no stub below matches.
   await page.route(
@@ -75,26 +58,6 @@ export async function installOpenMeteo(page: Page): Promise<OpenMeteo> {
           json: forecastBody(meteo, startHourFrom(route.request().url())),
         });
     }
-  });
-  await page.route(`${openMeteoHosts.elevation}?**`, async (route) => {
-    meteo.calls.elevation++;
-    if (hold) {
-      const pending = hold;
-      hold = null;
-      pending.started();
-      await pending.released;
-    }
-    if (meteo.faults.elevation === "timeout")
-      return new Promise<void>(() => {});
-    if (meteo.faults.elevation === "outage")
-      return route
-        .fulfill({ status: 503, body: "unavailable" })
-        .catch(() => {});
-    return route
-      .fulfill({
-        json: elevationBody(meteo, latitudesFrom(route.request().url())),
-      })
-      .catch(() => {});
   });
   await page.route(`${openMeteoHosts.archive}?**`, async (route) => {
     meteo.calls.archive++;

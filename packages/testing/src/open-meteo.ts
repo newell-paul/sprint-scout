@@ -2,24 +2,19 @@
 // recorded fixtures validated against the contract schemas.
 import {
   openMeteoArchiveResponse,
-  openMeteoElevationResponse,
   openMeteoForecastResponse,
   type OpenMeteoArchiveResponse,
-  type OpenMeteoElevationResponse,
   type OpenMeteoForecastResponse,
 } from "@scout/contracts";
 import forecastFixture from "../fixtures/open-meteo/forecast.json" with { type: "json" };
-import elevationFixture from "../fixtures/open-meteo/elevation.json" with { type: "json" };
 import archiveFixture from "../fixtures/open-meteo/archive.json" with { type: "json" };
 
 export const openMeteoHosts = {
   forecast: "https://api.open-meteo.com/v1/forecast",
-  elevation: "https://api.open-meteo.com/v1/elevation",
   archive: "https://archive-api.open-meteo.com/v1/archive",
 } as const;
 
 export type WeatherFault = "ok" | "outage" | "rateLimit" | "empty" | "timeout";
-export type ElevationFault = "ok" | "incomplete" | "outage" | "timeout";
 export type ArchiveFault = "ok" | "outage" | "rateLimit" | "slow" | "timeout";
 export type HourOverride = Partial<{
   speed: number | null;
@@ -33,7 +28,6 @@ export type HourOverride = Partial<{
 export type OpenMeteoConfig = {
   faults: {
     weather: WeatherFault;
-    elevation: ElevationFault;
     archive: ArchiveFault;
   };
   wind: { speed: number; direction: number; gust: number | null };
@@ -41,16 +35,13 @@ export type OpenMeteoConfig = {
   archive: { speed: number; direction: number };
   /** Per-hour overrides by slider index, applied over `wind`. */
   hours: Record<number, HourOverride>;
-  /** Metres above sea level along a northbound line; the default rises 4 m per 100 m. */
-  elevationAt: (latitude: number, index: number) => number | null;
 };
 export function defaultOpenMeteoConfig(): OpenMeteoConfig {
   return {
-    faults: { weather: "ok", elevation: "ok", archive: "ok" },
+    faults: { weather: "ok", archive: "ok" },
     wind: { speed: 4, direction: 180, gust: null },
     archive: { speed: 5, direction: 200 },
     hours: {},
-    elevationAt: (latitude) => 50 + (latitude - 51.5) * 111195 * 0.04,
   };
 }
 
@@ -113,19 +104,6 @@ export function forecastBody(
   };
 }
 
-export function elevationBody(
-  config: OpenMeteoConfig,
-  latitudes: number[],
-): OpenMeteoElevationResponse {
-  return {
-    elevation: latitudes.map((latitude, index) =>
-      config.faults.elevation === "incomplete" && index === 1
-        ? (null as unknown as number)
-        : config.elevationAt(latitude, index)!,
-    ),
-  };
-}
-
 /** Archive body: unix times, whole UTC days from start_date to end_date inclusive. */
 export function archiveBody(
   config: OpenMeteoConfig,
@@ -168,19 +146,15 @@ export const archiveDatesFrom = (url: string) => {
 
 export const startHourFrom = (url: string) =>
   Date.parse(new URL(url).searchParams.get("start_hour")! + ":00Z") / 1000;
-export const latitudesFrom = (url: string) =>
-  new URL(url).searchParams.get("latitude")!.split(",").map(Number);
 
 export type Recorded = {
   forecast: OpenMeteoForecastResponse;
-  elevation: OpenMeteoElevationResponse;
   archive: OpenMeteoArchiveResponse;
 };
 /** Recorded live responses, parsed through the contract schemas on first use. */
 export function recorded(): Recorded {
   return {
     forecast: openMeteoForecastResponse.parse(forecastFixture),
-    elevation: openMeteoElevationResponse.parse(elevationFixture),
     archive: openMeteoArchiveResponse.parse(archiveFixture),
   };
 }

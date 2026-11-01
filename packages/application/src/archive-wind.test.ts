@@ -7,6 +7,7 @@ import {
   loadArchiveWind,
   parseArchiveWind,
   splitDates,
+  utcDate,
   windAt,
 } from "./archive-wind";
 
@@ -92,6 +93,20 @@ describe("archive wind parsing", () => {
     expect(hours[0]).toMatchObject({ speedMps: 0, fromDegrees: null });
     expect(hours[1]).toMatchObject({ speedMps: null, fromDegrees: null });
   });
+  it("reads an omitted gust or rain column as unknown, not zero", () => {
+    const fixture = recorded().archive;
+    const hourly: Record<string, unknown> = { ...fixture.hourly };
+    delete hourly.wind_gusts_10m;
+    delete hourly.precipitation;
+    const hours = parseArchiveWind(
+      { ...fixture, hourly } as typeof fixture,
+      "2026-09-01",
+      2,
+    );
+    expect(hours.every((h) => h.gustMps === null)).toBe(true);
+    expect(hours.every((h) => h.precipitationMm === null)).toBe(true);
+    expect(hours.every((h) => h.speedMps !== null)).toBe(true);
+  });
 });
 
 describe("date ranges", () => {
@@ -131,6 +146,10 @@ describe("date ranges", () => {
       now: ["2026-09-01", "2026-09-02"],
       later: [],
     });
+  });
+  it("takes the UTC calendar date of an instant", () => {
+    expect(utcDate("2026-09-01T23:59:59.000Z")).toBe("2026-09-01");
+    expect(utcDate("2026-09-02T00:00:00Z")).toBe("2026-09-02");
   });
   it("finds the hour containing an instant", () => {
     const hours = parseArchiveWind(recorded().archive, "2026-09-01", 2);

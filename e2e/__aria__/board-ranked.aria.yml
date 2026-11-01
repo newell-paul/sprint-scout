@@ -14,17 +14,17 @@
           - columnheader /\d+ hours/
           - columnheader "Open"
       - rowgroup:
-        - row /1 Northbound Flat-road model Thu \d+:\d+ PM −\d+[hmsp]+ Open/:
+        - row /1 Northbound Thu \d+:\d+ PM −\d+[hmsp]+ Open/:
           - cell "1"
-          - rowheader "Northbound Flat-road model"
+          - rowheader "Northbound"
           - cell /Thu \d+:\d+ PM/
           - cell /−\d+[hmsp]+/
           - cell
           - cell "Open":
             - button "Open"
-        - row /2 Southbound Flat-road model Thu \d+:\d+ PM \+\d+[hmsp]+ Open/:
+        - row /2 Southbound Thu \d+:\d+ PM \+\d+[hmsp]+ Open/:
           - cell "2"
-          - rowheader "Southbound Flat-road model"
+          - rowheader "Southbound"
           - cell /Thu \d+:\d+ PM/
           - cell /\+\d+[hmsp]+/
           - cell
