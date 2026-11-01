@@ -29,6 +29,33 @@
 .target-settings input {
   width: 8rem;
 }
+.elevation-section {
+  order: 2;
+  padding: 14px;
+  background: var(--panel-bg);
+  border: var(--panel-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--panel-shadow);
+  min-width: 0;
+  font-size: var(--type-body, 0.875rem);
+}
+.elevation-section h3 {
+  margin: 0 0 8px;
+}
+.elevation-profile {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 600 / 90;
+  color: var(--data);
+}
+.elevation-section p {
+  margin: 8px 0 2px;
+}
+.elevation-section small {
+  color: var(--muted);
+  font-size: var(--type-caption, 0.8125rem);
+}
 .shelter-settings {
   order: 2;
   padding: 14px;
@@ -2077,7 +2104,12 @@ hr {
   accent-color: var(--data);
 }
 .segment-screen
-  :is(.target-settings, .shelter-settings, .opportunity-board)
+  :is(
+    .target-settings,
+    .shelter-settings,
+    .elevation-section,
+    .opportunity-board
+  )
   h3 {
   font-size: var(--type-heading);
   font-weight: 600;
@@ -2086,6 +2118,7 @@ hr {
   :is(
     .target-settings,
     .shelter-settings,
+    .elevation-section,
     .rider-settings,
     .opportunity-board
   ) {

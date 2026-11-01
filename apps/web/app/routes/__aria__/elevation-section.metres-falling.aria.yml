@@ -1,0 +1,5 @@
+- region "Segment elevation":
+  - heading "Elevation" [level=3]
+  - 'img "Elevation profile: start 14.4 m, finish 12.4 m, lowest 10.1 m, highest 14.4 m"'
+  - paragraph: Start 14.4 m · Finish 12.4 m · Falls 2.0 m
+  - text: Lowest 10.1 m · Highest 14.4 m · Recorded by your GPX file

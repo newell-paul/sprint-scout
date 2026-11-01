@@ -53,7 +53,17 @@ function along(points: Coordinate[], d: number): Coordinate {
   }
   throw new Error("unreachable");
 }
-function gpx(name: string, points: Coordinate[], speedMps: number, laps: number, reverse = false, runUpM = 200) {
+// Height at a fraction of the way along, or null for a file with no <ele>.
+type Height = ((fraction: number) => number) | null;
+function gpx(
+  name: string,
+  points: Coordinate[],
+  speedMps: number,
+  laps: number,
+  reverse = false,
+  runUpM = 200,
+  height: Height = () => 20,
+) {
   const route = reverse ? [...points].reverse() : points;
   const total = route.slice(1).reduce((sum, p, i) => sum + distance(route[i]!, p), 0);
   const rows: string[] = [];
@@ -61,8 +71,9 @@ function gpx(name: string, points: Coordinate[], speedMps: number, laps: number,
   for (let lap = 0; lap < laps; lap++) {
     for (let d = -runUpM; d <= total + runUpM; d += speedMps) {
       const [lon, lat] = along(route, d);
+      const ele = height ? `<ele>${height(d / total).toFixed(1)}</ele>` : "";
       rows.push(
-        `<trkpt lat="${lat.toFixed(6)}" lon="${lon.toFixed(6)}"><ele>20</ele><time>${new Date(at).toISOString()}</time></trkpt>`,
+        `<trkpt lat="${lat.toFixed(6)}" lon="${lon.toFixed(6)}">${ele}<time>${new Date(at).toISOString()}</time></trkpt>`,
       );
       at += 1000;
     }
@@ -73,7 +84,12 @@ function gpx(name: string, points: Coordinate[], speedMps: number, laps: number,
 writeFileSync("e2e/data/northbound-two-laps.gpx", gpx("Two laps north", northbound, 11, 2));
 writeFileSync("e2e/data/northbound-reversed.gpx", gpx("Southbound", northbound, 11, 1, true));
 // Pre-cut segments: the whole track is the segment, as a planner export would give.
-writeFileSync("e2e/data/cut-northbound.gpx", gpx("Northbound sprint", northbound, 11, 1, false, 0));
+// Rises evenly from 10 m to 15 m.
+writeFileSync(
+  "e2e/data/cut-northbound.gpx",
+  gpx("Northbound sprint", northbound, 11, 1, false, 0, (f) => 10 + 5 * f),
+);
+// No <ele>: the segment gets no heights.
 writeFileSync(
   "e2e/data/cut-eastbound.gpx",
   gpx(
@@ -86,6 +102,7 @@ writeFileSync(
     1,
     false,
     0,
+    null,
   ),
 );
 writeFileSync(

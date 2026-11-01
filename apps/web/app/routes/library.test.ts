@@ -41,6 +41,25 @@ describe("independent route storage", () => {
       expect(read).toEqual(route);
     }
   });
+  it("keeps heights that match the points", () => {
+    const withHeights = { ...route, heightsM: [-500, 9000] };
+    expect(readLibrary(JSON.stringify([withHeights]))).toEqual([withHeights]);
+  });
+  it("drops malformed heights but still loads the segment", () => {
+    for (const heightsM of [
+      [12],
+      [12, 13, 14],
+      [12, "13"],
+      [12, null],
+      [12, -500.1],
+      [12, 9000.1],
+      "12,13",
+      null,
+    ]) {
+      const [read] = readLibrary(JSON.stringify([{ ...route, heightsM }]));
+      expect(read).toEqual(route);
+    }
+  });
   it("round trips ordered geometry and confirmation", () => {
     expect(readLibrary(JSON.stringify([route]))).toEqual([route]);
     expect(readLibrary(null)).toEqual([]);

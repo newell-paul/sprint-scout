@@ -25,6 +25,7 @@ export class Planner {
   readonly shelter: Shelter;
   readonly board: Board;
   readonly privacy: DataPrivacy;
+  readonly elevation: Locator;
   readonly status: Locator;
   readonly alert: Locator;
   readonly demoLink: Locator;
@@ -40,6 +41,7 @@ export class Planner {
     this.shelter = new Shelter(page);
     this.board = new Board(page);
     this.privacy = new DataPrivacy(page);
+    this.elevation = page.getByRole("region", { name: "Segment elevation" });
     this.status = page.locator("p[role=status]");
     this.alert = page.locator("p[role=alert]");
     this.demoLink = page.getByRole("link", { name: "Back to demo planner" });

@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { aRoute, expect, test } from "./fixtures";
 
 test(
   "a stretch picked on a GPX ride saves as a segment without leaving the browser",
@@ -117,4 +117,57 @@ test("a file with no track is refused with its reason", async ({ planner }) => {
 
   await expect(planner.status).toHaveText("not-a-track.gpx: GPX file contains no track points.");
   await expect(planner.editor.guidance).toHaveText("Tap the map to place your start.");
+});
+
+test("a pre-cut file with heights shows its elevation after saving", async ({ planner }) => {
+  await planner.open();
+  await planner.editor.importRide("cut-northbound");
+  await planner.editor.wholeTrackButton.click();
+
+  await planner.editor.confirmOwnership();
+  await planner.editor.save();
+  await planner.reload();
+
+  await expect(planner.library.heading).toContainText("Northbound sprint");
+  await expect(planner.elevation).toContainText("Start 10.0 m · Finish 15.0 m · Rises 5.0 m");
+});
+
+test("a file without heights saves a segment with no elevation", async ({ planner }) => {
+  await planner.open();
+  await planner.editor.importRide("cut-eastbound");
+  await planner.editor.wholeTrackButton.click();
+
+  await planner.editor.confirmOwnership();
+  await planner.editor.save();
+
+  await expect(planner.library.heading).toContainText("Eastbound sprint");
+  await expect(planner.elevation).toBeHidden();
+});
+
+test("reversing a cut segment saves it without heights", async ({ planner }) => {
+  await planner.open();
+  await planner.editor.importRide("cut-northbound");
+  await planner.editor.wholeTrackButton.click();
+
+  await planner.editor.reverse();
+  await planner.editor.confirmOwnership();
+  await planner.editor.save();
+
+  await expect(planner.library.heading).toContainText("Northbound sprint");
+  await expect(planner.elevation).toBeHidden();
+  const [stored] = JSON.parse((await planner.storedRoutes()) ?? "[]");
+  expect(stored).not.toHaveProperty("heightsM");
+});
+
+test("renaming a segment keeps its heights", async ({ planner, seed }) => {
+  const route = aRoute({ name: "Bridge to bridge" });
+  await seed({ routes: [{ ...route, heightsM: route.points.map((_, i) => 14.4 - 2 * i) }] });
+  await planner.library.redraw();
+
+  await planner.editor.name("Bridge to bridge up");
+  await planner.editor.confirmOwnership();
+  await planner.editor.save();
+
+  await expect(planner.library.heading).toContainText("Bridge to bridge up");
+  await expect(planner.elevation).toBeVisible();
 });

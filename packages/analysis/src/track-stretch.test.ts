@@ -42,6 +42,7 @@ describe("trackStretch", () => {
     const ride = north(10);
     const stretch = trackStretch(ride, 2, 5);
     expect(stretch.points).toEqual(ride.slice(2, 6));
+    expect(stretch.indices).toEqual([2, 3, 4, 5]);
     expect(stretch.thinned).toBe(false);
     expect(stretch.lengthM).toBeCloseTo(33.36, 1);
   });
@@ -49,10 +50,11 @@ describe("trackStretch", () => {
     const ride = north(3);
     expect(trackStretch(ride, 0, 2).points[0]).not.toBe(ride[0]);
   });
-  it("drops consecutive repeats from a stop", () => {
+  it("drops consecutive repeats from a stop, indexing the first of each run", () => {
     const [a, b, c] = north(3) as [LonLat, LonLat, LonLat];
     const stretch = trackStretch([a, a, b, b, b, c, a], 0, 6);
     expect(stretch.points).toEqual([a, b, c, a]);
+    expect(stretch.indices).toEqual([0, 2, 5, 6]);
   });
   it("refuses a stretch that never moves", () => {
     const [a] = north(1) as [LonLat];
@@ -68,6 +70,8 @@ describe("trackStretch", () => {
     expect(stretch.points[0]).toEqual(ride[0]);
     expect(stretch.points[1]).toEqual(ride[2]);
     expect(stretch.points[499]).toEqual(ride[999]);
+    expect(stretch.indices.slice(0, 2)).toEqual([0, 2]);
+    expect(stretch.indices.at(-1)).toBe(999);
   });
   it("keeps a stretch of exactly the limit untouched", () => {
     const ride = north(500);

@@ -584,3 +584,23 @@ it("no map yet: no wind toggle", async () => {
     .element(screen.getByRole("button", { name: "Wind particles" }))
     .not.toBeInTheDocument();
 });
+
+it("elevation: shown only for a segment that carries heights", async () => {
+  const route = fresh();
+  const screen = await render(<WindPreview route={route} {...props()} />);
+  await expect
+    .element(screen.getByRole("region", { name: "Route wind forecast" }))
+    .toBeVisible();
+  await expect
+    .element(screen.getByRole("region", { name: "Segment elevation" }))
+    .not.toBeInTheDocument();
+  await screen.rerender(
+    <WindPreview
+      route={{ ...route, heightsM: route.points.map((_, i) => 10 + i) }}
+      {...props()}
+    />,
+  );
+  await expect
+    .element(screen.getByRole("region", { name: "Segment elevation" }))
+    .toBeVisible();
+});

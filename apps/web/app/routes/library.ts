@@ -9,6 +9,8 @@ export type DrawnRoute = {
   slot: number;
   targetTimeS?: number | null;
   shelter?: Shelter;
+  /** Heights from the rider's GPX file, one per point; display only. */
+  heightsM?: number[];
 };
 export const storageKey = "sprint-scout.drawn-routes.v1";
 // Every key the planner writes starts with this prefix, so a wipe also covers
@@ -35,6 +37,17 @@ export function nextFreeSlot(routes: readonly Pick<DrawnRoute, "slot">[]) {
   let slot = 0;
   while (taken.has(slot)) slot++;
   return slot;
+}
+// Heights are display only, so bad ones are dropped rather than failing the library.
+function validHeights(value: unknown, points: Point[]): value is number[] {
+  return (
+    Array.isArray(value) &&
+    value.length === points.length &&
+    value.every(
+      (h) =>
+        typeof h === "number" && Number.isFinite(h) && h >= -500 && h <= 9000,
+    )
+  );
 }
 export function validPoint(value: unknown): value is Point {
   return (
@@ -109,6 +122,8 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
     delete r.terrainMode;
     delete r.terrainAuto;
     delete r.efforts;
+    if (r.heightsM !== undefined && !validHeights(r.heightsM, r.points))
+      delete r.heightsM;
     if (r.slot !== undefined) return r as DrawnRoute;
     while (taken.has(next)) next++;
     taken.add(next);
