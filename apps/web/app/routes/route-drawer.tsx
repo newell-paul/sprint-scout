@@ -301,7 +301,7 @@ export default function Routes() {
           setReady(true);
         });
         instance.on("click", (e) => {
-          if (viewing.current) return;
+          if (activation.takeActivation() || viewing.current) return;
           const p: Point = [e.lngLat.wrap().lng, e.lngLat.lat];
           if (validPoint(p)) addPointRef.current(p);
         });
