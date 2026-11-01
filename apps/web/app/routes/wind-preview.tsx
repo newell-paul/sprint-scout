@@ -21,6 +21,7 @@ import type { DrawnRoute } from "./library";
 import RiderSettings from "./rider-settings";
 import TargetSettings from "./target-settings";
 import ShelterSettings from "./shelter-settings";
+import ElevationSection from "./elevation-section";
 import type { Shelter } from "@scout/application/shelter";
 import ConditionsDetail from "./conditions-detail";
 import { startWindParticles } from "./wind-particles";
@@ -386,6 +387,13 @@ export default function WindPreview({
         target={route.targetTimeS ?? null}
         onChange={onTargetChange}
       />
+      {route.heightsM && (
+        <ElevationSection
+          points={route.points}
+          heightsM={route.heightsM}
+          unit={unit}
+        />
+      )}
       <div className="wind-actions">
         <small role="status">
           {loading

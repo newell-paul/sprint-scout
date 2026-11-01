@@ -11,7 +11,23 @@ const child = (body: string, name: string) =>
 // same file could yield different instants on different devices.
 const zoned = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/;
 
-export type TrackPoint = { at: number; lon: number; lat: number };
+export type TrackPoint = {
+  at: number;
+  lon: number;
+  lat: number;
+  /** Recorded height in metres, or null when missing or implausible. */
+  ele: number | null;
+};
+const heightRange = { min: -500, max: 9000 } as const;
+const height = (raw: string | undefined) => {
+  if (raw === undefined || raw === "") return null;
+  const value = Number(raw);
+  return Number.isFinite(value) &&
+    value >= heightRange.min &&
+    value <= heightRange.max
+    ? value
+    : null;
+};
 
 export type GpxTrack = {
   name: string | null;
@@ -85,7 +101,7 @@ export function parseGpx(text: string): GpxTrack {
       skipped++;
       continue;
     }
-    points.push({ at, lon, lat });
+    points.push({ at, lon, lat, ele: height(child(body, "ele")) });
   }
   if (points.length < 2)
     throw new Error(

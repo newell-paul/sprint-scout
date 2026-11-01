@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./elevation": "./src/elevation.ts",
     "./track-stretch": "./src/track-stretch.ts"
   },
   "dependencies": {

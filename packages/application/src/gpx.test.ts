@@ -22,10 +22,58 @@ describe("GPX reader", () => {
     );
     expect(track.name).toBe("Morning ride");
     expect(track.points).toEqual([
-      { at: Date.parse("2026-09-12T09:00:00Z"), lon: -0.12, lat: 51.5 },
-      { at: Date.parse("2026-09-12T09:00:05Z"), lon: -0.12, lat: 51.501 },
-      { at: Date.parse("2026-09-12T09:00:10.500Z"), lon: -0.12, lat: 51.502 },
+      {
+        at: Date.parse("2026-09-12T09:00:00Z"),
+        lon: -0.12,
+        lat: 51.5,
+        ele: 12,
+      },
+      {
+        at: Date.parse("2026-09-12T09:00:05Z"),
+        lon: -0.12,
+        lat: 51.501,
+        ele: 12,
+      },
+      {
+        at: Date.parse("2026-09-12T09:00:10.500Z"),
+        lon: -0.12,
+        lat: 51.502,
+        ele: null,
+      },
     ]);
+  });
+  it("reads plausible heights and keeps points whose height is missing or implausible", () => {
+    const at = (s: number) => `2026-09-12T09:00:0${s}Z`;
+    const track = parseGpx(
+      gpx(
+        [
+          "<ele>-500</ele>",
+          "<ele>9000</ele>",
+          "<ele> 14.4 </ele>",
+          "<ele>-500.1</ele>",
+          "<ele>9000.1</ele>",
+          "<ele>high</ele>",
+          "<ele></ele>",
+          "",
+        ]
+          .map(
+            (ele, i) =>
+              `<trkpt lat="${51.5 + i / 1000}" lon="-0.12">${ele}<time>${at(i)}</time></trkpt>`,
+          )
+          .join(""),
+      ),
+    );
+    expect(track.points.map((p) => p.ele)).toEqual([
+      -500,
+      9000,
+      14.4,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ]);
+    expect(track.skipped).toBe(0);
   });
   it("skips points without a time or with a time that does not advance", () => {
     const track = parseGpx(

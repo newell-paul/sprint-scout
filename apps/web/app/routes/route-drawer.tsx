@@ -74,9 +74,20 @@ type Draft = {
   name: string | null;
   confirmed: boolean;
   editing: DrawnRoute | null;
+  cut: Cut | null;
 };
 // A GPX ride read in this browser, kept in memory only until it is cut.
-type RideFile = { fileName: string; trackName: string | null; track: Point[] };
+type RideFile = {
+  fileName: string;
+  trackName: string | null;
+  track: Point[];
+  /** Recorded height of each track point, null where the file has none. */
+  heights: (number | null)[];
+};
+// Heights belong to the exact points they were cut with; any edit drops them.
+type Cut = { points: Point[]; heightsM: number[] };
+const sameCut = (cut: Cut | null, points: Point[]) =>
+  cut !== null && JSON.stringify(cut.points) === JSON.stringify(points);
 // MapLibre's 512 px tiles: metres per screen pixel at zoom 0 on the equator.
 const metresPerPixelAtZoom0 = 78_271.517;
 const fileBase = (fileName: string) => fileName.replace(/\.gpx$/i, "");
@@ -105,6 +116,7 @@ export default function Routes() {
     (RideFile & { start: number | null }) | null
   >(null);
   const [queue, setQueue] = useState<RideFile[]>([]);
+  const [cut, setCut] = useState<Cut | null>(null);
   const addPointRef = useRef<(p: Point) => void>(() => {});
   const [hour, setHour] = useState<RouteWindHour | null>(null);
   const onHour = useCallback((h: RouteWindHour | null) => setHour(h), []);
@@ -554,6 +566,15 @@ export default function Routes() {
     stretch: ReturnType<typeof trackStretch>,
     waiting = 0,
   ) {
+    const heights = stretch.indices.map((i) => file.heights[i] ?? null);
+    setCut(
+      heights.every((h) => h !== null)
+        ? {
+            points: stretch.points,
+            heightsM: heights.map((h) => Math.round(h * 10) / 10),
+          }
+        : null,
+    );
     setRide(null);
     setPoints(stretch.points);
     setMessage(
@@ -577,12 +598,16 @@ export default function Routes() {
         if (file.size > gpxLimits.bytes)
           throw new Error("GPX file is missing or larger than 25 MB.");
         const parsed = parseGpx(await file.text());
-        const track = parsed.points
-          .map((p): Point => [p.lon, p.lat])
-          .filter(validPoint);
+        const kept = parsed.points.filter((p) => validPoint([p.lon, p.lat]));
+        const track = kept.map((p): Point => [p.lon, p.lat]);
         // Throws when the track never moves, so a bad file is refused here.
         trackStretch(track, 0, track.length - 1);
-        read.push({ fileName: file.name, trackName: parsed.name, track });
+        read.push({
+          fileName: file.name,
+          trackName: parsed.name,
+          track,
+          heights: kept.map((p) => p.ele),
+        });
       } catch (error) {
         refused.push(
           `${file.name}: ${error instanceof Error ? error.message : "Could not read this file."}`,
@@ -633,6 +658,7 @@ export default function Routes() {
       slot,
       targetTimeS: editing?.targetTimeS ?? null,
       shelter: editing?.shelter ?? "exposed",
+      ...(cut && sameCut(cut, points) && { heightsM: [...cut.heightsM] }),
     };
     if (
       persist((current) => {
@@ -648,6 +674,7 @@ export default function Routes() {
       setConfirmed(false);
       setEditing(null);
       setDiscarded(null);
+      setCut(null);
       const [next, ...rest] = queue;
       if (next) {
         setSlot(nextFreeSlot(readLibrary(localStorage.getItem(storageKey))));
@@ -659,6 +686,7 @@ export default function Routes() {
   function redraw(r: DrawnRoute) {
     setEditing(r);
     setPoints(r.points.map((p) => [...p]));
+    setCut(r.heightsM ? { points: r.points, heightsM: r.heightsM } : null);
     setName(r.name);
     setConfirmed(false);
     setMessage(
@@ -671,7 +699,7 @@ export default function Routes() {
     if (ride)
       setMessage("Ride import cancelled. Saved segments are unchanged.");
     else if (hasDraft) {
-      setDiscarded({ slot, points, name, confirmed, editing });
+      setDiscarded({ slot, points, name, confirmed, editing, cut });
       setMessage(
         queue.length
           ? `Drawing discarded. ${queue.length} more ${queue.length === 1 ? "file was" : "files were"} not added.`
@@ -680,6 +708,7 @@ export default function Routes() {
     }
     setRide(null);
     setQueue([]);
+    setCut(null);
     setEditing(null);
     setPoints([]);
     setName(null);
@@ -699,6 +728,7 @@ export default function Routes() {
     setName(discarded.name);
     setConfirmed(discarded.confirmed);
     setEditing(discarded.editing);
+    setCut(discarded.cut);
     setDiscarded(null);
     setMessage("Drawing restored.");
   }

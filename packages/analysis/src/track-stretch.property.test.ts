@@ -20,7 +20,7 @@ const ride = fc
 const limit = fc.integer({ min: 2, max: 600 });
 
 describe("trackStretch invariants", () => {
-  it("never exceeds the limit, keeps both ends and follows the ride's order", () => {
+  it("never exceeds the limit, keeps both ends, follows the ride's order and indexes each kept point", () => {
     fc.assert(
       fc.property(ride, limit, (track, maxPoints) => {
         const last = track.length - 1;
@@ -43,7 +43,15 @@ describe("trackStretch invariants", () => {
             cursor++;
           return cursor++ < track.length;
         });
+        const indexed = stretch.indices.every(
+          (index, i) =>
+            (i === 0 || index > stretch.indices[i - 1]!) &&
+            track[index]![0] === points[i]![0] &&
+            track[index]![1] === points[i]![1],
+        );
         return (
+          indexed &&
+          stretch.indices.length === points.length &&
           points.length <= maxPoints &&
           first[0] === track[0]![0] &&
           first[1] === track[0]![1] &&

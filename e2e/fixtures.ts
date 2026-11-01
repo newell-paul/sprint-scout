@@ -17,6 +17,7 @@ export type SeedRoute = {
   createdAt: string;
   targetTimeS?: number | null;
   shelter?: "exposed" | "sheltered" | "dense";
+  heightsM?: number[];
   efforts?: Record<string, unknown>[];
 };
 export type Rider = { powerW: number; massKg: number; cdaM2: number };

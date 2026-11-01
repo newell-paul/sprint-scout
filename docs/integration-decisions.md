@@ -116,3 +116,7 @@ Owner requested segments cut from the rider's own GPX rides. Allowed: reading on
 ## Efforts and past wind removed — 1 November 2026
 
 The owner removed the efforts feature, so the planner no longer matches GPX rides to segments for times and never sends a segment start coordinate or effort dates to the Open-Meteo historical archive. The 13 September 2026 "Recorded efforts, GPX import and past wind" decision has no code behind it. GPX files are still read in the browser only, to cut segment geometry (entry above). Open-Meteo forecast and OpenStreetMap tiles are unchanged.
+
+## Heights from a GPX ride — 1 November 2026
+
+Segments cut from a rider's GPX file now also keep the file's recorded heights, stored with the segment in local storage after the same per-segment source confirmation. They are read in the browser only, never sent anywhere, and used only for display. The Open-Meteo elevation API stays unused.
