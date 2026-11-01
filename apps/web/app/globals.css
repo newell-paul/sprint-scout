@@ -132,19 +132,19 @@
 .shelter-settings button[aria-pressed="true"] span {
   color: var(--ink);
 }
-.terrain-heading,
-.terrain-modes {
+.efforts-heading,
+.efforts-modes {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
 }
-.terrain-heading h3 {
+.efforts-heading h3 {
   margin: 0;
   font-size: var(--type-body, 0.875rem);
 }
-.terrain-modes {
+.efforts-modes {
   justify-content: flex-start;
   margin-top: 12px;
 }
@@ -161,14 +161,14 @@
   display: block;
   margin-top: 6px;
 }
-.terrain-consent {
+.efforts-consent {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
   min-height: 44px;
 }
-.terrain-consent input {
+.efforts-consent input {
   flex: 0 0 auto;
 }
 .efforts-panel .table-scroll {
