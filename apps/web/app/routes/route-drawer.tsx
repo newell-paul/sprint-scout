@@ -7,8 +7,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Map as RouteMap, GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { clickToActivate, loadMapLibre } from "@scout/ui/maplibre";
+import { gpxLimits, parseGpx } from "@scout/application/gpx";
+import { nearestTrackIndex, trackStretch } from "@scout/analysis/track-stretch";
 import {
   newId,
+  nextFreeSlot,
   readLibrary,
   storageKey,
   validPoint,
@@ -72,6 +75,11 @@ type Draft = {
   confirmed: boolean;
   editing: DrawnRoute | null;
 };
+// A GPX ride read in this browser, kept in memory only until it is cut.
+type RideFile = { fileName: string; trackName: string | null; track: Point[] };
+// MapLibre's 512 px tiles: metres per screen pixel at zoom 0 on the equator.
+const metresPerPixelAtZoom0 = 78_271.517;
+const fileBase = (fileName: string) => fileName.replace(/\.gpx$/i, "");
 export default function Routes() {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<RouteMap | null>(null);
@@ -92,6 +100,12 @@ export default function Routes() {
   const [deleted, setDeleted] = useState<DrawnRoute | null>(null);
   const [discarded, setDiscarded] = useState<Draft | null>(null);
   const [cameFrom, setCameFrom] = useState<number | null>(null);
+  // A single ride being picked on, and pre-cut files waiting for the next save.
+  const [ride, setRide] = useState<
+    (RideFile & { start: number | null }) | null
+  >(null);
+  const [queue, setQueue] = useState<RideFile[]>([]);
+  const addPointRef = useRef<(p: Point) => void>(() => {});
   const [hour, setHour] = useState<RouteWindHour | null>(null);
   const onHour = useCallback((h: RouteWindHour | null) => setHour(h), []);
   const [riderInput, setRiderInput] = useState<RiderInput | null>(null);
@@ -129,7 +143,8 @@ export default function Routes() {
   const selectedRoute = editing
     ? undefined
     : routes.find((r) => r.slot === slot);
-  const hasDraft = !!editing || points.length > 0 || name !== null;
+  const hasDraft =
+    !!editing || points.length > 0 || name !== null || ride !== null;
   const segmentName = name ?? `Segment ${slot + 1}`;
   // Cancel goes back to the saved segment being redrawn, else the segment the
   // rider came from, else the first saved one.
@@ -209,6 +224,22 @@ export default function Routes() {
         instance.keyboard.disableRotation();
         instance.on("load", () => {
           if (!instance) return;
+          instance.addSource("ride", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] },
+          });
+          instance.addLayer({
+            id: "ride-line",
+            type: "line",
+            source: "ride",
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: {
+              "line-color": "#e2e8f0",
+              "line-width": 3,
+              "line-opacity": 0.7,
+              "line-dasharray": [2, 1.5],
+            },
+          });
           instance.addSource("route", {
             type: "geojson",
             data: { type: "FeatureCollection", features: [] },
@@ -270,8 +301,7 @@ export default function Routes() {
         instance.on("click", (e) => {
           if (viewing.current) return;
           const p: Point = [e.lngLat.wrap().lng, e.lngLat.lat];
-          if (validPoint(p))
-            setPoints((old) => (old.length < 500 ? [...old, p] : old));
+          if (validPoint(p)) addPointRef.current(p);
         });
         instance.on("error", () =>
           setMapError(
@@ -288,8 +318,35 @@ export default function Routes() {
     };
   }, []);
   useEffect(() => {
-    drawing.current = points.length > 0;
-  }, [points]);
+    drawing.current = points.length > 0 || ride !== null;
+  }, [points, ride]);
+  useEffect(() => {
+    const m = map.current;
+    if (!ready || !m) return;
+    const track = ride?.track ?? [];
+    (m.getSource("ride") as GeoJSONSource | undefined)?.setData({
+      type: "FeatureCollection",
+      features: track.length
+        ? [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: { type: "LineString", coordinates: track },
+            },
+          ]
+        : [],
+    });
+    if (!track.length || ride?.start !== null) return;
+    const lon = track.map((p) => p[0]),
+      lat = track.map((p) => p[1]);
+    m.fitBounds(
+      [
+        [Math.min(...lon), Math.min(...lat)],
+        [Math.max(...lon), Math.max(...lat)],
+      ],
+      { padding: 60, maxZoom: 16, duration: 0 },
+    );
+  }, [ride, ready]);
   useEffect(() => {
     if (!ready) return;
     const source = map.current?.getSource("route") as GeoJSONSource | undefined;
@@ -354,7 +411,7 @@ export default function Routes() {
           "raster-opacity": 0.82,
         },
       },
-      "route-outline",
+      "ride-line",
     );
     m.setPaintProperty("background", "background-color", "#1e2a3a");
   }, [ready]);
@@ -464,8 +521,107 @@ export default function Routes() {
       );
     });
   }
-  const saveReason =
-    points.length < 2
+  // A tap counts within 24 screen pixels of the ride, never less than 25 m.
+  function pickToleranceM(at: Point) {
+    const m = map.current;
+    if (!m) return 50;
+    const metresPerPixel =
+      (metresPerPixelAtZoom0 * Math.cos((at[1] * Math.PI) / 180)) /
+      2 ** m.getZoom();
+    return Math.max(25, 24 * metresPerPixel);
+  }
+  function addPoint(p: Point) {
+    if (!ride) {
+      setPoints((old) => (old.length < 500 ? [...old, p] : old));
+      return;
+    }
+    const toleranceM = pickToleranceM(p);
+    if (ride.start === null) {
+      const start = nearestTrackIndex(ride.track, p, toleranceM);
+      if (start === null) {
+        setMessage("Tap on the ride's line.");
+        return;
+      }
+      setRide({ ...ride, start });
+      setPoints([ride.track[start]!]);
+      setMessage("");
+      return;
+    }
+    const finish = nearestTrackIndex(ride.track, p, toleranceM, ride.start);
+    try {
+      if (finish === null) throw new Error("No finish after the start.");
+      applyStretch(ride, trackStretch(ride.track, ride.start, finish));
+    } catch {
+      setMessage(
+        "The ride doesn't pass there after your start. Tap further along it, in the direction you rode.",
+      );
+    }
+  }
+  addPointRef.current = addPoint;
+  function applyStretch(
+    file: RideFile,
+    stretch: ReturnType<typeof trackStretch>,
+    waiting = 0,
+  ) {
+    setRide(null);
+    setPoints(stretch.points);
+    setMessage(
+      `${(stretch.lengthM / 1000).toFixed(2)} km taken from ${file.fileName}, ${stretch.points.length} points. The file was read in this browser only.${stretch.thinned ? " Thinned to 500 points." : ""}${waiting ? ` ${waiting} more ${waiting === 1 ? "file" : "files"} after this one.` : ""}`,
+    );
+  }
+  // A pre-cut file is the segment: its whole track, named after the track.
+  function takeWholeTrack(file: RideFile, waiting = 0) {
+    applyStretch(
+      file,
+      trackStretch(file.track, 0, file.track.length - 1),
+      waiting,
+    );
+    setName((file.trackName ?? fileBase(file.fileName)).slice(0, 100));
+  }
+  async function importRides(files: File[]) {
+    const read: RideFile[] = [];
+    const refused: string[] = [];
+    for (const file of files) {
+      try {
+        if (file.size > gpxLimits.bytes)
+          throw new Error("GPX file is missing or larger than 25 MB.");
+        const parsed = parseGpx(await file.text());
+        const track = parsed.points
+          .map((p): Point => [p.lon, p.lat])
+          .filter(validPoint);
+        // Throws when the track never moves, so a bad file is refused here.
+        trackStretch(track, 0, track.length - 1);
+        read.push({ fileName: file.name, trackName: parsed.name, track });
+      } catch (error) {
+        refused.push(
+          `${file.name}: ${error instanceof Error ? error.message : "Could not read this file."}`,
+        );
+      }
+    }
+    const refusedNote = refused.length
+      ? ` Not added: ${refused.join(" ")}`
+      : "";
+    const [first, ...rest] = read;
+    if (!first) {
+      setMessage(refused.join(" "));
+      return;
+    }
+    if (files.length === 1) {
+      setRide({ ...first, start: null });
+      setMessage(
+        `Ride loaded from ${first.fileName}. Tap where your segment starts, or use the whole track.`,
+      );
+      return;
+    }
+    takeWholeTrack(first, rest.length);
+    setQueue(rest);
+    if (refusedNote) setMessage((m) => m + refusedNote);
+  }
+  const saveReason = ride
+    ? ride.start === null
+      ? "Tap the ride where your segment starts, or press Use whole track above the map."
+      : "Tap the ride where your segment finishes."
+    : points.length < 2
       ? "Add at least two different points to save your segment."
       : !points.some((p) => p[0] !== points[0]?.[0] || p[1] !== points[0]?.[1])
         ? "Add a point at a different location to save your segment."
@@ -505,6 +661,12 @@ export default function Routes() {
       setConfirmed(false);
       setEditing(null);
       setDiscarded(null);
+      const [next, ...rest] = queue;
+      if (next) {
+        setSlot(nextFreeSlot(readLibrary(localStorage.getItem(storageKey))));
+        setQueue(rest);
+        takeWholeTrack(next, rest.length);
+      }
     }
   }
   function redraw(r: DrawnRoute) {
@@ -518,10 +680,19 @@ export default function Routes() {
   }
   // Cancel, Escape and picking another tab all end a drawing the same way.
   function discard(nextSlot = returnSlot ?? slot) {
-    if (hasDraft) {
+    // A ride not yet cut cannot be restored: the file is not kept.
+    if (ride)
+      setMessage("Ride import cancelled. Saved segments are unchanged.");
+    else if (hasDraft) {
       setDiscarded({ slot, points, name, confirmed, editing });
-      setMessage("Drawing discarded. Saved segments are unchanged.");
+      setMessage(
+        queue.length
+          ? `Drawing discarded. ${queue.length} more ${queue.length === 1 ? "file was" : "files were"} not added.`
+          : "Drawing discarded. Saved segments are unchanged.",
+      );
     }
+    setRide(null);
+    setQueue([]);
     setEditing(null);
     setPoints([]);
     setName(null);
@@ -631,18 +802,47 @@ export default function Routes() {
       ) : (
         <div className="drawing-bar">
           <p aria-live="polite">
-            {points.length === 0
-              ? "Tap the map to place your start."
-              : points.length < 2
-                ? "Now tap the finish. Lines go straight between points."
-                : "Tap to add bends, then save below."}
+            {ride
+              ? points.length === 0
+                ? "Tap the ride where your segment starts."
+                : "Now tap where it finishes, further along the ride."
+              : points.length === 0
+                ? "Tap the map to place your start."
+                : points.length < 2
+                  ? "Now tap the finish. Lines go straight between points."
+                  : "Tap to add bends, then save below."}
           </p>
           <span className="drawing-actions">
+            {ride ? (
+              <button type="button" onClick={() => takeWholeTrack(ride)}>
+                Use whole track
+              </button>
+            ) : (
+              <label className="drawing-import">
+                <span className="button-like" aria-disabled={points.length > 0}>
+                  From GPX
+                </span>
+                <input
+                  type="file"
+                  accept=".gpx,application/gpx+xml"
+                  multiple
+                  disabled={points.length > 0}
+                  onChange={(event) => {
+                    const files = [...(event.target.files ?? [])];
+                    event.target.value = "";
+                    if (files.length) void importRides(files);
+                  }}
+                />
+              </label>
+            )}
             <button
               type="button"
               aria-label="Undo point"
               disabled={!points.length}
-              onClick={() => setPoints((p) => p.slice(0, -1))}
+              onClick={() => {
+                if (ride) setRide({ ...ride, start: null });
+                setPoints((p) => p.slice(0, -1));
+              }}
             >
               Undo
             </button>
@@ -779,7 +979,7 @@ export default function Routes() {
                   return;
                 }
                 map.current?.flyTo({ center: p });
-                if (points.length < 500) setPoints((old) => [...old, p]);
+                addPoint(p);
               }}
             >
               Add point and centre map

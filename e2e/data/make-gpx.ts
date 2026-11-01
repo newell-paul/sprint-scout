@@ -53,13 +53,13 @@ function along(points: Coordinate[], d: number): Coordinate {
   }
   throw new Error("unreachable");
 }
-function gpx(name: string, points: Coordinate[], speedMps: number, laps: number, reverse = false) {
+function gpx(name: string, points: Coordinate[], speedMps: number, laps: number, reverse = false, runUpM = 200) {
   const route = reverse ? [...points].reverse() : points;
   const total = route.slice(1).reduce((sum, p, i) => sum + distance(route[i]!, p), 0);
   const rows: string[] = [];
   let at = start;
   for (let lap = 0; lap < laps; lap++) {
-    for (let d = -200; d <= total + 200; d += speedMps) {
+    for (let d = -runUpM; d <= total + runUpM; d += speedMps) {
       const [lon, lat] = along(route, d);
       rows.push(
         `<trkpt lat="${lat.toFixed(6)}" lon="${lon.toFixed(6)}"><ele>20</ele><time>${new Date(at).toISOString()}</time></trkpt>`,
@@ -72,6 +72,22 @@ function gpx(name: string, points: Coordinate[], speedMps: number, laps: number,
 }
 writeFileSync("e2e/data/northbound-two-laps.gpx", gpx("Two laps north", northbound, 11, 2));
 writeFileSync("e2e/data/northbound-reversed.gpx", gpx("Southbound", northbound, 11, 1, true));
+// Pre-cut segments: the whole track is the segment, as a planner export would give.
+writeFileSync("e2e/data/cut-northbound.gpx", gpx("Northbound sprint", northbound, 11, 1, false, 0));
+writeFileSync(
+  "e2e/data/cut-eastbound.gpx",
+  gpx(
+    "Eastbound sprint",
+    [
+      [-0.12, 51.5],
+      [-0.105, 51.5],
+    ],
+    11,
+    1,
+    false,
+    0,
+  ),
+);
 writeFileSync(
   "e2e/data/not-a-track.gpx",
   `<?xml version="1.0"?><gpx version="1.1"><wpt lat="51.5" lon="-0.12"><name>Cafe</name></wpt></gpx>\n`,

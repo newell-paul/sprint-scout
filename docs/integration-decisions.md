@@ -108,3 +108,7 @@ Later the same day the owner decided to keep SprintScout as a focused web app an
 ## Elevation removed — 1 November 2026
 
 The owner removed terrain, so the planner no longer sends sampled segment coordinates to the Open-Meteo elevation endpoint. The "Independent terrain decision" above has no code behind it. Open-Meteo forecast and archive, and OpenStreetMap tiles, are unchanged.
+
+## Segment geometry from a GPX ride — 1 November 2026
+
+Owner requested segments cut from the rider's own GPX rides. Allowed: reading one or more GPX files in the browser, cutting the stretch the rider picks (or the whole track), and saving only those points as an owner-drawn segment in local storage after the existing per-segment source confirmation. The files are not stored, uploaded or sent anywhere, and no request is made. As for efforts (13 September 2026), a file exported from Strava is not treated as automatically independent: the confirmation leaves that judgement with the rider. The Strava rows above are unchanged.
