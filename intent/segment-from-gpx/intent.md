@@ -1,6 +1,6 @@
 # Segment from GPX
 
-Status: accepted
+Status: done
 Opened: 1 November 2026 by Paul Newell
 
 ## Problem
@@ -16,6 +16,8 @@ A segment can only be drawn by hand, tap by tap, as straight lines.
 - While adding a segment, the rider can choose a GPX ride. The planner shows the whole ride on the map.
 - The rider taps the ride where the segment starts, then where it finishes. The stretch of ride between the two taps becomes the draft segment, following the road.
 - Coordinates typed in "Enter coordinates instead" pick the start and finish the same way, so it works without a pointer.
+- "Use whole track" takes a file that is already cut to the segment as it is.
+- Choosing several files at once takes each whole, one segment per file, named after its track, saved one at a time.
 - The draft is then an ordinary drawing: the rider can name it, reverse it, undo points, tick the source confirmation and save it. Repeat for each segment wanted from the same ride.
 - The file is read in the browser and thrown away. Nothing is uploaded and no request is made.
 - A file the planner can't use, or a tap away from the ride, gets a message that says what to do.
@@ -34,7 +36,7 @@ A segment can only be drawn by hand, tap by tap, as straight lines.
 - No Strava data in the repo, its fixtures or any server. Fixtures are synthetic.
 - The file stays in the browser; no new network request.
 - Static hosting, no account, no API keys.
-- The 20-segment and 500-point limits hold.
+- The 500-point limit and the 1 MB library limit hold.
 - Cutting and thinning are deterministic: the same file and taps always give the same segment.
 - Saved libraries are unchanged; nothing new is stored.
 - Size and Lighthouse budgets hold.
@@ -47,3 +49,4 @@ A segment can only be drawn by hand, tap by tap, as straight lines.
 4. Files without times. Resolved: refused, as the efforts import does. Route files from planners carry surface-model heights and no recording.
 5. A whole ride. Resolved: the rider picks the start and finish on it (option 1). A list of suggested hard efforts is a possible follow-up.
 6. Placement. Resolved: a "From GPX" control in the drawing bar, available while the draft has no points.
+7. Several files and pre-cut files. Resolved on 1 November 2026: the file control takes several files (works in every browser, unlike folder access), each taken whole; "Use whole track" covers a single pre-cut file.

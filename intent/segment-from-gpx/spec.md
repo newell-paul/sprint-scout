@@ -4,9 +4,11 @@ From the accepted intent of 1 November 2026.
 
 ## Behaviour
 
-- **Control.** The drawing bar gets a "From GPX" file control (`.gpx`) beside Undo and Cancel. It is enabled only while the draft has no points and no ride is loaded.
-- **Loading.** The file is refused before reading if it is over 25 MB. Otherwise `parseGpx` reads it. Its errors show in the status line unchanged ("Not a GPX file.", "GPX track has no usable timed points; …"). Points outside the map's latitude range are dropped. Fewer than two usable points is refused.
-- **Ride shown.** A loaded ride draws as a thin light line under the segment layers, and the map fits to it. The status says "Ride loaded from <file>. Tap where your segment starts."
+- **Control.** The drawing bar gets a "From GPX" file control (`.gpx`, multiple) beside Undo and Cancel. It is enabled only while the draft has no points; with a ride loaded it is replaced by "Use whole track".
+- **Several files.** Each readable file is taken whole, one segment per file. The first becomes the draft, named after its `<trk><name>` (else the file name without `.gpx`). Each Save opens the next file in the next free slot, and the status says how many files remain. Unreadable files are listed as "Not added: <file>: <reason>". Cancel, Escape or a tab switch stops the import and says how many files were not added.
+- **Use whole track.** With one ride loaded, takes the whole track as the draft, named like a file from a multiple selection.
+- **Loading.** Errors are shown as "<file>: <reason>". A file is refused before reading if it is over 25 MB. Otherwise `parseGpx` reads it. Its errors show in the status line unchanged ("Not a GPX file.", "GPX track has no usable timed points; …"). Points outside the map's latitude range are dropped. A track that never moves is refused.
+- **Ride shown.** A loaded ride draws as a thin dashed light line under the segment layers, and the map fits to it. The status says "Ride loaded from <file>. Tap where your segment starts, or use the whole track."
 - **Bar text.** With a ride loaded, the bar reads "Tap the ride where your segment starts." and, after the start, "Now tap where it finishes, further along the ride."
 - **Start.** A tap or a typed coordinate snaps to the nearest ride point. If there's a tie, the earliest point wins. The snapped point becomes the draft's one point, labelled Start.
 - **Finish.** It snaps to the nearest ride point after the start. The draft becomes every ride point from start to finish. Consecutive repeats are dropped, and the stretch is thinned to 500 points if longer. The ride overlay goes, and the status says "<length> km taken from <file>, <n> points. The file was read in this browser only." with " Thinned to 500 points." when it was thinned.
@@ -42,8 +44,11 @@ From the accepted intent of 1 November 2026.
   - A finish against the ride's direction is refused with the message.
   - A non-track file is refused.
   - Undo after the start keeps the ride.
+  - Two pre-cut files become two segments, named after their tracks, in slots 1 and 2.
+  - Use whole track takes a single file as it is.
+  - A point away from the ride is refused.
   - Cancel drops it.
-- **Page object:** `SegmentEditor.importRide(name)`.
+- **Page object:** `SegmentEditor.importRide(...names)` and `wholeTrackButton`. New synthetic fixtures `cut-northbound.gpx` and `cut-eastbound.gpx` from `e2e/data/make-gpx.ts`.
 - **ARIA:** no baseline changes. The bar is outside `drawing-ready-to-save`.
 
 ## Docs

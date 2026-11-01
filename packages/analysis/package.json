@@ -4,7 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./effort-match": "./src/effort-match.ts"
+    "./effort-match": "./src/effort-match.ts",
+    "./track-stretch": "./src/track-stretch.ts"
   },
   "dependencies": {
     "@scout/contracts": "workspace:*",

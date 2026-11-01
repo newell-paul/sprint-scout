@@ -25,6 +25,8 @@ export class SegmentEditor {
   readonly undoPointButton: Locator;
   readonly pointsToggle: Locator;
   readonly points: Locator;
+  readonly importInput: Locator;
+  readonly wholeTrackButton: Locator;
 
   constructor(private readonly page: Page) {
     this.region = page.locator(".segment-editor");
@@ -53,6 +55,15 @@ export class SegmentEditor {
     this.undoPointButton = page.getByRole("button", { name: "Undo point" });
     this.pointsToggle = page.getByText("Ordered route points", { exact: true });
     this.points = this.region.locator("ol li");
+    this.importInput = this.bar.getByLabel("From GPX");
+    this.wholeTrackButton = this.bar.getByRole("button", {
+      name: "Use whole track",
+    });
+  }
+
+  /** Chooses one or more fixtures from e2e/data by name in the drawing bar. */
+  async importRide(...names: string[]) {
+    await this.importInput.setInputFiles(names.map((name) => `e2e/data/${name}.gpx`));
   }
 
   pointCount(count: number) {

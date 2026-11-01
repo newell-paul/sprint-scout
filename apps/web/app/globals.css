@@ -765,6 +765,40 @@ hr {
   display: flex;
   gap: 8px;
 }
+.drawing-import {
+  position: relative;
+  display: inline-flex;
+}
+.drawing-import input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.drawing-import input:disabled {
+  cursor: not-allowed;
+}
+.drawing-import .button-like {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border, #b6c8c5);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface, #fff);
+  font-weight: 500;
+}
+.drawing-import:hover .button-like {
+  border-color: var(--teal, #00796d);
+}
+.drawing-import .button-like[aria-disabled="true"] {
+  opacity: 0.7;
+}
+.drawing-import:focus-within .button-like {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 .route-end-label {
   background: #e2e8f0;
   color: var(--bg);

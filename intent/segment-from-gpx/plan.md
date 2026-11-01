@@ -5,12 +5,13 @@
 - `packages/analysis/src/track-stretch.ts` (new): `nearestTrackIndex`, `trackStretch`.
 - `packages/analysis/src/track-stretch.test.ts`, `track-stretch.property.test.ts` (new): unit and property tests.
 - `packages/analysis/package.json`: export `./track-stretch`.
-- `apps/web/app/routes/route-drawer.tsx`: ride state, "From GPX" control, ride overlay layer, one point-adding path shared by taps and typed coordinates, Undo, Cancel and Escape handling.
+- `apps/web/app/routes/route-drawer.tsx`: ride state and the queue of pre-cut files, "From GPX" (multiple) and "Use whole track", ride overlay layer, one point-adding path shared by taps and typed coordinates, Save opening the next queued file, Undo, Cancel and Escape handling.
 - `apps/web/app/globals.css`: the file control in the drawing bar.
-- `e2e/pages/editor.ts`: `importRide`, the control locator.
+- `e2e/pages/editor.ts`: `importRide`, the control and whole-track locators.
+- `e2e/data/make-gpx.ts`: a run-up parameter and two pre-cut fixtures; existing fixtures regenerate unchanged.
 - `e2e/segment-from-gpx.spec.ts` (new).
 - `docs/design.md`, `docs/integration-decisions.md`, `README.md`.
-- `intent/segment-from-gpx/intent.md`: status.
+- `intent/segment-from-gpx/intent.md`, `spec.md`, `plan.md`: status, and the widened scope (several files, Use whole track).
 
 ## Order
 
