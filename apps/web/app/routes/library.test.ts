@@ -138,6 +138,12 @@ describe("independent route storage", () => {
       expect(read).toEqual(route);
     }
   });
+  it("drops targets left from before targets were removed, whatever they hold", () => {
+    for (const targetTimeS of [90, null, 0, -1, 1.5, 86401, "90"]) {
+      const [read] = readLibrary(JSON.stringify([{ ...route, targetTimeS }]));
+      expect(read).toEqual(route);
+    }
+  });
 });
 describe("newId", () => {
   const uuid =

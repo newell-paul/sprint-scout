@@ -138,25 +138,6 @@ it("sheltered: names the assumption and the exposed comparison", async () => {
   await aria("ride-cockpit.sheltered", region);
 });
 
-it("target: compares the estimate with the goal", async () => {
-  const hour = anHour();
-  const screen = await render(
-    <RideCockpit
-      effect={anEffect(hour)}
-      hour={hour}
-      unit="km/h"
-      description={describe(hour)}
-      targetTimeS={90}
-    />,
-  );
-  const region = screen.getByRole("region", instruments);
-  await expect.element(region.getByText("Target 1m 30s")).toBeVisible();
-  await expect
-    .element(region.getByText(/not a success probability/))
-    .toBeVisible();
-  await aria("ride-cockpit.target", region);
-});
-
 it("mph: readouts follow the unit", async () => {
   const hour = anHour();
   const effect = anEffect(hour)!;

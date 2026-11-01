@@ -14,9 +14,9 @@
           - columnheader "48 hours"
           - columnheader "Open"
       - rowgroup:
-        - row "– River flat Dense · assumed shelter Target comparison unavailable Weather service unavailable. Try again. – No data Open":
+        - row "– River flat Dense · assumed shelter Weather service unavailable. Try again. – No data Open":
           - cell "–"
-          - rowheader "River flat Dense · assumed shelter Target comparison unavailable"
+          - rowheader "River flat Dense · assumed shelter"
           - cell "Weather service unavailable. Try again."
           - cell "–"
           - cell "No data"

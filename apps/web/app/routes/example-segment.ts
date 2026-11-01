@@ -41,7 +41,6 @@ export function exampleRoute(input: {
     confirmed: true,
     createdAt: input.createdAt,
     slot: input.slot,
-    targetTimeS: null,
     shelter: "exposed",
   };
 }

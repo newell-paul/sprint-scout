@@ -9,7 +9,6 @@ import {
   type SpeedUnit,
 } from "./speed";
 import { formatDuration, formatTimeDifference } from "./time";
-import { targetDifference } from "../routes/attempt";
 import { shelterPresets } from "@scout/application/shelter";
 
 function dialPoint(fraction: number, radius: number) {
@@ -26,14 +25,12 @@ export default function RideCockpit({
   unit,
   description,
   calmSpeedMps = 40 / 3.6,
-  targetTimeS = null,
 }: {
   effect: RouteRideEffect | null;
   hour: RouteWindHour;
   unit: SpeedUnit;
   description: string;
   calmSpeedMps?: number;
-  targetTimeS?: number | null;
 }) {
   const maximum = Math.max(
     80,
@@ -270,17 +267,6 @@ export default function RideCockpit({
             </span>
           )}
         </p>
-        {targetTimeS !== null && (
-          <div className="target-comparison" data-testid="target-comparison">
-            <span>Target {formatDuration(targetTimeS)}</span>
-            <strong>
-              {targetDifference(effect?.windTimeS ?? null, targetTimeS)}
-            </strong>
-            <small>
-              Compare with the estimated range; not a success probability.
-            </small>
-          </div>
-        )}
       </div>
     </section>
   );

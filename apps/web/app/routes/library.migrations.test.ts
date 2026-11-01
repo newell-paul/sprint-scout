@@ -11,9 +11,10 @@ describe("saved library migrations", () => {
       ["bend", 3],
     ]);
   });
-  it("drops terrain, mode and auto flags but keeps shelter and target", () => {
+  it("drops terrain, mode, auto flags and target but keeps shelter", () => {
     const [route] = readLibrary(storageFixtures.terrainMismatch);
-    expect(route).toMatchObject({ shelter: "sheltered", targetTimeS: 90 });
+    expect(route).toMatchObject({ shelter: "sheltered" });
+    expect(route).not.toHaveProperty("targetTimeS");
     expect(route).not.toHaveProperty("terrain");
     expect(route).not.toHaveProperty("terrainMode");
     expect(route).not.toHaveProperty("terrainAuto");
