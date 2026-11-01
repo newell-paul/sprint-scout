@@ -5,7 +5,6 @@ import { formatDuration, formatWeekdayHour } from "../components/time";
 import { getRouteForecast } from "./forecast-cache";
 import type { DrawnRoute, Point } from "./library";
 import { shelterPresets } from "@scout/application/shelter";
-import { targetDifference } from "./attempt";
 import {
   nextExpiry,
   rankOpportunities,
@@ -84,7 +83,7 @@ export default function OpportunityBoard({
     forceNext.current = true;
     setGeneration((g) => g + 1);
   }, []);
-  // Keyed by content: saving a target or shelter makes a new routes array but
+  // Keyed by content: saving a shelter makes a new routes array but
   // must not refetch the board.
   const targetsKey = JSON.stringify(
     routes.map((route) => ({
@@ -238,11 +237,6 @@ export default function OpportunityBoard({
                       <small className="board-target">
                         {shelterPresets[row.route.shelter].label} · assumed
                         shelter
-                      </small>
-                    )}
-                    {row.route.targetTimeS != null && (
-                      <small className="board-target">
-                        {targetDifference(row.bestTimeS, row.route.targetTimeS)}
                       </small>
                     )}
                   </th>

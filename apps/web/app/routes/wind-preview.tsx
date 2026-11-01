@@ -19,7 +19,6 @@ import {
 import { getRouteForecast, peekRouteForecast } from "./forecast-cache";
 import type { DrawnRoute } from "./library";
 import RiderSettings from "./rider-settings";
-import TargetSettings from "./target-settings";
 import ShelterSettings from "./shelter-settings";
 import ElevationSection from "./elevation-section";
 import type { Shelter } from "@scout/application/shelter";
@@ -39,7 +38,6 @@ export default function WindPreview({
   onDaylightDryChange,
   requestedAt = null,
   requestSeq = 0,
-  onTargetChange,
   onShelterChange,
 }: {
   route: DrawnRoute;
@@ -55,7 +53,6 @@ export default function WindPreview({
   requestedAt?: string | null;
   /** Changes on every request, so asking for the same hour again still moves to it. */
   requestSeq?: number;
-  onTargetChange: (target: number | null) => boolean;
   onShelterChange: (shelter: Shelter) => boolean;
 }) {
   const [forecast, setForecast] = useState<RouteWindForecast | null>(() =>
@@ -333,7 +330,6 @@ export default function WindPreview({
             unit={unit}
             description={windDescription}
             calmSpeedMps={calmSpeedMps}
-            targetTimeS={route.targetTimeS ?? null}
           />
           <ConditionsDetail
             hour={forecast.hours[index]!}
@@ -382,10 +378,6 @@ export default function WindPreview({
       <ShelterSettings
         value={route.shelter ?? "exposed"}
         onChange={onShelterChange}
-      />
-      <TargetSettings
-        target={route.targetTimeS ?? null}
-        onChange={onTargetChange}
       />
       {route.heightsM && (
         <ElevationSection

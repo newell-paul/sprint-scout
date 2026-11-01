@@ -7,7 +7,6 @@ export type DrawnRoute = {
   confirmed: true;
   createdAt: string;
   slot: number;
-  targetTimeS?: number | null;
   shelter?: Shelter;
   /** Heights from the rider's GPX file, one per point; display only. */
   heightsM?: number[];
@@ -70,10 +69,6 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
       const v = r as Partial<DrawnRoute>;
       return (
         (v.shelter === undefined || isShelter(v.shelter)) &&
-        (v.targetTimeS == null ||
-          (Number.isInteger(v.targetTimeS) &&
-            v.targetTimeS > 0 &&
-            v.targetTimeS <= 86400)) &&
         (v.slot === undefined ||
           (Number.isSafeInteger(v.slot) &&
             (v.slot as number) >= 0 &&
@@ -101,14 +96,15 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
     );
   if (new Set(data.map((r) => (r as DrawnRoute).id)).size !== data.length)
     throw new Error("Duplicate route IDs.");
-  // Terrain and efforts were removed on 1 November 2026; their fields are
-  // dropped whatever they hold.
+  // Terrain, efforts and targets were removed on 1 November 2026; their
+  // fields are dropped whatever they hold.
   const routes = data as (Omit<DrawnRoute, "slot"> & {
     slot?: number;
     terrain?: unknown;
     terrainMode?: unknown;
     terrainAuto?: unknown;
     efforts?: unknown;
+    targetTimeS?: unknown;
   })[];
   const taken = new Set(
     routes.flatMap((r) => (r.slot === undefined ? [] : [r.slot])),
@@ -122,6 +118,7 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
     delete r.terrainMode;
     delete r.terrainAuto;
     delete r.efforts;
+    delete r.targetTimeS;
     if (r.heightsM !== undefined && !validHeights(r.heightsM, r.points))
       delete r.heightsM;
     if (r.slot !== undefined) return r as DrawnRoute;

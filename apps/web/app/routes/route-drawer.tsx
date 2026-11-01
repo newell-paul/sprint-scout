@@ -614,7 +614,6 @@ export default function Routes() {
       confirmed: true,
       createdAt: editing?.createdAt ?? new Date().toISOString(),
       slot,
-      targetTimeS: editing?.targetTimeS ?? null,
       shelter: editing?.shelter ?? "exposed",
       ...(cut && sameCut(cut, points) && { heightsM: [...cut.heightsM] }),
     };
@@ -867,9 +866,6 @@ export default function Routes() {
           requestedAt={request?.at ?? null}
           requestSeq={request?.seq ?? 0}
           onShelterChange={(shelter) => updateRoute(selectedRoute, { shelter })}
-          onTargetChange={(targetTimeS) =>
-            updateRoute(selectedRoute, { targetTimeS })
-          }
         />
       )}
       {selectedRoute && (

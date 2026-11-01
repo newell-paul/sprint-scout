@@ -28,7 +28,6 @@ const props = () => ({
   onRiderChange: vi.fn(),
   daylightDryOnly: false,
   onDaylightDryChange: vi.fn(),
-  onTargetChange: vi.fn(() => true),
   onShelterChange: vi.fn(() => true),
 });
 const fresh = () => aRoute({ points: uniquePoints() });
@@ -246,15 +245,12 @@ it("conditions: sustained wind, gusts and precipitation for the hour", async () 
   await expect.element(conditions).toHaveTextContent("0.0 mm · 20% chance");
 });
 
-it("conditions without data: unavailable, and so is the target comparison", async () => {
+it("conditions without data: unavailable", async () => {
   openMeteo.hours = {
     3: { speed: null, gust: null, precipitation: null, probability: null },
   };
   const screen = await render(
-    <WindPreview
-      route={aRoute({ points: uniquePoints(), targetTimeS: 90 })}
-      {...props()}
-    />,
+    <WindPreview route={aRoute({ points: uniquePoints() })} {...props()} />,
   );
   const region = screen.getByRole("region", console);
 
@@ -263,9 +259,6 @@ it("conditions without data: unavailable, and so is the target comparison", asyn
   await expect
     .element(region.getByRole("region", { name: "Attempt conditions" }))
     .toHaveTextContent("Unavailable");
-  await expect
-    .element(region.getByTestId("target-comparison"))
-    .toHaveTextContent("comparison unavailable");
 });
 
 it("mph: the conditions convert", async () => {
@@ -415,47 +408,6 @@ it("empty body: the forecast is reported and no timeline shows", async () => {
   await expect
     .element(region.getByRole("slider", { name: "Forecast hour" }))
     .not.toBeInTheDocument();
-});
-
-it("target during an outage: a typed time can still be saved", async () => {
-  openMeteo.faults.weather = "outage";
-  const route = fresh();
-  const onTargetChange = vi.fn(() => true);
-  const screen = await render(
-    <WindPreview route={route} {...props()} onTargetChange={onTargetChange} />,
-  );
-  const region = screen.getByRole("region", console);
-  await expect.element(region.getByRole("alert")).toBeVisible();
-
-  await region.getByLabelText("Target time (minutes:seconds)").fill("1:45");
-  await region.getByRole("button", { name: "Save target" }).click();
-  await screen.rerender(
-    <WindPreview
-      route={{ ...route, targetTimeS: 105 }}
-      {...props()}
-      onTargetChange={onTargetChange}
-    />,
-  );
-
-  expect(onTargetChange).toHaveBeenCalledWith(105);
-  await expect
-    .element(region.getByRole("heading", { name: "Segment target · 1m 45s" }))
-    .toBeVisible();
-});
-
-it("target: a time typed before the forecast lands is kept when it arrives", async () => {
-  openMeteo.faults.weather = "outage";
-  const screen = await render(<WindPreview route={fresh()} {...props()} />);
-  const region = screen.getByRole("region", console);
-  await expect.element(region.getByRole("alert")).toBeVisible();
-  const field = region.getByLabelText("Target time (minutes:seconds)");
-  await field.fill("1:30");
-  openMeteo.faults.weather = "ok";
-  await region.getByRole("button", { name: "Try again" }).click();
-  await expect
-    .element(region.getByRole("group", { name: "Forecast navigation" }))
-    .toBeVisible();
-  await expect.element(field).toHaveValue("1:30");
 });
 
 // Only getContainer is used once the map is ready; MapLibre itself is covered by e2e.

@@ -29,10 +29,11 @@ const route = fc.record(
     points,
     confirmed: fc.constant(true as const),
     createdAt: fc.constant("2026-09-10T08:00:00Z"),
+    // Fields from before terrain and targets were removed; any value must be
+    // dropped.
     targetTimeS: optional(
-      fc.oneof(fc.constant(null), fc.integer({ min: 1, max: 86400 })),
+      fc.oneof(fc.constant(null), fc.integer(), fc.double(), fc.string()),
     ),
-    // Fields from before terrain was removed; any value must be dropped.
     terrain: optional(fc.oneof(fc.constant(null), fc.integer(), fc.object())),
     terrainMode: optional(fc.oneof(fc.string(), fc.boolean())),
     terrainAuto: optional(
@@ -89,7 +90,12 @@ describe("saved library invariants", () => {
         expect(strip(twice)).toEqual(strip(once));
         expect(new Set(once.map((r) => r.slot)).size).toBe(once.length);
         expect(once.map((r) => r.id)).toEqual(routes.map((r) => r.id));
-        for (const key of ["terrain", "terrainMode", "terrainAuto"])
+        for (const key of [
+          "terrain",
+          "terrainMode",
+          "terrainAuto",
+          "targetTimeS",
+        ])
           expect(once.some((r) => key in r)).toBe(false);
       }),
       runs,

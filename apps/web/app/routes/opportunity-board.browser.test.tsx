@@ -21,7 +21,6 @@ const routes = () => [
     slot: 1,
     points: uniquePoints(),
     shelter: "dense",
-    targetTimeS: 90,
   }),
 ];
 const props = () => ({
@@ -149,7 +148,10 @@ it("refresh: a later settings save neither refetches nor bypasses the cache", as
 
   await screen.rerender(
     <OpportunityBoard
-      routes={initial.map((route) => ({ ...route, targetTimeS: 120 }))}
+      routes={initial.map((route) => ({
+        ...route,
+        shelter: "sheltered" as const,
+      }))}
       {...props()}
     />,
   );

@@ -1,34 +1,5 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
-.attempt-settings form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: end;
-  margin-top: 0.75rem;
-}
-.target-settings {
-  padding: 12px;
-  background: var(--panel-bg);
-  border: var(--panel-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--panel-shadow);
-}
-.target-settings h3 {
-  margin: 0;
-  font-size: var(--type-body, 0.875rem);
-}
-.target-settings form {
-  margin: 8px 0;
-  gap: 8px;
-}
-.target-settings small {
-  color: var(--muted);
-  font-size: var(--type-caption, 0.8125rem);
-}
-.target-settings input {
-  width: 8rem;
-}
 .elevation-section {
   order: 2;
   padding: 14px;
@@ -158,21 +129,7 @@
   display: block;
   margin-top: 6px;
 }
-.target-settings.attempt-settings label {
-  width: auto;
-}
-.attempt-settings label {
-  display: grid;
-  gap: 0.35rem;
-  min-width: 0;
-}
-.attempt-settings input {
-  max-width: 100%;
-  min-height: 44px;
-}
-.attempt-settings p,
 .conditions-detail small,
-.target-comparison small,
 .board-target {
   color: var(--muted);
   font-size: var(--type-caption, 0.8125rem);
@@ -196,14 +153,6 @@
   font-size: var(--type-body, 0.875rem);
   font-variant-numeric: tabular-nums;
 }
-.target-comparison {
-  display: grid;
-  gap: 0.35rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border);
-  font-size: var(--type-body, 0.875rem);
-}
 .board-target {
   display: block;
   font-weight: normal;
@@ -211,9 +160,6 @@
 @media (max-width: 600px) {
   .conditions-detail dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .attempt-settings label {
-    width: 100%;
   }
 }
 :root {
@@ -1438,10 +1384,6 @@ hr {
   flex-basis: 100%;
   margin: 0;
 }
-.cockpit-facts .target-comparison {
-  flex-basis: 100%;
-  margin-top: 0;
-}
 .instrument-note {
   color: var(--muted);
   font-size: 11px;
@@ -1703,9 +1645,6 @@ hr {
   .forecast-timeline {
     order: 1;
     padding: 12px;
-  }
-  .forecast-console > .target-settings {
-    order: 2;
   }
   .ride-cockpit {
     order: 1;
@@ -2104,19 +2043,13 @@ hr {
   accent-color: var(--data);
 }
 .segment-screen
-  :is(
-    .target-settings,
-    .shelter-settings,
-    .elevation-section,
-    .opportunity-board
-  )
+  :is(.shelter-settings, .elevation-section, .opportunity-board)
   h3 {
   font-size: var(--type-heading);
   font-weight: 600;
 }
 .segment-screen
   :is(
-    .target-settings,
     .shelter-settings,
     .elevation-section,
     .rider-settings,

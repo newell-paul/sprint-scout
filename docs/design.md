@@ -829,3 +829,7 @@ A segment cut from a GPX ride now keeps the heights the file recorded, and the s
 ## Spaced arrows on the segment line — 1 November 2026
 
 The map no longer draws a dot on every point and an arrow in the middle of every gap between points, which buried segments cut from GPX rides (Bridge to bridge up has about 90 points). The direction chevron is now placed by MapLibre along the line (`symbol-placement: line`, one every 80 screen pixels, turned 90° from north to follow the line), so arrows stay evenly spaced at every zoom whatever the number of points. A saved, selected segment shows dots only at its start and finish; while drawing or redrawing, every point keeps its dot so the rider sees each click. `routeFeatures` in `apps/web/app/routes/route-features.ts` builds the route source and is unit tested. Display only: stored points, heights and estimates are unchanged. See `intent/spaced-arrows/`.
+
+## Segment target removed — 1 November 2026
+
+The per-segment target time is gone: the "Segment target time" section, the cockpit's target comparison and the board's target line. The estimate is the reference rider on a flat road, so comparing it with a rider's real best time was shaky, the same reason efforts were removed. The opportunity board stays. `readLibrary` drops `targetTimeS` whatever it holds, as it does for terrain and efforts, so a library whose stored target was out of range, which used to fail to load, now loads. The independent-source confirmation, shelter and heights are unchanged. See `intent/remove-target/`.
