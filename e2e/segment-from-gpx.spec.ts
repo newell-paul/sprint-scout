@@ -19,7 +19,7 @@ test(
 
     await expect(planner.status).toContainText("taken from northbound-two-laps.gpx, 102 points.");
     await expect(editor.pointCount(102)).toBeVisible();
-    expect(openMeteo.calls).toEqual({ weather: 0, archive: 0 });
+    expect(openMeteo.calls).toEqual({ weather: 0 });
 
     await editor.name("Cut from a ride");
     await editor.confirmOwnership();

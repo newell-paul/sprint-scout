@@ -29,16 +29,6 @@
 .target-settings input {
   width: 8rem;
 }
-.efforts-panel {
-  order: 2;
-  background: var(--panel-bg);
-  border: var(--panel-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--panel-shadow);
-  padding: 14px;
-  min-width: 0;
-  font-size: var(--type-body, 0.875rem);
-}
 .shelter-settings {
   order: 2;
   padding: 14px;
@@ -132,26 +122,6 @@
 .shelter-settings button[aria-pressed="true"] span {
   color: var(--ink);
 }
-.efforts-heading,
-.efforts-modes {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.efforts-heading h3 {
-  margin: 0;
-  font-size: var(--type-body, 0.875rem);
-}
-.efforts-modes {
-  justify-content: flex-start;
-  margin-top: 12px;
-}
-.efforts-panel :is(p, small) {
-  color: var(--muted);
-  font-size: var(--type-caption, 0.8125rem);
-}
 .shelter-notes summary {
   color: var(--muted);
   font-size: var(--type-caption, 0.8125rem);
@@ -160,83 +130,6 @@
 .shelter-notes small {
   display: block;
   margin-top: 6px;
-}
-.efforts-consent {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  min-height: 44px;
-}
-.efforts-consent input {
-  flex: 0 0 auto;
-}
-.efforts-panel .table-scroll {
-  max-height: 220px;
-}
-.efforts-panel table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
-}
-.efforts-panel th,
-.efforts-panel td {
-  text-align: left;
-  padding: 6px 10px 6px 0;
-  border-top: 1px solid var(--soft);
-  vertical-align: middle;
-  font-size: var(--type-caption, 0.8125rem);
-}
-.efforts-panel thead th {
-  border-top: 0;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 500;
-}
-.efforts-panel th[scope="row"] {
-  font-weight: 500;
-}
-.efforts-panel th[scope="row"] small {
-  display: block;
-}
-.efforts-panel tr[aria-current="true"] td:nth-child(2) {
-  color: var(--gain);
-  font-weight: 700;
-}
-.efforts-import {
-  position: relative;
-  display: inline-flex;
-}
-.efforts-import input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-  width: 100%;
-}
-.efforts-import input:disabled {
-  cursor: not-allowed;
-}
-.efforts-import .button-like[aria-disabled="true"] {
-  opacity: 0.5;
-}
-.efforts-import:focus-within .button-like {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-.efforts-import .button-like {
-  display: inline-block;
-  padding: 8px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ink);
-  font: inherit;
-  font-size: var(--type-caption, 0.8125rem);
-  min-height: 44px;
-  line-height: 26px;
 }
 .target-settings.attempt-settings label {
   width: auto;
@@ -2184,7 +2077,7 @@ hr {
   accent-color: var(--data);
 }
 .segment-screen
-  :is(.target-settings, .shelter-settings, .efforts-panel, .opportunity-board)
+  :is(.target-settings, .shelter-settings, .opportunity-board)
   h3 {
   font-size: var(--type-heading);
   font-weight: 600;
@@ -2193,7 +2086,6 @@ hr {
   :is(
     .target-settings,
     .shelter-settings,
-    .efforts-panel,
     .rider-settings,
     .opportunity-board
   ) {

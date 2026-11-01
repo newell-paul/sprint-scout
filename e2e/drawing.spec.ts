@@ -264,7 +264,10 @@ test.describe("with the forecast unavailable", () => {
     await expect(planner.library.heading).toContainText("Updated ride");
   });
 
-  test("renaming keeps the segment's target, shelter and efforts", async ({ planner, seed }) => {
+  test("renaming keeps target and shelter and drops efforts from before they were removed", async ({
+    planner,
+    seed,
+  }) => {
     const effort = {
       id: "e1",
       startedAt: "2026-09-01T07:00:00.000Z",
@@ -286,7 +289,8 @@ test.describe("with the forecast unavailable", () => {
 
     await expect(planner.library.heading).toContainText("Updated ride");
     const [stored] = JSON.parse((await planner.storedRoutes())!);
-    expect(stored).toMatchObject({ name: "Updated ride", targetTimeS: 90, shelter: "dense", efforts: [effort] });
+    expect(stored).toMatchObject({ name: "Updated ride", targetTimeS: 90, shelter: "dense" });
+    expect(stored).not.toHaveProperty("efforts");
   });
 
   test("delete empties the slot", async ({ planner, seed }) => {

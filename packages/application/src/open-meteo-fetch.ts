@@ -10,9 +10,9 @@ export async function fetchOpenMeteo(
     signal,
     fetcher,
   }: {
-    /** Names the service in errors: "Weather service", "Weather archive". */
+    /** Names the service in errors: "Weather service". */
     service: string;
-    /** Names the response in errors: "Weather", "Archive". */
+    /** Names the response in errors: "Weather". */
     body: string;
     maxBytes: number;
     signal: AbortSignal;

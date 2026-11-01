@@ -5,8 +5,7 @@
   "exports": {
     "./route-wind": "./src/route-wind.ts",
     "./shelter": "./src/shelter.ts",
-    "./gpx": "./src/gpx.ts",
-    "./archive-wind": "./src/archive-wind.ts"
+    "./gpx": "./src/gpx.ts"
   },
   "dependencies": {
     "@scout/analysis": "workspace:*",

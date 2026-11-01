@@ -1,6 +1,6 @@
 # Personal Segment & Wind Planner — Implementation Plan
 
-Status: milestones 0–4 complete; milestone 5 (MCP host) withdrawn 22 September 2026; milestone 6 delivered as the browser-only independent-route slice with GPX efforts and archive wind; Strava integration blocked; the synthetic demo, its API and database removed 24 October 2026. Open checklist items below are marked done or dropped as of 9 October 2026.
+Status: milestones 0–4 complete; milestone 5 (MCP host) withdrawn 22 September 2026; milestone 6 delivered as the browser-only independent-route slice with GPX efforts and archive wind (efforts and archive wind removed 1 November 2026); Strava integration blocked; the synthetic demo, its API and database removed 24 October 2026. Open checklist items below are marked done or dropped as of 9 October 2026.
 Prepared: 7 September 2026.
 Specification: [design.md](design.md).
 
@@ -144,7 +144,7 @@ Dependencies: explicit source-specific milestone 0 approval. Skip blocked provid
 - [x] Dropped (Strava worker blocked, 22 September 2026): If permitted, add relevant webhook verification/handling and deletion events.
 - [x] Dropped (Strava worker blocked, 22 September 2026): Implement disconnect and deletion across source records, derivatives, caches and pending jobs.
 - [x] Dropped (Strava worker blocked, 22 September 2026): Prevent stale in-flight work from restoring deleted data using connection-generation checks.
-- [x] Done (efforts panel shows the best recorded time and the sample count): Display the observed-history best, sample count and coverage without claiming lifetime completeness.
+- [x] Done, then removed 1 November 2026 (efforts panel showed the best recorded time and the sample count): Display the observed-history best, sample count and coverage without claiming lifetime completeness.
 
 Acceptance: real data is accessed only through the documented allowed path; unsupported capabilities return an explicit reason. Revocation, refresh races, rate limits, duplicate events and deletion are tested. No restricted data enters model context, logs, fixtures or persistent stores.
 

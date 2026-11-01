@@ -1,6 +1,6 @@
 # Remove efforts and past wind
 
-Status: accepted
+Status: done
 Opened: 1 November 2026 by Paul Newell
 
 ## Problem

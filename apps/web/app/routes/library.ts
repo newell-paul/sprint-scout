@@ -1,29 +1,5 @@
 export type Point = [number, number];
 import { isShelter, type Shelter } from "@scout/application/shelter";
-export type EffortWind = {
-  speedMps: number | null;
-  fromDegrees: number | null;
-  gustMps: number | null;
-  precipitationMm: number | null;
-  retrievedAt: string;
-  source: "open-meteo-archive";
-};
-export type RouteEffort = {
-  id: string;
-  startedAt: string;
-  elapsedSeconds: number;
-  source: "gpx";
-  fileName: string;
-  geometryKey: string;
-  maxDeviationM: number;
-  sampleGapSeconds: number;
-  importedAt: string;
-  wind?: EffortWind | null;
-};
-export const effortLimits = { perRoute: 200 } as const;
-/** Wind never fetched, or fetched with no usable hour: both stay retryable. */
-export const needsWind = (effort: Pick<RouteEffort, "wind">) =>
-  !effort.wind || effort.wind.speedMps === null;
 export type DrawnRoute = {
   id: string;
   name: string;
@@ -33,7 +9,6 @@ export type DrawnRoute = {
   slot: number;
   targetTimeS?: number | null;
   shelter?: Shelter;
-  efforts?: RouteEffort[];
 };
 export const storageKey = "sprint-scout.drawn-routes.v1";
 // Every key the planner writes starts with this prefix, so a wipe also covers
@@ -61,60 +36,6 @@ export function nextFreeSlot(routes: readonly Pick<DrawnRoute, "slot">[]) {
   while (taken.has(slot)) slot++;
   return slot;
 }
-// A time without a zone would be read in each device's own zone.
-const zonedInstant =
-  /^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:\d\d)$/;
-const validInstant = (value: unknown): value is string =>
-  typeof value === "string" &&
-  zonedInstant.test(value) &&
-  Number.isFinite(Date.parse(value));
-// Efforts are sorted and de-duplicated by string, so every time is read back
-// in one form.
-const utc = (value: string) => new Date(value).toISOString();
-function validWind(value: unknown): value is EffortWind {
-  if (!value || typeof value !== "object") return false;
-  const v = value as Partial<EffortWind>;
-  const bounded = (n: unknown, max: number) =>
-    n === null ||
-    (typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= max);
-  return (
-    v.source === "open-meteo-archive" &&
-    validInstant(v.retrievedAt) &&
-    bounded(v.speedMps, 150) &&
-    ((v.fromDegrees === null && !v.speedMps) ||
-      (typeof v.fromDegrees === "number" &&
-        v.fromDegrees >= 0 &&
-        v.fromDegrees < 360)) &&
-    bounded(v.gustMps, 150) &&
-    bounded(v.precipitationMm, 1000)
-  );
-}
-function validEffort(value: unknown): value is RouteEffort {
-  if (!value || typeof value !== "object") return false;
-  const v = value as Partial<RouteEffort>;
-  return (
-    (v.wind === undefined || v.wind === null || validWind(v.wind)) &&
-    typeof v.id === "string" &&
-    v.id.length > 0 &&
-    v.id.length <= 80 &&
-    validInstant(v.startedAt) &&
-    typeof v.elapsedSeconds === "number" &&
-    Number.isFinite(v.elapsedSeconds) &&
-    v.elapsedSeconds > 0 &&
-    v.elapsedSeconds <= 86400 &&
-    v.source === "gpx" &&
-    typeof v.fileName === "string" &&
-    v.fileName.length <= 200 &&
-    typeof v.geometryKey === "string" &&
-    typeof v.maxDeviationM === "number" &&
-    Number.isFinite(v.maxDeviationM) &&
-    v.maxDeviationM >= 0 &&
-    typeof v.sampleGapSeconds === "number" &&
-    Number.isFinite(v.sampleGapSeconds) &&
-    v.sampleGapSeconds >= 0 &&
-    validInstant(v.importedAt)
-  );
-}
 export function validPoint(value: unknown): value is Point {
   return (
     Array.isArray(value) &&
@@ -136,11 +57,6 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
       const v = r as Partial<DrawnRoute>;
       return (
         (v.shelter === undefined || isShelter(v.shelter)) &&
-        (v.efforts === undefined ||
-          (Array.isArray(v.efforts) &&
-            v.efforts.length <= effortLimits.perRoute &&
-            v.efforts.every(validEffort) &&
-            new Set(v.efforts.map((e) => e.id)).size === v.efforts.length)) &&
         (v.targetTimeS == null ||
           (Number.isInteger(v.targetTimeS) &&
             v.targetTimeS > 0 &&
@@ -172,12 +88,14 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
     );
   if (new Set(data.map((r) => (r as DrawnRoute).id)).size !== data.length)
     throw new Error("Duplicate route IDs.");
-  // Terrain was removed on 1 November 2026; its fields are dropped whatever they hold.
+  // Terrain and efforts were removed on 1 November 2026; their fields are
+  // dropped whatever they hold.
   const routes = data as (Omit<DrawnRoute, "slot"> & {
     slot?: number;
     terrain?: unknown;
     terrainMode?: unknown;
     terrainAuto?: unknown;
+    efforts?: unknown;
   })[];
   const taken = new Set(
     routes.flatMap((r) => (r.slot === undefined ? [] : [r.slot])),
@@ -190,26 +108,10 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
     delete r.terrain;
     delete r.terrainMode;
     delete r.terrainAuto;
-    // Efforts belong to the geometry they were matched against.
-    const key = JSON.stringify(r.points);
-    const efforts =
-      r.efforts === undefined
-        ? {}
-        : {
-            efforts: r.efforts
-              .filter((e) => e.geometryKey === key)
-              .map((e) => ({
-                ...e,
-                startedAt: utc(e.startedAt),
-                importedAt: utc(e.importedAt),
-                ...(e.wind && {
-                  wind: { ...e.wind, retrievedAt: utc(e.wind.retrievedAt) },
-                }),
-              })),
-          };
-    if (r.slot !== undefined) return { ...r, ...efforts } as DrawnRoute;
+    delete r.efforts;
+    if (r.slot !== undefined) return r as DrawnRoute;
     while (taken.has(next)) next++;
     taken.add(next);
-    return { ...r, ...efforts, slot: next };
+    return { ...r, slot: next };
   });
 }

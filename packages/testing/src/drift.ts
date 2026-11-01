@@ -1,17 +1,12 @@
 // Contract drift check, advisory in Checks: fetch live Open-Meteo responses
 // and validate them against the contract schemas and the recorded fixtures'
 // unit tables. Exits non-zero on any drift.
-import {
-  openMeteoArchiveResponse,
-  openMeteoForecastResponse,
-} from "@scout/contracts";
+import { openMeteoForecastResponse } from "@scout/contracts";
 import { openMeteoHosts, recorded } from "./open-meteo";
 
 const hourMs = 3_600_000;
 const start = Math.ceil(Date.now() / hourMs) * hourMs;
 const slice = (ms: number) => new Date(ms).toISOString().slice(0, 16);
-const day = (offset: number) =>
-  new Date(Date.now() - offset * 86_400_000).toISOString().slice(0, 10);
 
 const checks = [
   {
@@ -19,12 +14,6 @@ const checks = [
     url: `${openMeteoHosts.forecast}?latitude=51.5&longitude=-0.12&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,precipitation_probability,weather_code,is_day&wind_speed_unit=ms&timeformat=unixtime&timezone=GMT&start_hour=${slice(start)}&end_hour=${slice(start + 47 * hourMs)}`,
     schema: openMeteoForecastResponse,
     units: () => recorded().forecast.hourly_units,
-  },
-  {
-    name: "archive",
-    url: `${openMeteoHosts.archive}?latitude=51.5&longitude=-0.12&start_date=${day(9)}&end_date=${day(8)}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation&wind_speed_unit=ms&timeformat=unixtime&timezone=GMT`,
-    schema: openMeteoArchiveResponse,
-    units: () => recorded().archive.hourly_units,
   },
 ];
 

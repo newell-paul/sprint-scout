@@ -1,4 +1,4 @@
-// Regenerates the GPX fixtures used by e2e/efforts.spec.ts. Deterministic:
+// Regenerates the GPX fixtures used by e2e/segment-from-gpx.spec.ts. Deterministic:
 // pnpm exec tsx e2e/data/make-gpx.ts
 import { writeFileSync } from "node:fs";
 

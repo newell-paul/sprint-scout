@@ -17,12 +17,11 @@ import {
   type SpeedUnit,
 } from "../components/speed";
 import { getRouteForecast, peekRouteForecast } from "./forecast-cache";
-import type { DrawnRoute, RouteEffort } from "./library";
+import type { DrawnRoute } from "./library";
 import RiderSettings from "./rider-settings";
 import TargetSettings from "./target-settings";
 import ShelterSettings from "./shelter-settings";
 import type { Shelter } from "@scout/application/shelter";
-import EffortsPanel from "./efforts-panel";
 import ConditionsDetail from "./conditions-detail";
 import { startWindParticles } from "./wind-particles";
 import { routeEffect } from "./route-effect";
@@ -41,7 +40,6 @@ export default function WindPreview({
   requestSeq = 0,
   onTargetChange,
   onShelterChange,
-  onEffortsChange,
 }: {
   route: DrawnRoute;
   map: RouteMap | null;
@@ -58,7 +56,6 @@ export default function WindPreview({
   requestSeq?: number;
   onTargetChange: (target: number | null) => boolean;
   onShelterChange: (shelter: Shelter) => boolean;
-  onEffortsChange: (efforts: RouteEffort[]) => boolean;
 }) {
   const [forecast, setForecast] = useState<RouteWindForecast | null>(() =>
     peekRouteForecast(route.points[0]!),
@@ -388,12 +385,6 @@ export default function WindPreview({
       <TargetSettings
         target={route.targetTimeS ?? null}
         onChange={onTargetChange}
-      />
-      <EffortsPanel
-        route={route}
-        rider={rider}
-        unit={unit}
-        onChange={onEffortsChange}
       />
       <div className="wind-actions">
         <small role="status">

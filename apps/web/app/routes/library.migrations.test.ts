@@ -18,9 +18,10 @@ describe("saved library migrations", () => {
     expect(route).not.toHaveProperty("terrainMode");
     expect(route).not.toHaveProperty("terrainAuto");
   });
-  it("keeps efforts matched to the current geometry only", () => {
-    const [route] = readLibrary(storageFixtures.efforts);
-    expect(route?.efforts?.map((e) => e.id)).toEqual(["e-1"]);
+  it("drops efforts but keeps the segment", () => {
+    const routes = readLibrary(storageFixtures.efforts);
+    expect(routes).toHaveLength(JSON.parse(storageFixtures.efforts).length);
+    for (const route of routes) expect(route).not.toHaveProperty("efforts");
   });
   it("keeps unknown route fields on the first read", () => {
     for (const raw of Object.values(storageFixtures)) {

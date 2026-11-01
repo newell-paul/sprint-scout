@@ -1,7 +1,5 @@
 import { delay, http, HttpResponse } from "msw";
 import {
-  archiveBody,
-  archiveDatesFrom,
   defaultOpenMeteoConfig,
   forecastBody,
   openMeteoHosts,
@@ -29,23 +27,6 @@ export function openMeteoHandlers(
           return HttpResponse.json(
             forecastBody(config, startHourFrom(request.url)),
           );
-      }
-    }),
-    http.get(openMeteoHosts.archive, async ({ request }) => {
-      switch (config.faults.archive) {
-        case "timeout":
-          await delay("infinite");
-          return HttpResponse.error();
-        case "outage":
-          return new HttpResponse("unavailable", { status: 503 });
-        case "rateLimit":
-          return new HttpResponse("slow down", { status: 429 });
-        default: {
-          // Long enough for a test to act while the request is in flight.
-          if (config.faults.archive === "slow") await delay(300);
-          const { start, end } = archiveDatesFrom(request.url);
-          return HttpResponse.json(archiveBody(config, start, end));
-        }
       }
     }),
   ];

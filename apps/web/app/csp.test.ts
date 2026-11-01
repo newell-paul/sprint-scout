@@ -14,7 +14,6 @@ describe("content security policy", () => {
     expect(directive("connect-src")).toEqual([
       "'self'",
       "https://api.open-meteo.com",
-      "https://archive-api.open-meteo.com",
       "https://tile.openstreetmap.org",
     ]);
     expect(directive("img-src")).toEqual([

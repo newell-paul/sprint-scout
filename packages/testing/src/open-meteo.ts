@@ -1,21 +1,16 @@
 // One source of Open-Meteo test responses for every level: pure builders plus
 // recorded fixtures validated against the contract schemas.
 import {
-  openMeteoArchiveResponse,
   openMeteoForecastResponse,
-  type OpenMeteoArchiveResponse,
   type OpenMeteoForecastResponse,
 } from "@scout/contracts";
 import forecastFixture from "../fixtures/open-meteo/forecast.json" with { type: "json" };
-import archiveFixture from "../fixtures/open-meteo/archive.json" with { type: "json" };
 
 export const openMeteoHosts = {
   forecast: "https://api.open-meteo.com/v1/forecast",
-  archive: "https://archive-api.open-meteo.com/v1/archive",
 } as const;
 
 export type WeatherFault = "ok" | "outage" | "rateLimit" | "empty" | "timeout";
-export type ArchiveFault = "ok" | "outage" | "rateLimit" | "slow" | "timeout";
 export type HourOverride = Partial<{
   speed: number | null;
   direction: number | null;
@@ -28,19 +23,15 @@ export type HourOverride = Partial<{
 export type OpenMeteoConfig = {
   faults: {
     weather: WeatherFault;
-    archive: ArchiveFault;
   };
   wind: { speed: number; direction: number; gust: number | null };
-  /** Steady past wind returned by the archive endpoint. */
-  archive: { speed: number; direction: number };
   /** Per-hour overrides by slider index, applied over `wind`. */
   hours: Record<number, HourOverride>;
 };
 export function defaultOpenMeteoConfig(): OpenMeteoConfig {
   return {
-    faults: { weather: "ok", archive: "ok" },
+    faults: { weather: "ok" },
     wind: { speed: 4, direction: 180, gust: null },
-    archive: { speed: 5, direction: 200 },
     hours: {},
   };
 }
@@ -104,58 +95,16 @@ export function forecastBody(
   };
 }
 
-/** Archive body: unix times, whole UTC days from start_date to end_date inclusive. */
-export function archiveBody(
-  config: OpenMeteoConfig,
-  startDate: string,
-  endDate: string,
-): OpenMeteoArchiveResponse {
-  const first = Date.parse(`${startDate}T00:00:00Z`) / 1000;
-  const last = Date.parse(`${endDate}T00:00:00Z`) / 1000;
-  const length = Math.round((last - first) / 86_400 + 1) * 24;
-  const column = <T>(pick: (index: number) => T) =>
-    Array.from({ length }, (_, index) => pick(index));
-  return {
-    latitude: 51.5,
-    longitude: -0.12,
-    generationtime_ms: 0.1,
-    utc_offset_seconds: 0,
-    timezone: "GMT",
-    timezone_abbreviation: "GMT",
-    elevation: 1,
-    hourly_units: {
-      time: "unixtime",
-      wind_speed_10m: "m/s",
-      wind_direction_10m: "°",
-      wind_gusts_10m: "m/s",
-      precipitation: "mm",
-    },
-    hourly: {
-      time: column((index) => first + index * 3600),
-      wind_speed_10m: column(() => config.archive.speed),
-      wind_direction_10m: column(() => config.archive.direction),
-      wind_gusts_10m: column(() => config.archive.speed * 1.6),
-      precipitation: column(() => 0),
-    },
-  };
-}
-export const archiveDatesFrom = (url: string) => {
-  const params = new URL(url).searchParams;
-  return { start: params.get("start_date")!, end: params.get("end_date")! };
-};
-
 export const startHourFrom = (url: string) =>
   Date.parse(new URL(url).searchParams.get("start_hour")! + ":00Z") / 1000;
 
 export type Recorded = {
   forecast: OpenMeteoForecastResponse;
-  archive: OpenMeteoArchiveResponse;
 };
 /** Recorded live responses, parsed through the contract schemas on first use. */
 export function recorded(): Recorded {
   return {
     forecast: openMeteoForecastResponse.parse(forecastFixture),
-    archive: openMeteoArchiveResponse.parse(archiveFixture),
   };
 }
 /** The recorded forecast's first unix hour, so parsers can be given a matching clock. */
