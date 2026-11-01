@@ -79,6 +79,8 @@ User supplies approach duration and warm-up buffer. Calculate departure time as 
 
 ### Review personal performance
 
+Removed 1 November 2026 with the Your efforts panel ("Efforts and past wind removed"). The original journey, kept for the record:
+
 If permitted history exists, show effort dates, elapsed times, the best observed effort in the available dataset, sample size, and coverage. Otherwise display “Performance history unavailable”; weather analysis remains usable. Do not label a partial-history best time as a verified lifetime PR.
 
 ## 5. Visual design
@@ -833,3 +835,7 @@ The map no longer draws a dot on every point and an arrow in the middle of every
 ## Segment target removed — 1 November 2026
 
 The per-segment target time is gone: the "Segment target time" section, the cockpit's target comparison and the board's target line. The estimate is the reference rider on a flat road, so comparing it with a rider's real best time was shaky, the same reason efforts were removed. The opportunity board stays. `readLibrary` drops `targetTimeS` whatever it holds, as it does for terrain and efforts, so a library whose stored target was out of range, which used to fail to load, now loads. The independent-source confirmation, shelter and heights are unchanged. See `intent/remove-target/`.
+
+## First click only wakes the map — 1 November 2026
+
+On a new or redrawn segment, the click or tap that wakes the inactive map places nothing again; the next one places the start. This reverses the first-tap rule in "Add segment flow — 28 October 2026", after the owner found the start appearing where they had only clicked to use the map. `clickToActivate` reports the waking press once (`takeActivation()`), as it did before 28 October, and the drawer's map click handler skips it. A press on the zoom buttons wakes the map, so the next map click places a point. With a point drawn the map stays awake when the mouse leaves, so the waking click happens once per drawing. Saved segments still place nothing. See `intent/first-click-wakes/`.

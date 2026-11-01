@@ -1,6 +1,6 @@
 # Personal Segment & Wind Planner — Implementation Plan
 
-Status: milestones 0–4 complete; milestone 5 (MCP host) withdrawn 22 September 2026; milestone 6 delivered as the browser-only independent-route slice with GPX efforts and archive wind (efforts and archive wind removed 1 November 2026); Strava integration blocked; the synthetic demo, its API and database removed 24 October 2026. Open checklist items below are marked done or dropped as of 9 October 2026.
+Status: milestones 0–4 complete; milestone 5 (MCP host) withdrawn 22 September 2026; milestone 6 delivered as the browser-only independent-route slice with GPX efforts and archive wind (efforts, archive wind and segment targets removed 1 November 2026; segments cut from GPX rides with their recorded heights added the same day); Strava integration blocked; the synthetic demo, its API and database removed 24 October 2026. Open checklist items below are marked done or dropped as of 9 October 2026.
 Prepared: 7 September 2026.
 Specification: [design.md](design.md).
 
@@ -228,6 +228,8 @@ Validation: unit tests for rider derivation and bounds, condition bands and best
 
 ### Attempt-planning slice — 11 September 2026
 
+Segment targets were removed 1 November 2026; availability and compact conditions stay. See the last entry below.
+
 Owner authorized implementing segment targets, availability and compact conditions together within the existing independent-route slice. Targets use the validated browser library; availability applies to cockpit and board without changing unrestricted inspection; the existing weather adapter requests additional documented hourly conditions. Terrain-aware modelling was the next credibility investment (delivered in the following entry), with prerequisites and validation gates recorded in design.md, not a shipped personal-prediction feature. Milestone 5 host acceptance and remaining Milestone 6 work remain open.
 
 Acceptance checks: legacy-library compatibility; target save/reload/removal and unavailable comparison; inclusive/exclusive availability boundaries, overnight/DST and uncovered windows; consistent cockpit/board filtering; valid units, missing optional weather and crosswind geometry; desktop/mobile browser interaction without additional requests when changing filters or units.
@@ -264,4 +266,16 @@ Scope: `@scout/application/archive-wind` (bounded Open-Meteo archive loader with
 
 ### Terrain removed — 1 November 2026
 
-The owner removed terrain-aware modelling and the Open-Meteo elevation loader; every segment is modelled as a flat road. GPX heights are the planned replacement. See `docs/design.md` ("Terrain removed") and `intent/remove-terrain/`.
+The owner removed terrain-aware modelling and the Open-Meteo elevation loader; every segment is modelled as a flat road. GPX heights replaced it for display the same day (below). See `docs/design.md` ("Terrain removed") and `intent/remove-terrain/`.
+
+### Segments from GPX rides — 1 November 2026
+
+"From GPX" in the drawing bar cuts a segment out of a ride file: pick its start and finish on the ride, use the whole track, or import several files at once. The file is read in the browser and never sent. The Your efforts panel, effort matching and past wind were removed the same day, since the two GPX imports did different jobs. See `docs/design.md` and `intent/segment-from-gpx/`, `intent/remove-efforts/`.
+
+### Elevation profile from GPX heights — 1 November 2026
+
+A segment cut from a GPX file with heights keeps them and shows an Elevation section: a profile, start and finish heights and the net rise or fall, in metres or feet. Any edit to the points drops the heights. They are display only; estimates stay flat road. See `docs/design.md` and `intent/gpx-heights/`.
+
+### Segment target removed — 1 November 2026
+
+The per-segment target time, the cockpit's target comparison and the board's target line are gone; the opportunity board stays. Saved targets are dropped on load. See `docs/design.md` and `intent/remove-target/`.

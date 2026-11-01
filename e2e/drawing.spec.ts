@@ -2,13 +2,17 @@ import { aRoute, expect, test } from "./fixtures";
 
 const saved = { routes: [aRoute({ name: "Independent ride" })] };
 
-test("the click that hands a new segment's map control also places the start", async ({ planner }) => {
+test("the click that wakes a new segment's map places nothing; the next places the start", async ({ planner }) => {
   await planner.open();
   await expect(planner.map.region).toHaveAttribute("data-map-active", "false");
 
   await planner.map.clickAt(120, 120);
 
   await expect(planner.map.region).toHaveAttribute("data-map-active", "true");
+  await expect(planner.editor.pointCount(0)).toBeVisible();
+
+  await planner.map.clickAt(120, 120);
+
   await expect(planner.editor.pointCount(1)).toBeVisible();
   await expect(planner.editor.guidance).toHaveText("Now tap the finish. Lines go straight between points.");
 });
@@ -16,6 +20,7 @@ test("the click that hands a new segment's map control also places the start", a
 test("while a route is being drawn the map keeps control when the mouse leaves", async ({ planner }) => {
   await planner.open();
   await planner.map.waitUntilInteractive();
+  await planner.map.clickAt(120, 120);
   await planner.map.clickAt(120, 120);
   await expect(planner.editor.pointCount(1)).toBeVisible();
 
