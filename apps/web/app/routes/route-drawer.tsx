@@ -25,6 +25,7 @@ import type { RouteWindHour } from "@scout/application/route-wind";
 import type { RiderInput } from "@scout/analysis";
 import type { SpeedUnit } from "../components/speed";
 import VersionBadge from "./version-badge";
+import { routeFeatures } from "./route-features";
 import OpportunityBoard from "./opportunity-board";
 import {
   readRiderInput,
@@ -33,16 +34,7 @@ import {
   riderStorageValue,
 } from "./rider";
 
-function bearingDegrees(a: Point, b: Point) {
-  const toRad = Math.PI / 180;
-  const dLon = (b[0] - a[0]) * toRad;
-  const y = Math.sin(dLon) * Math.cos(b[1] * toRad);
-  const x =
-    Math.cos(a[1] * toRad) * Math.sin(b[1] * toRad) -
-    Math.sin(a[1] * toRad) * Math.cos(b[1] * toRad) * Math.cos(dLon);
-  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
-}
-// White chevron pointing north with a dark halo; rotated by leg bearing.
+// White chevron pointing north with a dark halo; turned 90° to follow the line.
 function directionArrow() {
   const size = 40;
   const canvas = document.createElement("canvas");
@@ -282,11 +274,13 @@ export default function Routes() {
             id: "route-arrows",
             type: "symbol",
             source: "route",
-            filter: ["==", ["get", "kind"], "arrow"],
+            filter: ["==", "$type", "LineString"],
             layout: {
+              "symbol-placement": "line",
+              "symbol-spacing": 80,
               "icon-image": "route-arrow",
               "icon-size": 0.7,
-              "icon-rotate": ["get", "bearing"],
+              "icon-rotate": 90,
               "icon-rotation-alignment": "map",
               "icon-allow-overlap": true,
               "icon-ignore-placement": true,
@@ -296,11 +290,7 @@ export default function Routes() {
             id: "route-points",
             type: "circle",
             source: "route",
-            filter: [
-              "all",
-              ["==", ["geometry-type"], "Point"],
-              ["!=", ["get", "kind"], "arrow"],
-            ],
+            filter: ["==", "$type", "Point"],
             paint: {
               "circle-color": "#f97316",
               "circle-radius": 6,
@@ -362,40 +352,8 @@ export default function Routes() {
   useEffect(() => {
     if (!ready) return;
     const source = map.current?.getSource("route") as GeoJSONSource | undefined;
-    source?.setData({
-      type: "FeatureCollection",
-      features: [
-        ...(visiblePoints.length > 1
-          ? [
-              {
-                type: "Feature" as const,
-                properties: {},
-                geometry: {
-                  type: "LineString" as const,
-                  coordinates: visiblePoints,
-                },
-              },
-            ]
-          : []),
-        ...visiblePoints.slice(1).map((p, i) => {
-          const a = visiblePoints[i]!;
-          return {
-            type: "Feature" as const,
-            properties: { kind: "arrow", bearing: bearingDegrees(a, p) },
-            geometry: {
-              type: "Point" as const,
-              coordinates: [(a[0] + p[0]) / 2, (a[1] + p[1]) / 2],
-            },
-          };
-        }),
-        ...visiblePoints.map((p) => ({
-          type: "Feature" as const,
-          properties: {},
-          geometry: { type: "Point" as const, coordinates: p },
-        })),
-      ],
-    });
-  }, [visiblePoints, ready]);
+    source?.setData(routeFeatures(visiblePoints, !!selectedRoute));
+  }, [visiblePoints, selectedRoute, ready]);
   useEffect(() => {
     const m = map.current;
     if (!ready || !m || m.getSource("streets")) return;
@@ -498,7 +456,7 @@ export default function Routes() {
       cancelled = true;
       markers.forEach((marker) => marker.remove());
     };
-  }, [visiblePoints, ready]);
+  }, [visiblePoints, selectedRoute, ready]);
   function persist(next: (current: DrawnRoute[]) => DrawnRoute[]) {
     try {
       const updated = next(readLibrary(localStorage.getItem(storageKey)));
