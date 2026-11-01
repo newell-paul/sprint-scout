@@ -9,6 +9,9 @@ test(
 
     await editor.importRide("northbound-two-laps");
     await expect(editor.guidance).toHaveText("Tap the ride where your segment starts.");
+    await expect(editor.saveReason).toHaveText(
+      "Tap the ride where your segment starts, or press Use whole track above the map.",
+    );
     await editor.useCoordinates();
     await editor.addPoint([-0.12, 51.5]);
     await expect(editor.guidance).toHaveText("Now tap where it finishes, further along the ride.");

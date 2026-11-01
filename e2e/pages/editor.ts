@@ -27,6 +27,7 @@ export class SegmentEditor {
   readonly points: Locator;
   readonly importInput: Locator;
   readonly wholeTrackButton: Locator;
+  readonly saveReason: Locator;
 
   constructor(private readonly page: Page) {
     this.region = page.locator(".segment-editor");
@@ -56,6 +57,7 @@ export class SegmentEditor {
     this.pointsToggle = page.getByText("Ordered route points", { exact: true });
     this.points = this.region.locator("ol li");
     this.importInput = this.bar.getByLabel("From GPX");
+    this.saveReason = page.locator("#save-reason");
     this.wholeTrackButton = this.bar.getByRole("button", {
       name: "Use whole track",
     });

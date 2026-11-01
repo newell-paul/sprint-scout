@@ -617,8 +617,11 @@ export default function Routes() {
     setQueue(rest);
     if (refusedNote) setMessage((m) => m + refusedNote);
   }
-  const saveReason =
-    points.length < 2
+  const saveReason = ride
+    ? ride.start === null
+      ? "Tap the ride where your segment starts, or press Use whole track above the map."
+      : "Tap the ride where your segment finishes."
+    : points.length < 2
       ? "Add at least two different points to save your segment."
       : !points.some((p) => p[0] !== points[0]?.[0] || p[1] !== points[0]?.[1])
         ? "Add a point at a different location to save your segment."

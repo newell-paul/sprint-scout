@@ -18,7 +18,7 @@ From the accepted intent of 1 November 2026.
   - A finish that snaps to a point at the start's position (no movement): the same message.
 - **Undo.** With a ride loaded and the start placed, Undo removes the start and keeps the ride. After the finish, Undo works as in a normal drawing.
 - **Cancel, Escape, tab switch.** These end ride picking and drop the ride. No Restore is offered for a ride with no stretch cut yet. After the finish, the draft discards and restores like any drawing.
-- **Saving.** Unchanged: name (default "Segment N"), the source confirmation, Save segment.
+- **Saving.** Unchanged: name (default "Segment N"), the source confirmation, Save segment. With a ride loaded, the hint under Save names the next step: "Tap the ride where your segment starts, or press Use whole track above the map." and then "Tap the ride where your segment finishes."
 - **Mobile.** The bar wraps as today; the control is a 44 px target like Undo and Cancel.
 
 ## Data and privacy
