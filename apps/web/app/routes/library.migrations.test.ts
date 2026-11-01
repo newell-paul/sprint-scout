@@ -11,15 +11,12 @@ describe("saved library migrations", () => {
       ["bend", 3],
     ]);
   });
-  it("nulls terrain recorded for a different geometry but keeps mode, auto and shelter", () => {
+  it("drops terrain, mode and auto flags but keeps shelter and target", () => {
     const [route] = readLibrary(storageFixtures.terrainMismatch);
-    expect(route).toMatchObject({
-      terrain: null,
-      terrainMode: "terrain",
-      terrainAuto: true,
-      shelter: "sheltered",
-      targetTimeS: 90,
-    });
+    expect(route).toMatchObject({ shelter: "sheltered", targetTimeS: 90 });
+    expect(route).not.toHaveProperty("terrain");
+    expect(route).not.toHaveProperty("terrainMode");
+    expect(route).not.toHaveProperty("terrainAuto");
   });
   it("keeps efforts matched to the current geometry only", () => {
     const [route] = readLibrary(storageFixtures.efforts);

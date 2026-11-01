@@ -7,7 +7,6 @@ import {
   type ForecastState,
 } from "./opportunities";
 import type { DrawnRoute } from "./library";
-import { sampleTerrain, type TerrainProfile } from "@scout/application/terrain";
 import { estimateRouteRideEffect } from "@scout/application/route-wind";
 const route = (id: string, name: string, points: DrawnRoute["points"]) =>
   ({
@@ -37,25 +36,12 @@ const forecast = (
   })),
 });
 describe("opportunity board ranking", () => {
-  it("uses the same terrain estimate as the cockpit and refuses missing terrain", () => {
+  it("uses the same estimate as the cockpit, with and without shelter", () => {
     const points: DrawnRoute["points"] = [
       [0, 0],
       [0, 0.01],
     ];
-    const terrain: TerrainProfile = {
-      version: "glo90-profile-v1",
-      geometryKey: JSON.stringify(points),
-      source: "Open-Meteo / Copernicus DEM GLO-90 2021",
-      retrievedAt: "2026-09-10T00:00:00Z",
-      elevationsM: sampleTerrain(points).distancesM.map(
-        (distanceM) => 50 + distanceM * 0.05,
-      ),
-    };
-    const segment = {
-      ...route("hill", "Hill", points),
-      terrainMode: "terrain" as const,
-      terrain,
-    };
+    const segment = route("hill", "Hill", points);
     const weather = forecast([0, 0], [2, 6]);
     const forecasts = new Map<string, ForecastState>([
       ["hill", { status: "ready", forecast: weather }],
@@ -66,7 +52,6 @@ describe("opportunity board ranking", () => {
       weather.hours[1]!,
       weather.retrievedAt,
       referenceRider,
-      terrain,
     )!;
     expect(rows[0]!.bestTimeS).toBe(cockpit.windTimeS);
     expect(rows[0]!.calmTimeS).toBe(cockpit.calmTimeS);
@@ -82,18 +67,9 @@ describe("opportunity board ranking", () => {
         weather.hours[1]!,
         weather.retrievedAt,
         referenceRider,
-        terrain,
         "dense",
       )!.windTimeS,
     );
-    const missing = rankOpportunities(
-      [{ ...segment, terrain: null }],
-      forecasts,
-      referenceRider,
-      false,
-    )[0]!;
-    expect(missing.status).toBe("unavailable");
-    expect(missing.reason).toContain("Terrain not loaded");
   });
   const north = route("n", "Northbound", [
     [0, 0],

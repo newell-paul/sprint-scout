@@ -21,7 +21,7 @@ Healthy output ends with lines like `Test Files  44 passed`, `127 passed`, `ESLi
 
 - `apps/web`: Next 16 static export. The planner is `app/routes`: `route-drawer.tsx` is the screen, `library.ts` is storage and validation, `example-segment.ts` seeds the first visit.
 - `packages/analysis`: pure deterministic maths (wind projection, ride effect, effort matching). No I/O, 100 % coverage, property tests with a fixed seed.
-- `packages/application`: Open-Meteo loaders for forecast, archive and elevation, GPX parsing, route wind, terrain and shelter.
+- `packages/application`: Open-Meteo loaders for forecast and archive, GPX parsing, route wind and shelter.
 - `packages/contracts`, `testing`, `ui`: Zod schemas, shared fixtures and msw handlers, map loader.
 - `apps/worker`: a reserved boundary with no runtime.
 - Data flows one way: UI, then application, then analysis. The UI never does the maths itself; dependency-cruiser enforces the boundaries.

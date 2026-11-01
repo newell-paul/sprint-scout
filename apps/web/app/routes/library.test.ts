@@ -7,7 +7,6 @@ import {
   readLibrary,
   validPoint,
 } from "./library";
-import { sampleTerrain, type TerrainProfile } from "@scout/application/terrain";
 const route = {
   id: "test",
   name: "Ride",
@@ -29,38 +28,19 @@ describe("independent route storage", () => {
       readLibrary(JSON.stringify([{ ...route, shelter: "unknown" }])),
     ).toThrow();
   });
-  it("retains valid terrain and invalidates mismatched elevation without losing the route", () => {
-    const terrain: TerrainProfile = {
-      version: "glo90-profile-v1",
-      geometryKey: JSON.stringify(route.points),
-      source: "Open-Meteo / Copernicus DEM GLO-90 2021",
-      retrievedAt: route.createdAt,
-      elevationsM: sampleTerrain(route.points).points.map(() => 100),
-    };
-    const saved = { ...route, terrain, terrainMode: "terrain" };
-    expect(readLibrary(JSON.stringify([saved]))[0]?.terrain).toEqual(terrain);
-    const changed = readLibrary(
-      JSON.stringify([{ ...saved, points: [...route.points].reverse() }]),
-    );
-    expect(changed[0]?.terrain).toBeNull();
-    expect(changed[0]?.terrainMode).toBe("terrain");
-    expect(changed[0]?.name).toBe(route.name);
-    expect(
-      readLibrary(
-        JSON.stringify([
-          { ...saved, terrain: { ...terrain, elevationsM: [null] } },
-        ]),
-      )[0]?.terrain,
-    ).toBeNull();
-  });
-  it("keeps the automatic terrain setting and rejects non-boolean values", () => {
-    expect(
-      readLibrary(JSON.stringify([{ ...route, terrainAuto: true }]))[0]
-        ?.terrainAuto,
-    ).toBe(true);
-    expect(() =>
-      readLibrary(JSON.stringify([{ ...route, terrainAuto: "yes" }])),
-    ).toThrow();
+  it("drops terrain fields left from before terrain was removed, whatever they hold", () => {
+    for (const legacy of [
+      { terrain: null, terrainMode: "terrain", terrainAuto: true },
+      {
+        terrain: { elevationsM: [null] },
+        terrainMode: "flat",
+        terrainAuto: "yes",
+      },
+      { terrain: 7, terrainMode: 0, terrainAuto: null },
+    ]) {
+      const [read] = readLibrary(JSON.stringify([{ ...route, ...legacy }]));
+      expect(read).toEqual(route);
+    }
   });
   it("round trips ordered geometry and confirmation", () => {
     expect(readLibrary(JSON.stringify([route]))).toEqual([route]);

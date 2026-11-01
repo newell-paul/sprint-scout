@@ -8,14 +8,14 @@
   - drop the terrain cases from `boundaries.test.ts` and `ride-effect.property.test.ts`.
 - `packages/application`:
   - delete `src/terrain.ts` and its test;
-  - drop the `./terrain` export from `package.json`;
+  - drop the `./terrain` export and the `@turf/destination` dependency (only terrain sampling used it) from `package.json`;
   - `route-wind.ts` and its tests lose the terrain input;
   - drop the terrain cases from `shelter.test.ts`.
 - `packages/contracts`: drop the elevation response schema.
 - `packages/testing`:
   - delete the elevation fixture and handler;
   - drop elevation from faults, call counts and drift;
-  - delete the `v1-terrain-mismatch` storage fixture.
+  - keep the `v1-terrain-mismatch` storage fixture: it is a shape the planner shipped, so the migration test now proves its terrain fields are dropped. Its comment changes.
 - `apps/web/app`:
   - delete `terrain-panel.tsx`, its test and its baselines;
   - `library.ts`: drop the fields and strip legacy ones;

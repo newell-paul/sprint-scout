@@ -29,8 +29,6 @@ const props = () => ({
   daylightDryOnly: false,
   onDaylightDryChange: vi.fn(),
   onTargetChange: vi.fn(() => true),
-  onTerrainChange: vi.fn(() => true),
-  onTerrainAutoChange: vi.fn(() => true),
   onShelterChange: vi.fn(() => true),
   onEffortsChange: vi.fn(() => true),
 });
@@ -459,22 +457,6 @@ it("target: a time typed before the forecast lands is kept when it arrives", asy
     .element(region.getByRole("group", { name: "Forecast navigation" }))
     .toBeVisible();
   await expect.element(field).toHaveValue("1:30");
-});
-
-it("terrain mode without elevation: cockpit unavailable, panel offers fallback", async () => {
-  const screen = await render(
-    <WindPreview
-      route={aRoute({ points: uniquePoints(), terrainMode: "terrain" })}
-      {...props()}
-    />,
-  );
-  const region = screen.getByRole("region", console);
-  await expect
-    .element(region.getByText(/Terrain is not loaded for this segment/))
-    .toBeVisible();
-  await expect
-    .element(region.getByRole("button", { name: "Use flat-road estimate" }))
-    .toBeVisible();
 });
 
 // Only getContainer is used once the map is ready; MapLibre itself is covered by e2e.

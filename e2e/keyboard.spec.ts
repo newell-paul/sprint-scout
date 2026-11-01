@@ -83,22 +83,6 @@ test("Best hour works from the keyboard @keyboard", async ({ planner, seed }) =>
   await expect(planner.timeline.selectedWindow).toHaveAttribute("data-best", "true");
 });
 
-test("terrain loads from the keyboard: consent with Space, load with Enter @keyboard", async ({
-  planner,
-  seed,
-  openMeteo,
-}) => {
-  await seed(seeded);
-
-  await planner.terrain.consent.press("Space");
-  await expect(planner.terrain.loadButton).toBeEnabled();
-  await planner.terrain.loadButton.press("Enter");
-
-  await expect(planner.terrain.heading).toHaveText("Terrain · Enabled");
-  expect(openMeteo.calls.elevation).toBe(1);
-  await expect(planner.cockpit.segmentTime).not.toHaveText("Unavailable");
-});
-
 test("the hourly times table opens and takes focus from the keyboard @keyboard @a11y", async ({ planner, seed }) => {
   await seed(seeded);
 

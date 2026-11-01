@@ -27,8 +27,6 @@ export default function RideCockpit({
   description,
   calmSpeedMps = 40 / 3.6,
   targetTimeS = null,
-  terrainMode = false,
-  terrainMissing = false,
 }: {
   effect: RouteRideEffect | null;
   hour: RouteWindHour;
@@ -36,8 +34,6 @@ export default function RideCockpit({
   description: string;
   calmSpeedMps?: number;
   targetTimeS?: number | null;
-  terrainMode?: boolean;
-  terrainMissing?: boolean;
 }) {
   const maximum = Math.max(
     80,
@@ -149,10 +145,8 @@ export default function RideCockpit({
           {effect ? formatSpeed(effect.windSpeedMps, unit) : "Unavailable"}
         </strong>
         <span className="dial-caption">
-          ○ Still-air baseline{terrainMode ? " · same terrain " : " "}
-          {terrainMode && !effect
-            ? "Unavailable"
-            : formatSpeed(effect?.calmSpeedMps ?? calmSpeedMps, unit)}
+          ○ Still-air baseline{" "}
+          {formatSpeed(effect?.calmSpeedMps ?? calmSpeedMps, unit)}
         </span>
       </div>
       <div className="cockpit-wind">
@@ -225,9 +219,7 @@ export default function RideCockpit({
             </span>
             <dl className="timing-facts">
               <div>
-                <dt>
-                  {terrainMode ? "Still air · same terrain" : "Still air"}
-                </dt>
+                <dt>Still air</dt>
                 <dd data-testid="segment-calm-time">
                   {formatDuration(effect.calmTimeS)}
                 </dd>
@@ -260,18 +252,14 @@ export default function RideCockpit({
           </>
         ) : (
           <p data-testid="cockpit-unavailable">
-            {terrainMissing
-              ? "Terrain is not loaded for this segment. Load terrain in the Terrain panel below, or switch it to the flat-road estimate."
-              : hour.speedMps === null
-                ? "Wind data is missing for this hour."
-                : "This segment cannot be modelled."}
+            {hour.speedMps === null
+              ? "Wind data is missing for this hour."
+              : "This segment cannot be modelled."}
           </p>
         )}
         <p className="cockpit-notes">
           <span className="instrument-note">
-            {terrainMode
-              ? "Modelled at constant effort · Terrain-aware · Unvalidated"
-              : "Modelled at constant effort · Flat road · Terrain not modelled"}
+            Modelled at constant effort · Flat road · Terrain not modelled
           </span>
           {effect?.shelter && effect.shelter !== "exposed" && (
             <span

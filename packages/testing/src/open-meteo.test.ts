@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   openMeteoArchiveResponse,
-  openMeteoElevationResponse,
   openMeteoForecastResponse,
 } from "@scout/contracts";
 import {
   archiveBody,
   defaultOpenMeteoConfig,
-  elevationBody,
   forecastBody,
   recorded,
   recordedForecastStartS,
@@ -20,7 +18,6 @@ describe("recorded Open-Meteo fixtures", () => {
     const fixtures = recorded();
     expect(fixtures.forecast.hourly.time).toHaveLength(48);
     expect(fixtures.forecast.hourly_units.wind_speed_10m).toBe("m/s");
-    expect(fixtures.elevation.elevation).toHaveLength(11);
     expect(fixtures.archive.hourly.time).toHaveLength(48);
     expect(recordedForecastStartS() % 3600).toBe(0);
   });
@@ -40,23 +37,10 @@ describe("shared response builders", () => {
     expect(body.hourly.weather_code![3]).toBe(61);
     expect(body.hourly.is_day![3]).toBe(0);
     expect(body.hourly.time[47]).toBe(1_789_315_200 + 47 * 3600);
-    const elevation = openMeteoElevationResponse.parse(
-      elevationBody(config, [51.5, 51.51]),
-    ).elevation;
-    expect(elevation[0]).toBe(50);
-    expect(elevation[1]).toBeCloseTo(50 + 0.01 * 111195 * 0.04, 6);
-  });
-  it("mark the second elevation sample missing when incomplete", () => {
-    const config = defaultOpenMeteoConfig();
-    config.faults.elevation = "incomplete";
-    expect(
-      elevationBody(config, [51.5, 51.501, 51.502]).elevation[1],
-    ).toBeNull();
   });
   it("expose msw handlers for every endpoint", () => {
     expect(openMeteoHandlers().map((h) => h.info.header)).toEqual([
       "GET https://api.open-meteo.com/v1/forecast",
-      "GET https://api.open-meteo.com/v1/elevation",
       "GET https://archive-api.open-meteo.com/v1/archive",
     ]);
   });

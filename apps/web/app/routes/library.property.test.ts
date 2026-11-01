@@ -32,9 +32,12 @@ const route = fc.record(
     targetTimeS: optional(
       fc.oneof(fc.constant(null), fc.integer({ min: 1, max: 86400 })),
     ),
-    terrain: optional(fc.constant(null)),
-    terrainMode: optional(fc.constantFrom("flat" as const, "terrain" as const)),
-    terrainAuto: optional(fc.boolean()),
+    // Fields from before terrain was removed; any value must be dropped.
+    terrain: optional(fc.oneof(fc.constant(null), fc.integer(), fc.object())),
+    terrainMode: optional(fc.oneof(fc.string(), fc.boolean())),
+    terrainAuto: optional(
+      fc.oneof(fc.boolean(), fc.string(), fc.constant(null)),
+    ),
     shelter: optional(
       fc.constantFrom(
         "exposed" as const,
@@ -86,6 +89,8 @@ describe("saved library invariants", () => {
         expect(strip(twice)).toEqual(strip(once));
         expect(new Set(once.map((r) => r.slot)).size).toBe(once.length);
         expect(once.map((r) => r.id)).toEqual(routes.map((r) => r.id));
+        for (const key of ["terrain", "terrainMode", "terrainAuto"])
+          expect(once.some((r) => key in r)).toBe(false);
       }),
       runs,
     );

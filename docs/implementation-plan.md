@@ -261,3 +261,7 @@ Scope: a deterministic effort matcher in `@scout/analysis` (`effort-match-v1`), 
 ### Past wind for recorded efforts — 13 September 2026
 
 Scope: `@scout/application/archive-wind` (bounded Open-Meteo archive loader with whole-day validation and contiguous date batching), `wind` stored per effort, a consent-gated "Load past wind" control in the efforts panel showing the along-route description, speed and the reference model's still-air difference for that hour, plus the own-recording confirmation that gates GPX import. Out of scope: the Strava worker, which needs a data-rights decision recorded in `docs/integration-decisions.md` before any code. Validation: 8 loader tests through the shared msw handlers including outage and rate-limit faults, contract fixture parsing, library validation, and three new atomic journeys (confirmation gate, consent-gated load with persistence, archive outage).
+
+### Terrain removed — 1 November 2026
+
+The owner removed terrain-aware modelling and the Open-Meteo elevation loader; every segment is modelled as a flat road. GPX heights are the planned replacement. See `docs/design.md` ("Terrain removed") and `intent/remove-terrain/`.

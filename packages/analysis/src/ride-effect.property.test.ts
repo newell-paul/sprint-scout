@@ -10,7 +10,6 @@ import {
   windUncertainty,
   type RideLeg,
 } from "./ride-effect";
-import { estimateTerrainEffect, solveTerrainSpeedMps } from "./terrain-effect";
 
 const runs = { numRuns: 200, seed: Number(process.env.FC_SEED ?? 20260913) };
 const wind = fc.double({ min: -40, max: 40, noNaN: true });
@@ -126,78 +125,6 @@ describe("flat-road ride effect invariants", () => {
   });
 });
 
-describe("terrain model invariants", () => {
-  // Bounded so downhill tailwinds stay under the 144 km/h model ceiling and
-  // long-lead crosswind sigma keeps the along-route wind under 30 m/s.
-  const grade = fc.double({ min: -0.08, max: 0.12, noNaN: true });
-  const terrainWind = fc.double({ min: -15, max: 15, noNaN: true });
-  const power = fc.double({ min: 100, max: 450, noNaN: true });
-  const shortLead = fc.double({ min: 0, max: 72, noNaN: true });
-  it("agrees with the flat-road model on zero grade", () => {
-    fc.assert(
-      fc.property(legs, (route) => {
-        const flat = estimateRideEffect(route);
-        const terrain = estimateTerrainEffect(
-          route.map((l) => ({ ...l, grade: 0 })),
-        );
-        return (
-          Math.abs(flat.speedDeltaMps - terrain.speedDeltaMps) < 1e-6 &&
-          Math.abs(flat.timeDeltaS - terrain.timeDeltaS) < 1e-3
-        );
-      }),
-      runs,
-    );
-  });
-  it("slows on steeper grades and speeds up with more tailwind", () => {
-    fc.assert(
-      fc.property(power, terrainWind, grade, grade, (p, w, a, b) => {
-        const [gentle, steep] = ordered(a, b);
-        return (
-          solveTerrainSpeedMps(p, w, steep) <=
-          solveTerrainSpeedMps(p, w, gentle) + 1e-9
-        );
-      }),
-      runs,
-    );
-    fc.assert(
-      fc.property(power, grade, terrainWind, terrainWind, (p, g, a, b) => {
-        const [less, more] = ordered(a, b);
-        return (
-          solveTerrainSpeedMps(p, less, g) <=
-          solveTerrainSpeedMps(p, more, g) + 1e-9
-        );
-      }),
-      runs,
-    );
-  });
-  it("keeps the terrain point estimate inside its band", () => {
-    const hilly = fc.array(
-      fc.record({
-        distanceM: fc.double({ min: 10, max: 5000, noNaN: true }),
-        tailwindMps: fc.double({ min: -12, max: 12, noNaN: true }),
-        crosswindMps: fc.double({ min: -12, max: 12, noNaN: true }),
-        grade,
-      }),
-      { minLength: 1, maxLength: 5 },
-    );
-    fc.assert(
-      fc.property(hilly, shortLead, (route, leadHours) => {
-        const { band, speedDeltaMps } = estimateTerrainEffect(
-          route,
-          referenceRider,
-          leadHours,
-        );
-        return (
-          band !== null &&
-          band.speedDeltaLowMps <= speedDeltaMps + 1e-9 &&
-          speedDeltaMps <= band.speedDeltaHighMps + 1e-9
-        );
-      }),
-      runs,
-    );
-  });
-});
-
 describe("ride effect edge cases", () => {
   it("settles below the tailwind speed when a tailwind alone exceeds the target power", () => {
     const speed = solveSpeedMps(30, { ...referenceRider, calmSpeedKmh: 1 });
@@ -210,10 +137,6 @@ describe("ride effect edge cases", () => {
       estimateRideEffect(route, undefined, { leadHours: -1 }).band,
     ).toBeNull();
     expect(estimateRideEffect(route).band).toBeNull();
-    expect(
-      estimateTerrainEffect([{ ...route[0]!, grade: 0 }], referenceRider, -1)
-        .band,
-    ).toBeNull();
   });
   it("rejects rider inputs that are not objects or are out of range", () => {
     for (const input of [
@@ -223,16 +146,5 @@ describe("ride effect edge cases", () => {
       { powerW: 5000, massKg: 80, cdaM2: 0.3 },
     ])
       expect(() => riderFromPower(input as never)).toThrow("out of range");
-  });
-  it("rejects terrain inputs outside the supported limits", () => {
-    expect(() => solveTerrainSpeedMps(300, 0, 0.5)).toThrow(
-      "outside supported limits",
-    );
-    expect(() => solveTerrainSpeedMps(0, 0, 0)).toThrow(
-      "outside supported limits",
-    );
-    expect(() => solveTerrainSpeedMps(300, 31, 0)).toThrow(
-      "outside supported limits",
-    );
   });
 });

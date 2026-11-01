@@ -1,6 +1,6 @@
 # Remove terrain and Open-Meteo elevation
 
-Status: accepted
+Status: done
 Opened: 1 November 2026 by Paul Newell
 
 ## Problem

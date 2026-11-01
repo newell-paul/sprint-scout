@@ -22,9 +22,7 @@ import RiderSettings from "./rider-settings";
 import TargetSettings from "./target-settings";
 import ShelterSettings from "./shelter-settings";
 import type { Shelter } from "@scout/application/shelter";
-import TerrainPanel from "./terrain-panel";
 import EffortsPanel from "./efforts-panel";
-import type { TerrainProfile } from "@scout/application/terrain";
 import ConditionsDetail from "./conditions-detail";
 import { startWindParticles } from "./wind-particles";
 import { routeEffect } from "./route-effect";
@@ -42,8 +40,6 @@ export default function WindPreview({
   requestedAt = null,
   requestSeq = 0,
   onTargetChange,
-  onTerrainChange,
-  onTerrainAutoChange,
   onShelterChange,
   onEffortsChange,
 }: {
@@ -62,11 +58,6 @@ export default function WindPreview({
   requestSeq?: number;
   onTargetChange: (target: number | null) => boolean;
   onShelterChange: (shelter: Shelter) => boolean;
-  onTerrainChange: (
-    terrain: TerrainProfile | null,
-    mode: "flat" | "terrain",
-  ) => boolean;
-  onTerrainAutoChange: (auto: boolean) => boolean;
   onEffortsChange: (efforts: RouteEffort[]) => boolean;
 }) {
   const [forecast, setForecast] = useState<RouteWindForecast | null>(() =>
@@ -345,8 +336,6 @@ export default function WindPreview({
             description={windDescription}
             calmSpeedMps={calmSpeedMps}
             targetTimeS={route.targetTimeS ?? null}
-            terrainMode={route.terrainMode === "terrain"}
-            terrainMissing={route.terrainMode === "terrain" && !route.terrain}
           />
           <ConditionsDetail
             hour={forecast.hours[index]!}
@@ -367,15 +356,12 @@ export default function WindPreview({
               {riderInput
                 ? `your numbers: ${riderInput.powerW} W, ${riderInput.massKg} kg rider and bike, CdA ${riderInput.cdaM2} m²`
                 : "a reference rider and bike of 85 kg"}{" "}
-              at a flat-road reference pace.{" "}
-              {route.terrainMode === "terrain"
-                ? "The selected segment uses its smoothed elevation profile, with a still-air baseline on the same terrain. Steady speed is assumed for each leg; acceleration, braking, stops and drafting are excluded."
-                : "Hills, stops and drafting are excluded in flat-road mode."}{" "}
-              The dial’s shaded arc and time range use assumed forecast errors,
-              not validated confidence; elevation errors are not included. This
-              is not a personal prediction. Manual shelter, if selected, is a
-              uniform assumed wind reduction; local shelter is not measured. Its
-              range includes the exposed scenario.
+              at a flat-road reference pace. Hills, stops and drafting are
+              excluded; every segment is modelled as a flat road. The dial’s
+              shaded arc and time range use assumed forecast errors, not
+              validated confidence. This is not a personal prediction. Manual
+              shelter, if selected, is a uniform assumed wind reduction; local
+              shelter is not measured. Its range includes the exposed scenario.
             </p>
             <p id="best-hour-explanation">
               Largest modelled speed benefit in these 48 hours, or the smallest
@@ -402,12 +388,6 @@ export default function WindPreview({
       <TargetSettings
         target={route.targetTimeS ?? null}
         onChange={onTargetChange}
-      />
-      <TerrainPanel
-        route={route}
-        unit={unit}
-        onChange={onTerrainChange}
-        onAutoChange={onTerrainAutoChange}
       />
       <EffortsPanel
         route={route}

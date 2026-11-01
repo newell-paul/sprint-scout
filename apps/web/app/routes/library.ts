@@ -1,7 +1,3 @@
-import {
-  validTerrainProfile,
-  type TerrainProfile,
-} from "@scout/application/terrain";
 export type Point = [number, number];
 import { isShelter, type Shelter } from "@scout/application/shelter";
 export type EffortWind = {
@@ -36,9 +32,6 @@ export type DrawnRoute = {
   createdAt: string;
   slot: number;
   targetTimeS?: number | null;
-  terrain?: TerrainProfile | null;
-  terrainMode?: "flat" | "terrain";
-  terrainAuto?: boolean;
   shelter?: Shelter;
   efforts?: RouteEffort[];
 };
@@ -143,7 +136,6 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
       const v = r as Partial<DrawnRoute>;
       return (
         (v.shelter === undefined || isShelter(v.shelter)) &&
-        (v.terrainAuto === undefined || typeof v.terrainAuto === "boolean") &&
         (v.efforts === undefined ||
           (Array.isArray(v.efforts) &&
             v.efforts.length <= effortLimits.perRoute &&
@@ -180,31 +172,24 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
     );
   if (new Set(data.map((r) => (r as DrawnRoute).id)).size !== data.length)
     throw new Error("Duplicate route IDs.");
-  const routes = data as (Omit<DrawnRoute, "slot"> & { slot?: number })[];
+  // Terrain was removed on 1 November 2026; its fields are dropped whatever they hold.
+  const routes = data as (Omit<DrawnRoute, "slot"> & {
+    slot?: number;
+    terrain?: unknown;
+    terrainMode?: unknown;
+    terrainAuto?: unknown;
+  })[];
   const taken = new Set(
     routes.flatMap((r) => (r.slot === undefined ? [] : [r.slot])),
   );
   if (taken.size !== routes.filter((r) => r.slot !== undefined).length)
     throw new Error("Duplicate segment slots.");
   let next = 0;
-  return routes.map((r) => {
-    const terrain =
-      r.terrain === undefined
-        ? {}
-        : {
-            terrain: validTerrainProfile(r.terrain, r.points)
-              ? r.terrain
-              : null,
-          };
-    const terrainMode =
-      r.terrainMode === undefined
-        ? {}
-        : {
-            terrainMode:
-              r.terrainMode === "flat"
-                ? ("flat" as const)
-                : ("terrain" as const),
-          };
+  return routes.map((stored) => {
+    const r = { ...stored };
+    delete r.terrain;
+    delete r.terrainMode;
+    delete r.terrainAuto;
     // Efforts belong to the geometry they were matched against.
     const key = JSON.stringify(r.points);
     const efforts =
@@ -222,10 +207,9 @@ export function readLibrary(raw: string | null): DrawnRoute[] {
                 }),
               })),
           };
-    if (r.slot !== undefined)
-      return { ...r, ...terrain, ...terrainMode, ...efforts } as DrawnRoute;
+    if (r.slot !== undefined) return { ...r, ...efforts } as DrawnRoute;
     while (taken.has(next)) next++;
     taken.add(next);
-    return { ...r, ...terrain, ...terrainMode, ...efforts, slot: next };
+    return { ...r, ...efforts, slot: next };
   });
 }

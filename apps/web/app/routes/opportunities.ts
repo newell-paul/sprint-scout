@@ -82,9 +82,7 @@ export function rankOpportunities(
         timesS: effects.map((effect) => effect?.windTimeS ?? null),
         reason: daylightDryOnly
           ? "No dry daylight hour with wind data."
-          : route.terrainMode === "terrain" && !route.terrain
-            ? "Terrain not loaded. Load terrain or choose the flat-road estimate."
-            : "Wind data missing or segment cannot be modelled.",
+          : "Wind data missing or segment cannot be modelled.",
       };
     return {
       route,

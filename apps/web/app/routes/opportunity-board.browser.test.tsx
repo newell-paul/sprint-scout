@@ -3,7 +3,6 @@ import { render } from "vitest-browser-react/pure";
 import OpportunityBoard from "./opportunity-board";
 import {
   aRoute,
-  aTerrain,
   aria,
   openMeteo,
   resetOpenMeteo,
@@ -77,23 +76,6 @@ it("ranked: every segment at its best hour, active slot marked", async () => {
     .element(region.getByRole("button", { name: "Refresh" }))
     .toBeEnabled();
   await aria("opportunity-board.ranked", region);
-});
-
-it("terrain: a segment with terrain ranks with the terrain model", async () => {
-  const points = uniquePoints();
-  const route = aRoute({
-    points,
-    terrain: aTerrain(points),
-    terrainMode: "terrain",
-  });
-  const screen = await render(
-    <OpportunityBoard routes={[route]} {...props()} />,
-  );
-  const region = screen.getByRole("region", board);
-  await region.getByRole("button", { name: "Rank my segments" }).click();
-  const row = region.getByRole("row", { name: /Test hill/ });
-  await expect.element(row).toHaveAttribute("data-status", "ranked");
-  await expect.element(row).toHaveTextContent("Terrain-aware");
 });
 
 it("filters: the heading names the dry daylight filter", async () => {

@@ -3,7 +3,6 @@
 // unit tables. Exits non-zero on any drift.
 import {
   openMeteoArchiveResponse,
-  openMeteoElevationResponse,
   openMeteoForecastResponse,
 } from "@scout/contracts";
 import { openMeteoHosts, recorded } from "./open-meteo";
@@ -20,12 +19,6 @@ const checks = [
     url: `${openMeteoHosts.forecast}?latitude=51.5&longitude=-0.12&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,precipitation_probability,weather_code,is_day&wind_speed_unit=ms&timeformat=unixtime&timezone=GMT&start_hour=${slice(start)}&end_hour=${slice(start + 47 * hourMs)}`,
     schema: openMeteoForecastResponse,
     units: () => recorded().forecast.hourly_units,
-  },
-  {
-    name: "elevation",
-    url: `${openMeteoHosts.elevation}?latitude=51.5,51.505,51.51&longitude=-0.12,-0.12,-0.12`,
-    schema: openMeteoElevationResponse,
-    units: () => ({}),
   },
   {
     name: "archive",

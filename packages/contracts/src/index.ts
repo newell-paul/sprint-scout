@@ -87,15 +87,7 @@ export const openMeteoArchiveResponse = z
       ),
   })
   .strict();
-export const openMeteoElevationResponse = z
-  .object({
-    elevation: z.array(z.number().min(-500).max(9000)).min(1).max(100),
-  })
-  .strict();
 export type OpenMeteoForecastResponse = z.infer<
   typeof openMeteoForecastResponse
 >;
 export type OpenMeteoArchiveResponse = z.infer<typeof openMeteoArchiveResponse>;
-export type OpenMeteoElevationResponse = z.infer<
-  typeof openMeteoElevationResponse
->;

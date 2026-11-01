@@ -14,17 +14,17 @@
           - columnheader "48 hours"
           - columnheader "Open"
       - rowgroup:
-        - row "– River flat Dense · assumed shelter Flat-road model Target comparison unavailable Weather service unavailable. Try again. – No data Open":
+        - row "– River flat Dense · assumed shelter Target comparison unavailable Weather service unavailable. Try again. – No data Open":
           - cell "–"
-          - rowheader "River flat Dense · assumed shelter Flat-road model Target comparison unavailable"
+          - rowheader "River flat Dense · assumed shelter Target comparison unavailable"
           - cell "Weather service unavailable. Try again."
           - cell "–"
           - cell "No data"
           - cell "Open":
             - button "Open" [disabled]
-        - row "– Test hill Flat-road model Weather service unavailable. Try again. – No data Open":
+        - row "– Test hill Weather service unavailable. Try again. – No data Open":
           - cell "–"
-          - rowheader "Test hill Flat-road model"
+          - rowheader "Test hill"
           - cell "Weather service unavailable. Try again."
           - cell "–"
           - cell "No data"

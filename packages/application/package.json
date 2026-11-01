@@ -4,15 +4,13 @@
   "type": "module",
   "exports": {
     "./route-wind": "./src/route-wind.ts",
-    "./terrain": "./src/terrain.ts",
     "./shelter": "./src/shelter.ts",
     "./gpx": "./src/gpx.ts",
     "./archive-wind": "./src/archive-wind.ts"
   },
   "dependencies": {
     "@scout/analysis": "workspace:*",
-    "@scout/contracts": "workspace:*",
-    "@turf/destination": "7.4.0"
+    "@scout/contracts": "workspace:*"
   },
   "devDependencies": {
     "@scout/testing": "workspace:*"

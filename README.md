@@ -6,9 +6,9 @@
 
 SprintScout helps you find the best wind conditions for your cycling segment attempts. Draw a segment on the map, and it uses Open-Meteo’s 48-hour wind forecast to calculate how the wind will help or hinder you along the route.
 
-Add terrain and shelter per segment, set a target time, and the board ranks every saved segment by its best hour. Import a GPX ride and it finds your own traversals and, on request, the wind that hour from the archive.
+Add shelter per segment, set a target time, and the board ranks every saved segment by its best hour. Import a GPX ride and it finds your own traversals and, on request, the wind that hour from the archive.
 
-Segments stay in local storage. No accounts, API keys or server. Wind, elevation and map tiles come from Open-Meteo and OpenStreetMap. Saving a segment confirms it is your own and permits sending its start coordinate for wind; elevation and past wind each have a separate consent box. Estimates are physics for a reference rider, not a prediction of your time.
+Segments stay in local storage. No accounts, API keys or server. Wind and map tiles come from Open-Meteo and OpenStreetMap. Saving a segment confirms it is your own and permits sending its start coordinate for wind; past wind has a separate consent box. Estimates are flat-road physics for a reference rider, not a prediction of your time.
 
 ## Try it
 

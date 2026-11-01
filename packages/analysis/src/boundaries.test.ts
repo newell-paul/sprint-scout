@@ -5,7 +5,6 @@ import {
   referenceRider,
   solveSpeedMps,
 } from "./ride-effect";
-import { estimateTerrainEffect, solveTerrainSpeedMps } from "./terrain-effect";
 
 // Exact-boundary tests. Each pair sits one step either side of a limit so a
 // mutated comparison operator or dropped condition fails here.
@@ -133,86 +132,5 @@ describe("rider physics limits", () => {
     );
     expect(result.rider).toEqual(rider);
     expect(result.rider).not.toBe(rider);
-    const terrain = estimateTerrainEffect(
-      [{ distanceM: 1000, tailwindMps: 0, grade: 0 }],
-      rider,
-    );
-    expect(terrain.rider).toEqual(rider);
-    expect(terrain.rider).not.toBe(rider);
-  });
-});
-
-describe("terrain physics limits", () => {
-  it.each([
-    ["mass", { massKg: 0 }],
-    ["drag area", { cdaM2: 0 }],
-    ["air density", { airDensity: 0 }],
-    ["rolling resistance", { crr: -0.001 }],
-    ["non-finite mass", { massKg: Number.NaN }],
-  ])("rejects a rider with invalid %s", (_, patch) => {
-    expect(() =>
-      solveTerrainSpeedMps(300, 0, 0, { ...referenceRider, ...patch }),
-    ).toThrow("Terrain model inputs are outside supported limits.");
-  });
-  it("accepts grade and wind exactly at the limits and rejects just beyond", () => {
-    expect(solveTerrainSpeedMps(300, 30, 0.3)).toBeGreaterThan(0);
-    expect(
-      solveTerrainSpeedMps(300, -30, -0.3, { ...referenceRider, massKg: 40 }),
-    ).toBeGreaterThan(0);
-    expect(() => solveTerrainSpeedMps(300, 30.001, 0)).toThrow();
-    expect(() => solveTerrainSpeedMps(300, 0, -0.3001)).toThrow();
-    expect(() => solveTerrainSpeedMps(1000, 30, -0.3)).toThrow(
-      "Terrain speed exceeds the model limit of 144 km/h.",
-    );
-  });
-  it("is slower uphill than on the flat and faster with the grade component removed", () => {
-    const flat = solveTerrainSpeedMps(300, 0, 0);
-    expect(solveTerrainSpeedMps(300, 0, 0.05)).toBeLessThan(flat);
-    expect(solveTerrainSpeedMps(300, 0, -0.05)).toBeGreaterThan(flat);
-    expect(solveTerrainSpeedMps(300, 0, 0)).toBeCloseTo(
-      solveSpeedMps(0, { ...referenceRider, calmSpeedKmh: flat * 3.6 }),
-      6,
-    );
-  });
-  it.each([
-    ["no legs", []],
-    ["zero distance", [{ distanceM: 0, tailwindMps: 0, grade: 0 }]],
-    [
-      "non-finite wind",
-      [{ distanceM: 100, tailwindMps: Number.NaN, grade: 0 }],
-    ],
-    [
-      "non-finite crosswind",
-      [{ distanceM: 100, tailwindMps: 0, crosswindMps: Number.NaN, grade: 0 }],
-    ],
-    ["grade over 30%", [{ distanceM: 100, tailwindMps: 0, grade: 0.31 }]],
-  ])("rejects terrain legs with %s", (_, legs) => {
-    expect(() => estimateTerrainEffect(legs)).toThrow(
-      "Complete valid terrain legs are required.",
-    );
-  });
-  it("projects the along-route wind onto the slope", () => {
-    const steep = estimateTerrainEffect([
-      { distanceM: 1000, tailwindMps: 8, grade: 0.3 },
-    ]);
-    const flat = estimateTerrainEffect([
-      { distanceM: 1000, tailwindMps: 8, grade: 0 },
-    ]);
-    expect(steep.windSpeedMps).toBeLessThan(flat.windSpeedMps);
-    expect(steep.calmSpeedMps).toBeLessThan(flat.calmSpeedMps);
-    expect(
-      estimateTerrainEffect(
-        [{ distanceM: 1000, tailwindMps: 8, grade: 0 }],
-        referenceRider,
-        Number.NaN,
-      ).band,
-    ).toBeNull();
-    const band = estimateTerrainEffect(
-      [{ distanceM: 1000, tailwindMps: 8, grade: 0.02 }],
-      referenceRider,
-      6,
-    ).band!;
-    expect(band.leadHours).toBe(6);
-    expect(band.speedDeltaHighMps).toBeGreaterThan(band.speedDeltaLowMps);
   });
 });
