@@ -34,6 +34,9 @@ overrides:
   katex: ^0.18.2
   tmp: ^0.2.6
   uuid: ^11.1.1
+  # Lighthouse 13.6 pulls @sentry/bundler-plugins 11.10, whose glob 13 has a
+  # medium advisory fixed only in 14.0.2; Sentry 11.11 already moved to 14.
+  glob@13: ^14.0.3
   # markdownlint 0.42 pins re2js 2.8.6, which has a high advisory fixed in
   # 2.8.7; stay on 2.8.x until markdownlint moves its pin.
   re2js: ~2.8.8
