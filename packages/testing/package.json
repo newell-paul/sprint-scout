@@ -13,12 +13,12 @@
   },
   "dependencies": {
     "@scout/contracts": "workspace:*",
-    "msw": "^3.0.3"
+    "msw": "^3.0.4"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
     "@vitest/browser-playwright": "4.1.12",
-    "chrome-launcher": "^1.2.2",
+    "chrome-launcher": "^1.2.3",
     "lighthouse": "^13.6.0",
     "vitest": "4.1.12"
   }

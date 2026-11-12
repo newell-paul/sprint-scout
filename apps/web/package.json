@@ -13,12 +13,12 @@
     "@scout/analysis": "workspace:*",
     "@scout/application": "workspace:*",
     "@scout/ui": "workspace:*",
-    "@tailwindcss/postcss": "^4.2.0",
-    "maplibre-gl": "^6.16.0",
-    "next": "^16.4.3",
+    "@tailwindcss/postcss": "^4.3.5",
+    "maplibre-gl": "^6.17.0",
+    "next": "^16.4.5",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "tailwindcss": "^4.2.0"
+    "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
     "@scout/testing": "workspace:*"
